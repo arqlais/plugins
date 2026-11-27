@@ -1,5 +1,12 @@
 # Novidades do marcê
 
+## 1.6.0
+- Nova prancha 01 de detalhamento, no formato dos detalhamentos de escritório: isométrica fechada e aberta, vista frontal colorida com cotas e corte da coluna principal
+- Títulos das vistas numerados (01, 02...) com a escala de cada desenho
+- Detalhes em círculo, sem escala: puxador (cava, perfil, passante, alça, botão, testeira, toque), frente ripada, moldura ou vidro, perfil de LED e base (rodapé, pés ou suspenso)
+- Amostras dos MDFs em círculo, com marca e onde cada um é usado
+- A isométrica aberta é fotografada no SketchUp com portas e gavetas abertas (e tudo volta como estava)
+
 ## 1.5.0
 - Nova aba "detalhes": tipo de frente (lisa, ripada, moldura ou vidro canelado) com cartões ilustrados
 - Ripado com largura, espaçamento e espessura das ripas; as ripas entram na lista de peças

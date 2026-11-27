@@ -17,7 +17,7 @@
   'use strict';
   function dep(n) {
     if (root && root[n]) return root[n];
-    if (typeof require === 'function') return require('./' + { MarceEngine: 'engine', MarceRender: 'render', MarceNesting: 'nesting' }[n] + '.js');
+    if (typeof require === 'function') return require('./' + { MarceEngine: 'engine', MarceRender: 'render', MarceNesting: 'nesting', MarceDetalhes: 'detalhes' }[n] + '.js');
     return null;
   }
 
@@ -80,6 +80,13 @@
     '.simb{border:calc(var(--k)*.25mm) solid var(--b);border-radius:calc(var(--k)*2.5mm);padding:calc(var(--k)*2.2mm) calc(var(--k)*3mm);align-self:end}.simb h2{margin-bottom:calc(var(--k)*1.4mm)}.simb ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--k)*1mm) calc(var(--k)*3mm);font-size:.8em;line-height:1.2}.simb li{display:flex;align-items:center;gap:calc(var(--k)*1.6mm)}.simb svg{flex:none;width:calc(var(--k)*9mm);height:calc(var(--k)*6mm)}',
     '.det h3 .bal{display:inline-grid;place-items:center;width:1.7em;height:1.7em;border:calc(var(--k)*.3mm) solid var(--t);border-radius:50%;font-size:.78em;margin-right:.4em;vertical-align:middle}',
     '.ic svg{width:100%;height:100%;display:block}',
+    '.dt{flex:1;min-height:0;display:grid;gap:calc(var(--k)*4mm)}.dt-esq{display:grid;grid-template-rows:1fr auto;gap:calc(var(--k)*3mm);min-height:0;min-width:0}.dt-lin{display:flex;gap:calc(var(--k)*4mm);min-height:0;min-width:0;align-items:stretch}',
+    '.vista{margin:0;display:flex;flex-direction:column;min-height:0;min-width:0}.vista .img{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}.vista .img img,.vista .img>svg.perspectiva{max-width:100%;max-height:100%;width:auto;height:100%;object-fit:contain}',
+    '.tv{display:flex;align-items:center;gap:calc(var(--k)*1.8mm);margin-top:calc(var(--k)*1mm)}.tv .n{flex:none;width:calc(var(--k)*6.4mm);height:calc(var(--k)*6.4mm);border:calc(var(--k)*.3mm) solid var(--t);border-radius:50%;display:grid;place-items:center;font-size:calc(var(--k)*2.6mm);font-weight:600}.tv b{display:block;font-size:calc(var(--k)*2.7mm);font-weight:600;text-transform:uppercase;letter-spacing:.04em;border-bottom:calc(var(--k)*.3mm) solid var(--rose);padding:0 calc(var(--k)*6mm) calc(var(--k)*.3mm) 0;line-height:1.25}.tv small{display:block;font-size:calc(var(--k)*2mm);color:var(--m);text-transform:uppercase;letter-spacing:.06em}',
+    '.dt-dir{display:flex;flex-direction:column;gap:calc(var(--k)*2.2mm);min-height:0;border-left:calc(var(--k)*.25mm) solid var(--b);padding-left:calc(var(--k)*3.5mm)}.dt-dir h2{font-size:calc(var(--k)*2.2mm);text-transform:uppercase;letter-spacing:.05em;text-align:center;line-height:1.25}',
+    '.dc{display:flex;flex-direction:column;align-items:center;gap:calc(var(--k)*.6mm)}.dc svg{width:calc(var(--k)*var(--dc)*1mm);height:calc(var(--k)*var(--dc)*1mm)}.dc small{color:var(--m);font-size:calc(var(--k)*1.9mm);text-transform:lowercase}',
+    '.sw{display:flex;flex-wrap:wrap;justify-content:center;gap:calc(var(--k)*2mm) calc(var(--k)*3mm)}.sw div{width:calc(var(--k)*17mm);text-align:center;font-size:calc(var(--k)*1.9mm);line-height:1.2}.sw span{display:block;width:calc(var(--k)*9mm);height:calc(var(--k)*9mm);border-radius:50%;margin:0 auto calc(var(--k)*.8mm);border:calc(var(--k)*.25mm) solid rgba(0,0,0,.25)}.sw .veio{background-image:repeating-linear-gradient(100deg,rgba(0,0,0,0) 0 2px,rgba(0,0,0,.1) 2px 3px,rgba(255,255,255,.07) 3px 5px)}.sw small{display:block;color:var(--m)}',
+    '.obs{margin-top:auto;font-size:calc(var(--k)*1.95mm);color:var(--m);line-height:1.35}.obs b{color:var(--t);font-weight:600}',
     '.desenho text{font-family:Poppins,sans-serif;fill:#66717b}.desenho .rotulo{fill:#3e4b57;font-weight:600}.desenho .piso{stroke:#b9b0a6;stroke-width:1.2;vector-effect:non-scaling-stroke}.desenho .cota line{stroke:#8f857d;stroke-width:.7;vector-effect:non-scaling-stroke}.desenho .abertura{fill:none;stroke-width:.8;stroke-dasharray:5 4;vector-effect:non-scaling-stroke;opacity:.8}.desenho .cuba-linha{stroke:#6f8fb6;stroke-width:1.4;stroke-dasharray:5 3;vector-effect:non-scaling-stroke}.desenho .cuba-txt{fill:#4d6f99}.desenho .tracejado{fill:none;stroke:#fff;stroke-width:1;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}.desenho .rotulo-frente{fill:#fff;font-weight:600}.desenho .rotulo-claro{fill:#ddd}.desenho .alvo{display:none}',
     '.det line,.det rect,.det path{vector-effect:non-scaling-stroke}.det text{font-family:Poppins,sans-serif;fill:#66717b}',
     '@media print{body{background:#fff}.barra{display:none}#pranchas{padding:0;gap:0;zoom:1!important}.folha{box-shadow:none;break-after:page;page-break-after:always}.folha:last-child{break-after:auto}}'
@@ -211,16 +218,46 @@
     function pagina(conteudo, escala) { paginas.push({ c: conteudo, e: escala }); }
     function cabeca(ey, titulo) { return '<p class="ey">' + ey + '</p>' + (titulo ? '<h1>' + titulo + '</h1>' : ''); }
 
-    // 01 · resumo
+    // 01 · prancha de detalhamento (no formato dos detalhamentos de escritório):
+    // isométricas fechada e aberta, vista frontal colorida cotada, corte, detalhes em círculo e MDFs
     var img = dados.imagens || {};
-    var persp = img.iso ? '<img src="' + img.iso + '" alt="perspectiva">' : R.perspectiva(M, { aberto: false });
+    var D = dep('MarceDetalhes');
+    var nV = 0;
+    function tv(titulo, escala) { nV++; return '<div class="tv"><span class="n">' + ('0' + nV).slice(-2) + '</span><div><b>' + titulo + '</b><small>' + (escala ? 'escala 1:' + escala : 'sem escala') + '</small></div></div>'; }
+    var wDir = 46 * k, gap = 4 * k;
+    var wEsq = areaW - wDir - gap - 4 * k;
+    var hTit = 9 * k;
+    var hBx = (areaH - 7 * k) * 0.5 - hTit;
+    function peso(c) { return c.secoes.reduce(function (t, sm) { var cf = sm.cfg || {}; return t + 1 + (cf.tipo === 'gavetas' && cf.itens ? cf.itens.length * 2 : 0) + (cf.prateleiras || 0); }, 0) - (c.cuba ? 3 : 0); }
+    var cPrinc = (M.colunas || []).slice().sort(function (a, b) { return peso(b) - peso(a) || a.idx - b.idx; })[0];
+    var cT1 = cPrinc ? R.corteTecnico(M, cPrinc.idx, { areaW: wEsq * 0.3, areaH: hBx, unidade: est.unidade, corCota: est.corCota, colorido: true }) : null;
+    var fT1 = R.frontalTecnico(M, { areaW: wEsq - (cT1 ? cT1.w : 0) - gap, areaH: hBx, unidade: est.unidade, corCota: est.corCota, colorido: true });
+    var isoF = img.iso ? '<img src="' + img.iso + '" alt="isométrica fechada">' : R.perspectiva(M, { aberto: false });
+    var isoA = img.aberto ? '<img src="' + img.aberto + '" alt="isométrica aberta">' : R.perspectiva(M, { aberto: true });
+    var topo = '<div class="dt-lin" style="min-height:0"><figure class="vista" style="flex:1">' + '<div class="img">' + isoF + '</div>' + tv('isométrica fechada') + '</figure><figure class="vista" style="flex:1"><div class="img">' + isoA + '</div>' + tv('isométrica aberta') + '</figure></div>';
+    var baixo = '<div class="dt-lin" style="height:' + n1(hBx + hTit) + 'mm"><figure class="vista" style="flex:1"><div class="img">' + fT1.svg + '</div>' + tv('vista frontal', fT1.escala) + '</figure>' +
+      (cT1 ? '<figure class="vista"><div class="img">' + cT1.svg + '</div>' + tv('corte C' + (cPrinc.idx + 1), cT1.escala) + '</figure>' : '') + '</div>';
+    var dets = D ? D.doMovel(M) : [];
     var mats = [['frentes', 'frente'], ['caixaria', 'caixa']];
-    if (spec.caixaInternaBranca) mats.push(['caixaria interna', 'caixaInterna']);
-    mats.push(['gavetas', 'gaveta'], ['fundos', 'fundo']);
-    pagina(cabeca('resumo', esc(tipoLabel) + ' · <em>' + esc(spec.nome) + '</em>') +
-      '<div class="cards"><div><small>ambiente</small><b>' + esc(amb.label) + '</b></div><div><small>medidas (l × p × a)</small><b>' + cm(d.L) + ' × ' + cm(d.D) + ' × ' + cm(d.H) + ' cm</b></div><div><small>peças</small><b>' + M.resumo.pecas + '</b></div><div><small>colunas · vãos</small><b>' + M.resumo.colunas + ' · ' + M.resumo.vaos + '</b></div><div><small>frentes</small><b>' + M.resumo.portas + ' portas · ' + M.resumo.gavetas + ' gavetas</b></div></div>' +
-      '<div class="mats">' + mats.map(function (m) { var mt = spec.materiais[m[1]]; return '<div class="mat"><span class="' + (mt.veio ? 'veio' : '') + '" style="background-color:' + esc(mt.cor) + '"></span><div><small>' + m[0] + '</small>' + esc(mt.nome) + (mt.marca && mt.marca !== 'Genérico' ? ' · ' + esc(mt.marca) : '') + '</div></div>'; }).join('') + '</div>' +
-      '<div class="duas"><figure><div class="img">' + persp + '</div><div class="leg">perspectiva</div></figure><figure><div class="img">' + R.frontal(M, { rotulo: ' ' }) + '</div><div class="leg">vista frontal <small>(acabamentos)</small></div></figure></div>');
+    if (spec.caixaInternaBranca) mats.push(['interno', 'caixaInterna']);
+    if (spec.materiais.gaveta && spec.materiais.gaveta.nome !== spec.materiais.caixa.nome) mats.push(['gavetas', 'gaveta']);
+    var grupos = [];
+    mats.forEach(function (m) {
+      var mt = spec.materiais[m[1]]; if (!mt) return;
+      var g = grupos.filter(function (x) { return x.mt.nome === mt.nome && x.mt.cor === mt.cor; })[0];
+      if (g) g.usos.push(m[0]); else grupos.push({ mt: mt, usos: [m[0]] });
+    });
+    var sw = grupos.map(function (g) {
+      var mt = g.mt;
+      return '<div><span class="' + (mt.veio ? 'veio' : '') + '" style="background-color:' + esc(mt.cor) + '"></span>' + esc(mt.nome) + (mt.marca && mt.marca !== 'Genérico' ? '<small>' + esc(mt.marca) + '</small>' : '') + '<small>' + g.usos.join(' · ') + '</small></div>';
+    });
+    if (M.pecas.some(function (p) { return p.nome === 'Vidro canelado'; })) sw.push('<div><span style="background:#cfdde2"></span>Vidro canelado<small>temperado</small></div>');
+    if (M.pecas.some(function (p) { return p.grupo === 'pedra'; })) sw.push('<div><span style="background:' + esc(R.corMat ? R.corMat(spec, 'pedra') : '#dcd9d2') + '"></span>Tampo em pedra<small>a definir</small></div>');
+    var dir = '<div class="dt-dir">' + dets.map(function (dt) { return '<div class="dc" style="--dc:' + (dets.length > 2 ? 25 : 31) + '"><h2>detalhe ' + esc(dt.titulo) + '</h2>' + dt.svg + '<small>sem escala</small></div>'; }).join('') +
+      '<h2 style="margin-top:' + n1(1 * k) + 'mm">materiais</h2><div class="sw">' + sw.join('') + '</div>' +
+      '<div class="obs"><b>' + cm(d.L) + ' × ' + cm(d.D) + ' × ' + cm(d.H) + ' cm</b> · ' + esc(amb.label.toLowerCase()) + ' · ' + M.resumo.pecas + ' peças<br>' + M.resumo.portas + ' portas · ' + M.resumo.gavetas + ' gavetas' +
+      (spec.led && spec.led.ativo ? ' · LED ' + spec.led.temperatura + 'K' : '') + '<br>Conferir todas as medidas no local antes da execução. Cotas em ' + ({ m: 'metros', cm: 'centímetros', mm: 'milímetros' }[est.unidade]) + '.</div></div>';
+    pagina('<p class="ey">detalhamento · ' + esc(tipoLabel.toLowerCase()) + '</p><div class="dt" style="grid-template-columns:1fr ' + n1(wDir) + 'mm"><div class="dt-esq">' + topo + baixo + '</div>' + dir + '</div>', fT1.escala);
 
     // 02 · vista frontal cotada (escala real)
     var tipicas = R.colunasTipicas(M, est.folha === 'A4' ? 3 : 4);
@@ -363,7 +400,7 @@
       '<button class="pri" onclick="window.print()">imprimir / salvar pdf</button><span class="dica" id="dica-papel"></span></div>';
     return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Relatório executivo · ' + esc(spec.nome) + '</title><style>' + CSS + '</style><style id="pagina"></style></head><body>' +
       barra + '<div id="pranchas"></div>' +
-      '<script data-marce="engine.js" src="engine.js"></script><script data-marce="nesting.js" src="nesting.js"></script><script data-marce="render.js" src="render.js"></script><script data-marce="report.js" src="report.js"></script>' +
+      '<script data-marce="engine.js" src="engine.js"></script><script data-marce="nesting.js" src="nesting.js"></script><script data-marce="render.js" src="render.js"></script><script data-marce="detalhes.js" src="detalhes.js"></script><script data-marce="report.js" src="report.js"></script>' +
       '<script>window.__MARCE__=' + json + ';MarceRelatorio.montar(window.__MARCE__);</script></body></html>';
   }
 

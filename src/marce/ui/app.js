@@ -15,7 +15,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: true, relatorioJunto: true,
-    padroes: null, projeto: {}, versao: '1.5.0', gerando: false, atualizacao: null, atualizando: false
+    padroes: null, projeto: {}, versao: '1.6.0', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades

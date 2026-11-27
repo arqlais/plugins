@@ -476,6 +476,7 @@
   }
 
   var COR_LED = '#d9a400';
+  var nBrilho = 0;
   function balao(cx, cy, r, txt, sw, fs) {
     return '<g class="balao"><circle cx="' + n1(cx) + '" cy="' + n1(cy) + '" r="' + n1(r) + '" fill="#fff" stroke="#3e4b57" stroke-width="' + n1(sw * 1.3) + '"/>' +
       '<text x="' + n1(cx) + '" y="' + n1(cy + fs * 0.36) + '" font-size="' + n1(fs * 0.95) + '" font-weight="600" text-anchor="middle" fill="#3e4b57">' + esc(txt) + '</text></g>';
@@ -506,6 +507,7 @@
       var fill = '#cfc6c0', st = '#2b2b2b', sw = lw;
       if (p.grupo === 'frente') fill = '#a89f99';
       if (p.grupo === 'gaveta') fill = '#ddd6d1';
+      if (o.colorido && M.spec.materiais[p.mat]) fill = p.grupo === 'frente' ? shade(corMat(M.spec, p.mat), 0.88) : corMat(M.spec, p.mat);
       if (p.grupo === 'ferragem' || p.mat === 'metal' || p.mat === 'aramado') { fill = '#c9cdd1'; st = '#6b6b6b'; }
       if (p.mat === 'espelho' || p.mat === 'vidro') fill = '#dfeaee';
       if (p.grupo === 'pedra') fill = '#ececec';
@@ -558,21 +560,25 @@
     function Y(z) { return n1(oy - z); }
     var linha = '#2b2b2b', fina = '#5a5a5a';
     var s = [];
+    var spec = M.spec, col = !!o.colorido;
+    var cFr = col ? corMat(spec, 'frente') : '#fff';
+    var cCx = col ? corMat(spec, 'caixa') : 'none';
+    var cIn = col ? shade(corMat(spec, spec.caixaInternaBranca ? 'caixaInterna' : 'caixa'), 0.86) : '#f3f3f3';
     function ret(x, z, w, h, sw, extra) { return '<rect x="' + X(x) + '" y="' + Y(z + h) + '" width="' + n1(w) + '" height="' + n1(h) + '" fill="' + ((extra && extra.fill) || 'none') + '" stroke="' + ((extra && extra.cor) || linha) + '" stroke-width="' + n1(sw) + '"' + ((extra && extra.dash) ? ' stroke-dasharray="' + extra.dash + '"' : '') + '/>'; }
     var op = { cor: cor, lw: lw, fs: fs, tique: tq };
     // piso
     if (d.z0 > 0 || M.spec.base.tipo !== 'suspenso') s.push('<line x1="' + n1(ox - mg * 0.4) + '" y1="' + Y(0) + '" x2="' + n1(ox + L + mg * 0.4) + '" y2="' + Y(0) + '" stroke="' + linha + '" stroke-width="' + n1(lwF * 1.4) + '"/>');
     // corpo, rodapé e roda-teto
-    s.push(ret(0, d.z0, L, d.zTop - d.z0, lw));
+    s.push(ret(0, d.z0, L, d.zTop - d.z0, lw, { fill: cCx }));
     M.pecas.forEach(function (p) {
-      if (p.grupo === 'rodape' && (/^Rodapé frontal|^Saia|^Roda-teto/).test(p.nome)) s.push(ret(p.x, p.z, p.dx, p.dz, lw));
+      if (p.grupo === 'rodape' && (/^Rodapé frontal|^Saia|^Roda-teto/).test(p.nome)) s.push(ret(p.x, p.z, p.dx, p.dz, lw, { fill: col ? shade(corMat(spec, 'caixa'), 0.8) : 'none' }));
     });
     // interiores aparentes
     (M.vaos || []).forEach(function (vm) {
       vm.secoes.forEach(function (sm) {
         var t = sm.cfg.tipo;
         if (t === 'nicho' || t === 'arco' || t === 'espelho' || t === 'painel' || t === 'forno' || t === 'micro') {
-          s.push(ret(vm.il, sm.ib, vm.largInt, sm.altInt, lw, { fill: '#f3f3f3' }));
+          s.push(ret(vm.il, sm.ib, vm.largInt, sm.altInt, lw, { fill: cIn }));
           if (t === 'forno' || t === 'micro') {
             var ew = Math.min(vm.largInt - 20, 595), eh = Math.min(sm.altInt - 20, t === 'forno' ? 595 : 380);
             var ex = vm.il + (vm.largInt - ew) / 2, ez = sm.ib + (sm.altInt - eh) / 2;
@@ -583,7 +589,7 @@
       });
     });
     M.pecas.forEach(function (p) {
-      if (p.nome === 'Prateleira' || p.nome === 'Prateleira fixa') s.push(ret(p.x, p.z, p.dx, p.dz, lw * 0.8));
+      if (p.nome === 'Prateleira' || p.nome === 'Prateleira fixa') s.push(ret(p.x, p.z, p.dx, p.dz, lw * 0.8, { fill: col ? corMat(spec, spec.caixaInternaBranca ? 'caixaInterna' : 'caixa') : 'none' }));
       if (p.forma && p.forma.plano === 'xz') s.push('<polygon points="' + p.forma.pts.map(function (q) { return X(p.x + q[0]) + ',' + Y(p.z + q[1]); }).join(' ') + '" fill="' + (p.mat === 'espelho' ? '#e6eef1' : '#fff') + '" stroke="' + linha + '" stroke-width="' + n1(lw) + '"/>');
     });
     // frentes
@@ -591,7 +597,7 @@
     M.pecas.forEach(function (p) {
       if (p.grupo !== 'frente' || p.nome === 'Painel') return;
       if (p.nome === 'Ripa') { ripas.push(p); return; }
-      s.push(ret(p.x, p.z, p.dx, p.dz, lwF, { fill: p.nome === 'Vidro canelado' ? '#eef3f5' : '#fff' }));
+      s.push(ret(p.x, p.z, p.dx, p.dz, lwF, { fill: p.nome === 'Vidro canelado' ? (col ? '#cfdde2' : '#eef3f5') : (p.mat === 'frente' ? cFr : (col ? corMat(spec, p.mat) : '#fff')) }));
       var m = p.meta || {};
       var tr = 'stroke="' + fina + '" stroke-width="' + n1(lw) + '" stroke-dasharray="' + n1(2.4 * E) + ' ' + n1(1.4 * E) + '" fill="none"';
       if (m.tipo === 'porta') {
@@ -611,7 +617,12 @@
         s.push('<text x="' + X(cx) + '" y="' + Y(cz2) + '" font-size="' + n1(fs * 0.85) + '" fill="' + fina + '" text-anchor="middle"' + (vertical ? ' transform="rotate(-90 ' + X(cx) + ' ' + Y(cz2) + ')"' : '') + '>' + rot + '</text>');
       }
     });
-    ripas.forEach(function (p) { s.push(ret(p.x, p.z, p.dx, p.dz, lw * 0.7, { cor: fina })); });
+    ripas.forEach(function (p) { s.push(ret(p.x, p.z, p.dx, p.dz, lw * 0.7, col ? { fill: shade(cFr, 0.93), cor: shade(cFr, 0.62) } : { cor: fina })); });
+    if (col) M.pecas.forEach(function (p) {
+      if (p.grupo !== 'led') return;
+      var gid = 'gl' + (++nBrilho), hz = Math.min(220, p.z - 5);
+      if (hz > 20) s.push('<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + COR_LED + '" stop-opacity=".45"/><stop offset="1" stop-color="' + COR_LED + '" stop-opacity="0"/></linearGradient></defs><rect x="' + X(p.x) + '" y="' + Y(p.z) + '" width="' + n1(p.dx) + '" height="' + n1(hz) + '" fill="url(#' + gid + ')"/>');
+    });
     M.pecas.forEach(function (p) {
       if (p.nome === 'Puxador alça' || p.nome === 'Perfil puxador') s.push(ret(p.x, p.z, p.dx, p.dz, lw, { fill: '#d9d9d9' }));
       if (p.grupo === 'led') s.push('<line x1="' + X(p.x) + '" y1="' + Y(p.z) + '" x2="' + X(p.x + p.dx) + '" y2="' + Y(p.z) + '" stroke="' + COR_LED + '" stroke-width="' + n1(lwF * 1.6) + '" stroke-dasharray="' + n1(1.6 * E) + ' ' + n1(0.8 * E) + '"/>');
@@ -728,5 +739,5 @@
     return '<svg class="desenho chapa" xmlns="http://www.w3.org/2000/svg" viewBox="-4 -4 ' + (g.w + 8) + ' ' + (g.h + 8) + '">' + s.join('') + '</svg>';
   }
 
-  return { frontalTecnico: frontalTecnico, plantaTecnica: plantaTecnica, corteTecnico: corteTecnico, colunasTipicas: colunasTipicas, balao: balao, COR_LED: COR_LED, escolherEscala: escolherEscala, fmtUn: fmtUn, cotaT: cotaT, frontal: frontal, planta: planta, perspectiva: perspectiva, chapaSvg: chapaSvg, cor: { shade: shade, lighten: lighten, lum: lum }, esc: esc, cotaH: cotaH, cotaV: cotaV };
+  return { corMat: corMat, frontalTecnico: frontalTecnico, plantaTecnica: plantaTecnica, corteTecnico: corteTecnico, colunasTipicas: colunasTipicas, balao: balao, COR_LED: COR_LED, escolherEscala: escolherEscala, fmtUn: fmtUn, cotaT: cotaT, frontal: frontal, planta: planta, perspectiva: perspectiva, chapaSvg: chapaSvg, cor: { shade: shade, lighten: lighten, lum: lum }, esc: esc, cotaH: cotaH, cotaV: cotaV };
 });

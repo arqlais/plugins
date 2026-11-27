@@ -95,6 +95,7 @@ module ArqLais
         cam = view.camera
         salva = { eye: cam.eye, target: cam.target, up: cam.up, persp: cam.perspective?, fov: (cam.perspective? ? cam.fov : nil), height: (cam.perspective? ? nil : cam.height) }
         imagens = {}
+        originais = nil
         camada = model.layers[Materiais::TAGS['frente']]
         camada_p = model.layers[Materiais::TAGS['pedra']]
         vis = [camada && camada.visible?, camada_p && camada_p.visible?]
@@ -113,6 +114,13 @@ module ArqLais
           view.camera = Sketchup::Camera.new(olho, c, Geom::Vector3d.new(0, 0, 1), true, 30)
           view.zoom(movel)
           imagens['iso'] = capturar(view, 'iso')
+          # mesma câmera com portas e gavetas abertas (posições originais restauradas no ensure)
+          movs = AbrirFechar.conjuntos(movel)
+          unless movs.empty?
+            originais = movs.map { |g| [g, g.transformation] }
+            movs.each { |g| g.transformation = AbrirFechar.movimento(g, 1.0) * AbrirFechar.base(g) }
+            imagens['aberto'] = capturar(view, 'aberto')
+          end
           # vista superior inclinada sem frentes (mostra o interior)
           camada.visible = false if camada
           camada_p.visible = false if camada_p
@@ -124,6 +132,7 @@ module ArqLais
           puts "marcê: falha ao capturar imagens: #{e.message}"
         ensure
           model.abort_operation
+          (originais || []).each { |g, tr| g.transformation = tr if g.valid? && !AbrirFechar.mesma?(g.transformation, tr) }
           camada.visible = vis[0] if camada && camada.valid?
           camada_p.visible = vis[1] if camada_p && camada_p.valid?
           novo = Sketchup::Camera.new(salva[:eye], salva[:target], salva[:up], salva[:persp])
