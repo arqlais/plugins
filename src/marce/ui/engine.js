@@ -182,6 +182,7 @@
       chapa: { comprimento: 2750, largura: 1850, refilo: 10, serra: 4 },
       emendaAuto: false,
       caixaInternaBranca: false,
+      prancha: { folha: 'A4', visual: 'marce', unidade: 'm', corCota: '#c0392b' },
       materiais: clone(MATERIAIS_PADRAO),
       colunas: []
     };
@@ -191,7 +192,7 @@
 
   function aplicarTipo(spec, tipo) {
     var novo = specPadrao(tipo, spec.ambiente);
-    ['materiais', 'chapa', 'esp', 'puxador', 'caixaInternaBranca'].forEach(function (k) { if (spec[k] !== undefined) novo[k] = clone(spec[k]); });
+    ['materiais', 'chapa', 'esp', 'puxador', 'caixaInternaBranca', 'prancha'].forEach(function (k) { if (spec[k] !== undefined) novo[k] = clone(spec[k]); });
     novo.frentes.montagem = spec.frentes ? spec.frentes.montagem : novo.frentes.montagem;
     novo.frentes.veio = spec.frentes ? spec.frentes.veio : novo.frentes.veio;
     if (spec.origemVolume) {

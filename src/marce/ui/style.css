@@ -323,3 +323,7 @@ table.tab tr.sep td { background: #fbf8f6; font-weight: 600; color: var(--rose-i
 .passos li::before { content: counter(p); grid-row: span 2; width: 22px; height: 22px; border-radius: 50%; background: var(--acento-claro); color: var(--rose-ink); font-weight: 600; font-size: 11px; display: grid; place-items: center; }
 .passos b { font-weight: 600; font-size: 12.5px; }
 .passos span { color: var(--texto-2); font-size: 12px; }
+
+.campo-txt input[type=text] { width: 190px; }
+
+.pilula[data-path="prancha.folha"] { text-transform: none; }

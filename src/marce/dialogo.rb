@@ -30,7 +30,12 @@ module ArqLais
         mostrar({ modo: 'editar', grupo: grupo }, msg)
       end
 
+      def ler_projeto(model)
+        Util.ler_json(model.get_attribute(DICT, 'projeto') || '{}')
+      end
+
       def mostrar(ctx, msg)
+        msg = msg.merge('projeto' => ler_projeto(Sketchup.active_model))
         novidades = Aviso.nao_vistas
         unless novidades.empty?
           msg = msg.merge('novidades' => novidades)
@@ -122,6 +127,16 @@ module ArqLais
           dados = Util.ler_json(j)
           caminho = Exportar.salvar_csv(dados['csv'], dados['nome'])
           enviar('tipo' => 'salvo', 'msg' => "Lista salva em #{caminho}") if caminho
+        end
+
+        d.add_action_callback('salvarProjeto') do |_c, j|
+          dados = Util.ler_json(j)
+          model = Sketchup.active_model
+          if dados['projeto'].is_a?(Hash)
+            model.start_operation('marcê: dados do projeto', true)
+            model.set_attribute(DICT, 'projeto', Util.json(dados['projeto']))
+            model.commit_operation
+          end
         end
 
         d.add_action_callback('salvarPadroes') do |_c, j|

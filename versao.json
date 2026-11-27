@@ -1,13 +1,12 @@
 {
-  "versao": "1.3.2",
+  "versao": "1.4.0",
   "rbz": "dist/marce.rbz",
-  "sha256": "ab906ddb1dde4cd73b94eb0bec729f60706360d65b0f83aa975f9a1537b19417",
+  "sha256": "6a2ed927beba331c866c2f5f1d03417a67118479aff41bbb924a0932ca427b66",
   "notas": [
-    "Depois de um Ctrl+Z, \"Gerar\" volta a criar o móvel no volume (antes ia para a origem)",
-    "O móvel é sempre criado no nível do modelo, mesmo com um grupo aberto em edição",
-    "Detectar cuba usa a altura real do móvel (aéreos e torres)",
-    "O atualizador confere se a versão nova foi mesmo instalada e não trava o SketchUp sem internet",
-    "Animação de abrir/fechar nunca fica presa; falhas não deixam componentes soltos no arquivo",
-    "Lista de peças do projeto exporta mesmo se um móvel estiver com dados corrompidos"
+    "Relatório em pranchas A4, A3, A2, A1 ou A0 (deitadas), com carimbo em todas as folhas",
+    "Vista frontal e planta em desenho técnico, na escala real (1/10, 1/20, 1/25, 1/50…), com cotas no padrão ABNT",
+    "Na barra do relatório: troque folha, visual (identidade marcê ou neutro), unidade das cotas e cor da cota",
+    "Aba Relatório: dados do projeto (cliente, obra, etapa, revisão) salvos no arquivo e carimbo do escritório com logo",
+    "O relatório salvo abre sozinho em qualquer computador (fontes e desenhos embutidos)"
   ]
 }

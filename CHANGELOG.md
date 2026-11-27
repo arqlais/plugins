@@ -1,5 +1,12 @@
 # Novidades do marcê
 
+## 1.4.0
+- Relatório em pranchas A4, A3, A2, A1 ou A0 (deitadas), com carimbo em todas as folhas
+- Vista frontal e planta em desenho técnico, na escala real (1/10, 1/20, 1/25, 1/50…), com cotas no padrão ABNT
+- Na barra do relatório: troque folha, visual (identidade marcê ou neutro), unidade das cotas e cor da cota
+- Aba Relatório: dados do projeto (cliente, obra, etapa, revisão) salvos no arquivo e carimbo do escritório com logo
+- O relatório salvo abre sozinho em qualquer computador (fontes e desenhos embutidos)
+
 ## 1.3.2
 - Depois de um Ctrl+Z, "Gerar" volta a criar o móvel no volume (antes ia para a origem)
 - O móvel é sempre criado no nível do modelo, mesmo com um grupo aberto em edição

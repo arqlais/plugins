@@ -64,12 +64,23 @@ const path = require('path');
     return window.MarceRelatorio.gerar(E.calcular(s), { versao: '1.0.0' });
   });
   const rel = path.join(out, 'relatorio.html');
-  fs.writeFileSync(rel, html.replace(/url\(fonts\//g, 'url(' + 'file://' + path.join(ui, 'fonts') + '/'));
+  const embutido = html
+    .replace(/<script data-marce="([a-z.]+)" src="[a-z.]+"><\/script>/g, (_m, f) => '<script>' + fs.readFileSync(path.join(ui, f), 'utf8').replace(/<\/script/gi, '<\\/script') + '</script>')
+    .replace(/url\(fonts\//g, 'url(file://' + path.join(ui, 'fonts') + '/');
+  fs.writeFileSync(rel, embutido);
   const q = await b.newPage({ viewport: { width: 1100, height: 900 } });
   q.on('pageerror', (e) => errs.push('REL ' + e.message));
   await q.goto('file://' + rel);
   await q.waitForTimeout(400);
-  await q.screenshot({ path: path.join(out, '08-relatorio.png'), fullPage: true });
+  await q.screenshot({ path: path.join(out, '08-relatorio.png') });
+  if ((await q.$$('.folha')).length < 6) errs.push('relatório sem pranchas');
+
+  await p.click('[data-act="aba:relatorio"]');
+  await p.fill('[data-proj="cliente"]', 'Laura e Pedro');
+  await p.fill('[data-escr="nome"]', 'Estúdio Exemplo');
+  await p.click('[data-path="prancha.folha"][data-val="A3"]');
+  await p.waitForTimeout(200);
+  await p.screenshot({ path: path.join(out, '09-aba-relatorio.png') });
 
   console.log(errs.join('\n') || 'sem erros');
   await b.close();

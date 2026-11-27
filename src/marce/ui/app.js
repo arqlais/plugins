@@ -14,7 +14,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: true, relatorioJunto: true,
-    padroes: null, versao: '1.3.2', gerando: false, atualizacao: null, atualizando: false
+    padroes: null, projeto: {}, versao: '1.4.0', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -470,11 +470,36 @@
   }
 
   // ---------- aba Relatório
+  function campoTexto(rot, grupo, chave, valor, ph) {
+    return '<div class="campo campo-txt"><label>' + rot + '</label><input type="text" data-' + grupo + '="' + chave + '" value="' + esc(valor || '') + '" placeholder="' + esc(ph || '') + '"></div>';
+  }
+
   function abaRelatorio() {
-    var h = '<div class="grupo"><h4>Relatório executivo' + aj('relatorio') + '</h4><p class="ajuda amb">Gera um documento para o cliente e o marceneiro com: materiais, perspectivas, elevação frontal e planta cotadas (com cuba e eixo hidráulico), detalhamento dos elementos (porta-temperos, gaveta interna, lixeira, nichos de eletro), especificação técnica e memorial, ferragens com quantidades, conferência técnica, lista de peças numerada, estimativa de chapas, verificações do ambiente e checklist de entrega.</p>';
+    var pr = st.spec.prancha || {};
+    var pj = st.projeto || {};
+    var es = (st.padroes && st.padroes.escritorio) || {};
+    var h = '<div class="grupo"><h4>Relatório executivo' + aj('relatorio') + '</h4><p class="ajuda amb">Sai em pranchas com carimbo: resumo com perspectiva, vista frontal e planta cotadas em escala, detalhes, especificação, conferência técnica, lista de peças, estimativa e plano de corte, verificações e checklist de entrega.</p>';
     h += '<label class="interruptor"><input type="checkbox" data-act-chk="relatorioJunto"' + (st.relatorioJunto ? ' checked' : '') + '><span class="trilho"></span><span class="txt">Salvar o relatório junto ao gerar o móvel</span></label>';
-    h += '<div class="linha-botoes"><button class="botao" data-act="relatorio">Abrir relatório agora</button><button class="botao" data-act="csv">Exportar lista de peças (CSV)</button></div>';
-    h += '<p class="ajuda">O relatório abre no navegador; use Imprimir → Salvar como PDF. Com o móvel gerado, as perspectivas saem do próprio modelo do SketchUp.</p></div>';
+    h += '<div class="linha-botoes"><button class="botao" data-act="relatorio">Abrir relatório agora</button><button class="botao" data-act="csv">Exportar lista de peças (CSV)</button></div></div>';
+    h += '<div class="grupo"><h4>Prancha' + aj('prancha') + '</h4><div class="campo"><label>Tamanho da folha (deitada)</label></div>' + pilulas('prancha.folha', [['A4', 'A4'], ['A3', 'A3'], ['A2', 'A2'], ['A1', 'A1'], ['A0', 'A0']], true);
+    h += '<div class="campo"><label>Visual</label></div>' + pilulas('prancha.visual', [['marce', 'Identidade marcê'], ['neutro', 'Neutro']], true);
+    h += '<div class="campo"><label>Unidade das cotas</label></div>' + pilulas('prancha.unidade', [['m', 'Metros'], ['cm', 'cm'], ['mm', 'mm']], true);
+    h += '<div class="campo"><label>Cor da cota</label><input type="color" data-path="prancha.corCota" value="' + esc(pr.corCota || '#c0392b') + '" style="width:44px;height:28px;border:0;background:none"></div>';
+    h += '<p class="ajuda">Dá para trocar tudo isso também na barra do relatório aberto.</p></div>';
+    h += '<div class="grupo"><h4>Dados do projeto' + aj('projeto') + '</h4>' +
+      campoTexto('Cliente', 'proj', 'cliente', pj.cliente, 'Ex.: Laura e Pedro') +
+      campoTexto('Obra / endereço', 'proj', 'obra', pj.obra, 'Ex.: Apto 1203') +
+      campoTexto('Etapa', 'proj', 'etapa', pj.etapa, 'Detalhamento de marcenaria') +
+      campoTexto('Revisão', 'proj', 'revisao', pj.revisao, 'R00') +
+      '<p class="ajuda">Valem para todos os móveis deste arquivo.</p></div>';
+    h += '<div class="grupo"><h4>Carimbo do escritório' + aj('carimbo') + '</h4>' +
+      '<div class="campo"><label>Logo</label>' + (es.logo ? '<img src="' + esc(es.logo) + '" alt="" style="height:28px;max-width:90px;object-fit:contain">' : '') + '<label class="botao pequeno" style="flex:none">' + (es.logo ? 'trocar' : 'escolher logo') + '<input type="file" id="logo-arquivo" accept="image/*" hidden></label>' + (es.logo ? '<button class="botao pequeno fantasma" data-act="tirarLogo">tirar</button>' : '') + '</div>' +
+      campoTexto('Escritório', 'escr', 'nome', es.nome, 'Nome do escritório') +
+      campoTexto('Responsável técnico', 'escr', 'responsavel', es.responsavel, 'Arq. Nome Sobrenome') +
+      campoTexto('CAU / CREA', 'escr', 'registro', es.registro, 'A000000-0') +
+      campoTexto('E-mail', 'escr', 'email', es.email, 'contato@…') +
+      campoTexto('Telefone / Instagram', 'escr', 'contato', es.contato, '@seuescritorio') +
+      '<p class="ajuda">Preencha uma vez: aparece no carimbo de todas as pranchas, em todos os projetos.</p></div>';
     h += '<div class="grupo"><h4>No modelo</h4><p class="ajuda">Depois de gerar: use <b>Extensões → marcê → Abrir/fechar portas e gavetas</b> e clique numa porta ou gaveta para ver o interior. Para editar, selecione o móvel e clique em <b>Editar móvel</b> (ou botão direito → marcê).</p></div>';
     return h;
   }
@@ -576,6 +601,9 @@
         toast('Padrões de fábrica restaurados');
         break;
       }
+      case 'tirarLogo':
+        if (st.padroes && st.padroes.escritorio) { delete st.padroes.escritorio.logo; enviar('salvarPadroes', { padroes: st.padroes }); }
+        renderPainel(); return;
       case 'detectarCuba': enviar('detectarCuba', { L: s.L, D: s.D, H: s.H }); toast('Procurando cuba no modelo…'); return;
       case 'relatorio': abrirRelatorio(null); return;
       case 'csv': exportarCsv(); return;
@@ -642,8 +670,19 @@
       atualizar(true);
     }
   });
+  var salvarDepois = {};
+  function agendar(acao, dados) {
+    clearTimeout(salvarDepois[acao]);
+    salvarDepois[acao] = setTimeout(function () { enviar(acao, dados()); }, 400);
+  }
+  document.addEventListener('input', function (ev) {
+    var el = ev.target;
+    if (el.hasAttribute('data-proj')) { st.projeto = st.projeto || {}; st.projeto[el.getAttribute('data-proj')] = el.value; agendar('salvarProjeto', function () { return { projeto: st.projeto }; }); }
+    if (el.hasAttribute('data-escr')) { st.padroes = st.padroes || {}; st.padroes.escritorio = st.padroes.escritorio || {}; st.padroes.escritorio[el.getAttribute('data-escr')] = el.value; agendar('salvarPadroes', function () { return { padroes: st.padroes }; }); }
+  });
   document.addEventListener('change', function (ev) {
     var el = ev.target;
+    if (el.id === 'logo-arquivo' && el.files && el.files[0]) { carregarLogo(el.files[0]); return; }
     if (el.id === 'nome') { st.spec.nome = el.value.trim() || 'Móvel'; renderCabecalho(); return; }
     if (el.hasAttribute('data-act-chk')) { st.relatorioJunto = el.checked; renderRodape(); return; }
     if (!el.hasAttribute('data-path')) return;
@@ -654,6 +693,26 @@
     atualizar();
   });
 
+  // logo do escritório: reduzida para no máximo 600 px (não pesa no arquivo)
+  function carregarLogo(arquivo) {
+    var leitor = new FileReader();
+    leitor.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var esc2 = Math.min(1, 600 / Math.max(img.width, img.height));
+        var c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(img.width * esc2)); c.height = Math.max(1, Math.round(img.height * esc2));
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        st.padroes = st.padroes || {}; st.padroes.escritorio = st.padroes.escritorio || {};
+        st.padroes.escritorio.logo = c.toDataURL('image/png');
+        enviar('salvarPadroes', { padroes: st.padroes });
+        renderPainel(); toast('Logo aplicada no carimbo');
+      };
+      img.src = leitor.result;
+    };
+    leitor.readAsDataURL(arquivo);
+  }
+
   // ---------------------------------------------------------------- exportações
   function exportarCsv() {
     var M = st.modelo;
@@ -663,7 +722,7 @@
   }
 
   function abrirRelatorio(imagens) {
-    var html = REL.gerar(st.modelo, { imagens: imagens, versao: st.versao });
+    var html = REL.gerar(st.modelo, { imagens: imagens, versao: st.versao, prancha: st.spec.prancha, projeto: st.projeto || {}, escritorio: (st.padroes && st.padroes.escritorio) || {} });
     var nome = 'Relatorio - ' + nomeArquivo(st.spec.nome) + '.html';
     if (!enviar('salvarRelatorio', { html: html, nome: nome })) {
       var w = window.open('', '_blank');
@@ -754,6 +813,7 @@
         case 'init': {
           st.modo = msg.modo || 'novo';
           st.padroes = msg.padroes || null;
+          st.projeto = msg.projeto || st.projeto || {};
           st.versao = msg.versao || st.versao;
           var spec;
           if (msg.spec) spec = E.normalizar(msg.spec);

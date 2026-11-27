@@ -33,8 +33,17 @@ module ArqLais
         Sketchup.temp_dir
       end
 
+      # troca <script data-marce="x.js" src="x.js"> pelo conteúdo (o relatório abre sozinho)
+      def embutir_scripts(html)
+        html.gsub(%r{<script data-marce="([a-z]+\.js)" src="[a-z]+\.js"></script>}) do
+          arq = File.join(PASTA_UI, Regexp.last_match(1))
+          codigo = File.exist?(arq) ? File.read(arq, encoding: 'UTF-8') : ''
+          '<script>' + codigo.gsub(%r{</script}i, '<\\/script') + '</script>'
+        end
+      end
+
       def salvar_relatorio(model, html, nome)
-        html = html.to_s.sub('/*MARCE_FONTES*/', css_fontes)
+        html = embutir_scripts(html.to_s.sub('/*MARCE_FONTES*/') { css_fontes })
         caminho = File.join(pasta_relatorios(model), Util.nome_arquivo(nome.to_s.sub(/\.html?\z/i, '')) + '.html')
         File.open(caminho, 'wb') { |f| f.write(html) }
         Util.abrir_no_navegador(caminho)
