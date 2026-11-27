@@ -1,12 +1,12 @@
 /*
- * Marcenaria Paramétrica — plano de corte
+ * marcê — plano de corte
  * Otimizador MaxRects (Best Short Side Fit) com espessura de serra,
  * refilo e respeito ao veio (peças com veio não giram).
  */
 (function (root, factory) {
   var api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
-  else root.MarcNesting = api;
+  else root.MarceNesting = api;
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 

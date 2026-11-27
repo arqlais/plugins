@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>marcê · marcenaria paramétrica</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <main id="principal">
+    <header class="cabecalho">
+      <div class="marca-logo" title="marcê" aria-hidden="true">
+        <svg viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="#3e4b57"/><path d="M17 79C18 62 18 46 21 38C25 27 37 27 41 38C44 47 44 62 43 71C42 80 35 82 34 75C33 66 43 40 52 32C60 25 71 28 73 40C75 52 74 65 75 74C76 83 83 85 89 77" fill="none" stroke="#f5f1ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="titulo">
+        <div class="linha-titulo"><input id="nome" class="nome" spellcheck="false" aria-label="Nome do móvel"><span id="badge-modo" class="badge-modo" hidden>editando</span></div>
+        <div id="subtitulo" class="subtitulo"></div>
+      </div>
+      <nav id="vistas" class="segmentado" role="tablist"></nav>
+    </header>
+    <section id="visao" class="cartao visao"></section>
+    <div id="chips" class="chips"></div>
+    <section id="conferencia" class="cartao conferencia"></section>
+  </main>
+  <aside id="painel">
+    <nav id="abas" class="abas" role="tablist"></nav>
+    <div id="conteudo" class="conteudo"></div>
+  </aside>
+  <footer id="rodape" class="rodape"></footer>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="engine.js"></script>
+<script src="nesting.js"></script>
+<script src="catalogo.js"></script>
+<script src="render.js"></script>
+<script src="report.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
