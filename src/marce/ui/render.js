@@ -25,7 +25,7 @@
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function n1(v) { return Math.round(v * 10) / 10; }
 
-  var FIXOS = { metal: '#9a9ea3', aramado: '#c3c7cc', espelho: '#bcd3dc', pedra: '#dcd9d2', plastico: '#5b5b5b' };
+  var FIXOS = { metal: '#9a9ea3', aramado: '#c3c7cc', espelho: '#bcd3dc', pedra: '#dcd9d2', plastico: '#5b5b5b', vidro: '#cfdde2', led: '#fff1d6' };
   function corMat(spec, k) {
     if (spec.materiais[k]) return spec.materiais[k].cor;
     return FIXOS[k] || '#cccccc';
@@ -171,7 +171,8 @@
     var linhaFrente = shade(corMat(spec, 'frente'), lum(corMat(spec, 'frente')) > 0.5 ? 0.55 : 1.6);
     frentes.forEach(function (p) {
       var horiz = spec.frentes.veio === 'horizontal' || /Moldura horizontal/.test(p.nome);
-      var fill = preenchimento(spec, 'frente', defs, horiz);
+      var fill = p.mat === 'frente' ? preenchimento(spec, 'frente', defs, horiz) : (p.mat === 'vidro' ? 'url(#vidro-canelado)' : corMat(spec, p.mat));
+      if (p.mat === 'vidro' && !defs['vidro-canelado']) defs['vidro-canelado'] = '<pattern id="vidro-canelado" patternUnits="userSpaceOnUse" width="14" height="400"><rect width="14" height="400" fill="#d6e3e8"/><rect width="5" height="400" fill="#c2d3da"/><rect x="9" width="2" height="400" fill="#e9f1f4"/></pattern>';
       var x = p.x, z = p.z, w = p.dx, h = p.dz;
       s.push('<rect class="frente" x="' + X(x) + '" y="' + Y(z + h) + '" width="' + n1(w) + '" height="' + n1(h) + '" fill="' + fill + '" stroke="' + shade(corMat(spec, 'frente'), 0.55) + '" stroke-width="0.8" vector-effect="non-scaling-stroke"/>');
       var meta = p.meta || {};
@@ -201,6 +202,13 @@
     M.pecas.forEach(function (p) {
       if (p.nome !== 'Puxador alça' && p.nome !== 'Perfil puxador') return;
       s.push('<rect x="' + X(p.x) + '" y="' + Y(p.z + p.dz) + '" width="' + n1(p.dx) + '" height="' + n1(p.dz) + '" rx="' + n1(Math.min(p.dx, p.dz) / 2) + '" fill="#8f949a" stroke="#5d6166" stroke-width="0.5" vector-effect="non-scaling-stroke"/>');
+    });
+    // LED (perfil + brilho)
+    M.pecas.forEach(function (p) {
+      if (p.grupo !== 'led' || p.y > (M.dims.Dc || 1e9)) return;
+      if (!defs.brilho) defs.brilho = '<linearGradient id="brilho" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe7b5" stop-opacity=".85"/><stop offset="1" stop-color="#ffe7b5" stop-opacity="0"/></linearGradient>';
+      s.push('<rect x="' + X(p.x) + '" y="' + Y(p.z) + '" width="' + n1(p.dx) + '" height="' + n1(Math.min(220, M.dims.H * 0.3)) + '" fill="url(#brilho)"/>');
+      s.push('<rect x="' + X(p.x) + '" y="' + Y(p.z + p.dz) + '" width="' + n1(p.dx) + '" height="' + n1(Math.max(p.dz, 6)) + '" fill="' + corMat(spec, 'led') + '" stroke="#e0c58e" stroke-width=".6" vector-effect="non-scaling-stroke"/>');
     });
     // pedra
     if (pedra) s.push('<rect x="' + X(pedra.x) + '" y="' + Y(pedra.z + pedra.dz) + '" width="' + n1(pedra.dx) + '" height="' + n1(pedra.dz) + '" fill="' + FIXOS.pedra + '" stroke="#9c988f" stroke-width="0.7" vector-effect="non-scaling-stroke"/>');
@@ -362,11 +370,12 @@
     var right = norm(cross(dir, up));
     var sup = cross(right, dir);
     var aplicar = transformador(M, !!opts.aberto);
-    var faces = [];
     var luz = norm([-0.4, -0.7, 0.9]);
+    var grupos = [];
     M.pecas.forEach(function (p) {
       if (opts.semPedra && p.grupo === 'pedra') return;
       if (p.dx < 0.5 || p.dy < 0.5 || p.dz < 0.5) return;
+      var faces = [];
       var x0 = p.x, x1 = p.x + p.dx, y0 = p.y, y1 = p.y + p.dy, z0 = p.z, z1 = p.z + p.dz;
       var P = [v3(x0, y0, z0), v3(x1, y0, z0), v3(x1, y1, z0), v3(x0, y1, z0), v3(x0, y0, z1), v3(x1, y0, z1), v3(x1, y1, z1), v3(x0, y1, z1)]
         .map(function (q) { return aplicar(p.conj, q); });
@@ -380,10 +389,38 @@
         if (dot(n, dir) >= -1e-6) return;
         var fc = [0, 1, 2, 3].reduce(function (acc, k) { var q = P[f[k]]; return [acc[0] + q[0] / 4, acc[1] + q[1] / 4, acc[2] + q[2] / 4]; }, [0, 0, 0]);
         var l = 0.62 + 0.38 * Math.max(0, dot(n, luz));
-        faces.push({ pts: f.map(function (k) { return P[k]; }), prof: dot(fc, dir) * 0.35 + dot(centro, dir) * 0.65, cor: shade(cor, l), linha: shade(cor, 0.55) });
+        faces.push({ pts: f.map(function (k) { return P[k]; }), prof: dot(fc, dir), cor: shade(cor, l), linha: shade(cor, 0.55) });
       });
+      faces.sort(function (a, b) { return b.prof - a.prof; });
+      var bb = [1e9, 1e9, 1e9, -1e9, -1e9, -1e9];
+      P.forEach(function (q) { for (var k = 0; k < 3; k++) { bb[k] = Math.min(bb[k], q[k]); bb[k + 3] = Math.max(bb[k + 3], q[k]); } });
+      grupos.push({ faces: faces, bb: bb, prof: dot(centro, dir) });
     });
-    faces.sort(function (a, b) { return b.prof - a.prof; });
+    // Ordem de pintura por peça: caixas separadas por um eixo têm ordem exata
+    // (a de trás primeiro); as demais seguem a profundidade do centro.
+    function atras(A, B) { // 1: A atrás de B, -1: A na frente, 0: indefinido
+      for (var k = 0; k < 3; k++) {
+        if (Math.abs(dir[k]) < 1e-9) continue;
+        if (A.bb[k] >= B.bb[k + 3] - 0.01) return dir[k] > 0 ? 1 : -1;
+        if (B.bb[k] >= A.bb[k + 3] - 0.01) return dir[k] > 0 ? -1 : 1;
+      }
+      return 0;
+    }
+    var n = grupos.length, deps = grupos.map(function () { return 0; }), suc = grupos.map(function () { return []; });
+    for (var i = 0; i < n; i++) for (var j = i + 1; j < n; j++) {
+      var r = atras(grupos[i], grupos[j]);
+      if (r === 1) { suc[i].push(j); deps[j]++; } else if (r === -1) { suc[j].push(i); deps[i]++; }
+    }
+    var feito = grupos.map(function () { return false; }), ordem = [];
+    for (var passo = 0; passo < n; passo++) {
+      var esc = -1;
+      for (var g = 0; g < n; g++) if (!feito[g] && deps[g] === 0 && (esc < 0 || grupos[g].prof > grupos[esc].prof)) esc = g;
+      if (esc < 0) for (g = 0; g < n; g++) if (!feito[g] && (esc < 0 || grupos[g].prof > grupos[esc].prof)) esc = g; // ciclo: quebra pelo mais fundo
+      feito[esc] = true; ordem.push(esc);
+      suc[esc].forEach(function (t) { deps[t]--; });
+    }
+    var faces = [];
+    ordem.forEach(function (g) { faces = faces.concat(grupos[g].faces); });
     var minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9;
     faces.forEach(function (f) {
       f.p2 = f.pts.map(function (q) { var X = dot(q, right), Y = -dot(q, sup); minX = Math.min(minX, X); maxX = Math.max(maxX, X); minY = Math.min(minY, Y); maxY = Math.max(maxY, Y); return [X, Y]; });
@@ -438,6 +475,72 @@
     return ESCALAS[ESCALAS.length - 1];
   }
 
+  var COR_LED = '#d9a400';
+  function balao(cx, cy, r, txt, sw, fs) {
+    return '<g class="balao"><circle cx="' + n1(cx) + '" cy="' + n1(cy) + '" r="' + n1(r) + '" fill="#fff" stroke="#3e4b57" stroke-width="' + n1(sw * 1.3) + '"/>' +
+      '<text x="' + n1(cx) + '" y="' + n1(cy + fs * 0.36) + '" font-size="' + n1(fs * 0.95) + '" font-weight="600" text-anchor="middle" fill="#3e4b57">' + esc(txt) + '</text></g>';
+  }
+
+  // Corte lateral (plano x = meio da coluna), visto do lado direito: frente à esquerda.
+  // Peças cortadas aparecem preenchidas, com a mesma geometria que vai para o SketchUp.
+  function corteTecnico(M, ci, o) {
+    o = o || {};
+    var c = M.colunas[ci];
+    var d = M.dims, un = o.unidade || 'mm', cor = o.corCota || '#c0392b';
+    var xc = (c.x0 + c.x1) / 2;
+    var cortadas = M.pecas.filter(function (p) { return p.x < xc - 0.01 && p.x + p.dx > xc + 0.01 && p.dy > 0.4 && p.dz > 0.4; });
+    var yMin = 0, yMax = d.D, zMax = d.H;
+    cortadas.forEach(function (p) { yMin = Math.min(yMin, p.y); yMax = Math.max(yMax, p.y + p.dy); zMax = Math.max(zMax, p.z + p.dz); });
+    var mPapel = 9.5;
+    var E = o.escala || escolherEscala(yMax - yMin, zMax, o.areaW || 70, o.areaH || 60, mPapel);
+    var fs = 2.0 * E, lw = 0.16 * E, lwF = 0.3 * E, tq = 1 * E, mg = mPapel * E;
+    var W = yMax - yMin + 2 * mg, Ht = zMax + 2 * mg;
+    var ox = mg - yMin, oy = mg + zMax;
+    function X(y) { return n1(ox + y); }
+    function Y(z) { return n1(oy - z); }
+    var s = [];
+    if (d.z0 > 0 || M.spec.base.tipo !== 'suspenso') s.push('<line x1="' + n1(ox + yMin - mg * 0.3) + '" y1="' + Y(0) + '" x2="' + n1(ox + yMax + mg * 0.3) + '" y2="' + Y(0) + '" stroke="#2b2b2b" stroke-width="' + n1(lwF * 1.4) + '"/>');
+    s.push('<line x1="' + n1(ox + d.D) + '" y1="' + Y(0) + '" x2="' + n1(ox + d.D) + '" y2="' + Y(zMax + mg * 0.2) + '" stroke="#b9b0a6" stroke-width="' + n1(lw) + '" stroke-dasharray="' + n1(3 * E) + ' ' + n1(1 * E) + '"/>');
+    var ordem = { pedra: 0, caixa: 1, fundo: 1, rodape: 1, gaveta: 2, frente: 3, ferragem: 4, led: 5 };
+    cortadas.sort(function (a, b) { return (ordem[a.grupo] || 1) - (ordem[b.grupo] || 1); }).forEach(function (p) {
+      var fill = '#cfc6c0', st = '#2b2b2b', sw = lw;
+      if (p.grupo === 'frente') fill = '#a89f99';
+      if (p.grupo === 'gaveta') fill = '#ddd6d1';
+      if (p.grupo === 'ferragem' || p.mat === 'metal' || p.mat === 'aramado') { fill = '#c9cdd1'; st = '#6b6b6b'; }
+      if (p.mat === 'espelho' || p.mat === 'vidro') fill = '#dfeaee';
+      if (p.grupo === 'pedra') fill = '#ececec';
+      if (p.grupo === 'led') { fill = COR_LED; st = '#8a6a00'; }
+      var r = '<rect x="' + X(p.y) + '" y="' + Y(p.z + p.dz) + '" width="' + n1(p.dy) + '" height="' + n1(p.dz) + '" fill="' + fill + '" stroke="' + st + '" stroke-width="' + n1(sw) + '"/>';
+      s.push(r);
+      if (p.grupo === 'led') {
+        var zl = p.z, yl = p.y + p.dy / 2, ab = Math.min(140, zl - 10);
+        if (ab > 30) s.push('<path d="M' + X(yl) + ' ' + Y(zl) + ' L' + X(yl - ab * 0.45) + ' ' + Y(zl - ab) + ' L' + X(yl + ab * 0.45) + ' ' + Y(zl - ab) + 'Z" fill="' + COR_LED + '" opacity=".16"/>');
+      }
+    });
+    var op = { cor: cor, lw: lw, fs: fs, tique: tq };
+    var yb = Y(0) + mg * 0.45;
+    s.push(cotaT(ox + yMin, yb, ox + yMax, yb, fmtUn(yMax - yMin, un), Object.assign({}, op, { chamada: [[ox + yMin, Y(0) + 1 * E, ox + yMin, yb + tq], [ox + yMax, Y(0) + 1 * E, ox + yMax, yb + tq]] })));
+    var xl = ox + yMin - mg * 0.45;
+    s.push(cotaT(xl, Y(zMax), xl, Y(0), fmtUn(zMax, un), Object.assign({}, op, { chamada: [[ox + yMin - 1 * E, Y(zMax), xl - tq, Y(zMax)], [ox + yMin - 1 * E, Y(0), xl - tq, Y(0)]] })));
+    var xr = ox + yMax + mg * 0.4;
+    if (c.secoes.length > 1) c.secoes.forEach(function (sm) { s.push(cotaT(xr, Y(sm.z1), xr, Y(sm.z0), fmtUn(sm.alt, un), op)); });
+    if (d.z0 > 0) s.push(cotaT(xr + (c.secoes.length > 1 ? mg * 0.3 : 0), Y(d.z0), xr + (c.secoes.length > 1 ? mg * 0.3 : 0), Y(0), fmtUn(d.z0, un), op));
+    s.push('<text x="' + n1(ox + yMin) + '" y="' + n1(Y(zMax) - fs * 0.9) + '" font-size="' + n1(fs * 0.85) + '" fill="#8b939a">frente</text>');
+    s.push('<text x="' + n1(ox + d.D) + '" y="' + n1(Y(zMax) - fs * 0.9) + '" font-size="' + n1(fs * 0.85) + '" text-anchor="end" fill="#8b939a">parede</text>');
+    var svg = '<svg class="tecnico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + n1(W) + ' ' + n1(Ht) + '" width="' + n1(W / E) + 'mm" height="' + n1(Ht / E) + 'mm" font-family="Poppins, Segoe UI, sans-serif">' + s.join('') + '</svg>';
+    return { svg: svg, escala: E, w: W / E, h: Ht / E };
+  }
+
+  // Colunas com montagem diferente (uma de cada tipo) para os cortes
+  function colunasTipicas(M, max) {
+    var vistas = {}, out = [];
+    (M.colunas || []).forEach(function (c) {
+      var assin = c.secoes.map(function (sm) { var cf = sm.cfg || {}; return cf.tipo + ':' + (cf.itens || []).map(function (i) { return i.tipo; }).join('') + ':' + (cf.prateleiras || 0); }).join('|') + (c.cuba ? '|cuba' : '');
+      if (!vistas[assin]) { vistas[assin] = 1; out.push(c.idx); }
+    });
+    return out.slice(0, max || 3);
+  }
+
   function frontalTecnico(M, o) {
     o = o || {};
     var d = M.dims, L = d.L, H = d.H, un = o.unidade || 'mm';
@@ -484,9 +587,11 @@
       if (p.forma && p.forma.plano === 'xz') s.push('<polygon points="' + p.forma.pts.map(function (q) { return X(p.x + q[0]) + ',' + Y(p.z + q[1]); }).join(' ') + '" fill="' + (p.mat === 'espelho' ? '#e6eef1' : '#fff') + '" stroke="' + linha + '" stroke-width="' + n1(lw) + '"/>');
     });
     // frentes
+    var ripas = [];
     M.pecas.forEach(function (p) {
       if (p.grupo !== 'frente' || p.nome === 'Painel') return;
-      s.push(ret(p.x, p.z, p.dx, p.dz, lwF, { fill: '#fff' }));
+      if (p.nome === 'Ripa') { ripas.push(p); return; }
+      s.push(ret(p.x, p.z, p.dx, p.dz, lwF, { fill: p.nome === 'Vidro canelado' ? '#eef3f5' : '#fff' }));
       var m = p.meta || {};
       var tr = 'stroke="' + fina + '" stroke-width="' + n1(lw) + '" stroke-dasharray="' + n1(2.4 * E) + ' ' + n1(1.4 * E) + '" fill="none"';
       if (m.tipo === 'porta') {
@@ -506,10 +611,19 @@
         s.push('<text x="' + X(cx) + '" y="' + Y(cz2) + '" font-size="' + n1(fs * 0.85) + '" fill="' + fina + '" text-anchor="middle"' + (vertical ? ' transform="rotate(-90 ' + X(cx) + ' ' + Y(cz2) + ')"' : '') + '>' + rot + '</text>');
       }
     });
+    ripas.forEach(function (p) { s.push(ret(p.x, p.z, p.dx, p.dz, lw * 0.7, { cor: fina })); });
     M.pecas.forEach(function (p) {
       if (p.nome === 'Puxador alça' || p.nome === 'Perfil puxador') s.push(ret(p.x, p.z, p.dx, p.dz, lw, { fill: '#d9d9d9' }));
+      if (p.grupo === 'led') s.push('<line x1="' + X(p.x) + '" y1="' + Y(p.z) + '" x2="' + X(p.x + p.dx) + '" y2="' + Y(p.z) + '" stroke="' + COR_LED + '" stroke-width="' + n1(lwF * 1.6) + '" stroke-dasharray="' + n1(1.6 * E) + ' ' + n1(0.8 * E) + '"/>');
     });
     if (pedra) s.push(ret(pedra.x, pedra.z, pedra.dx, pedra.dz, lw, { fill: '#ececec' }));
+    // balões das colunas (mesma numeração do corte, da planta e dos detalhes)
+    var yBal = Y(topoZ) - mg * 0.55, rBal = 2.1 * E;
+    (M.colunas || []).forEach(function (c) {
+      var cx = (c.x0 + c.x1) / 2;
+      if (M.cuba && Math.abs(cx - M.cuba.centro) < rBal * 1.6) cx = M.cuba.centro + (cx < M.cuba.centro ? -1 : 1) * rBal * 1.8;
+      s.push(balao(ox + cx, yBal, rBal, 'C' + (c.idx + 1), lw, fs));
+    });
     // cuba (projeção) e eixo hidráulico
     if (M.cuba) {
       var ch = Math.min(220, d.Hc * 0.35);
@@ -581,6 +695,11 @@
       s.push('<text x="' + X(M.cuba.x0 + 2 * E) + '" y="' + Y(cy0 + cp - fs * 1.2) + '" font-size="' + n1(fs * 0.85) + '" fill="#4d6f99">cuba</text>');
       s.push(cotaT(ox, Y(D) - mg * 0.35, ox + cx, Y(D) - mg * 0.35, fmtUn(cx, un), Object.assign({}, op, { chamada: [[ox, Y(D) - mg * 0.4, ox, Y(D)]] })));
     }
+    var rB = 1.9 * E;
+    (M.colunas || []).forEach(function (c) {
+      if (c.larg < rB * 2.6) return;
+      s.push(balao(X((c.x0 + c.x1) / 2), Y(Math.min(D * 0.5, rB + 30)), rB, 'C' + (c.idx + 1), lw, fs * 0.92));
+    });
     var yb = Y(yMin) + mg * 0.3;
     s.push(cotaT(ox, yb, ox + L, yb, fmtUn(L, un), Object.assign({}, op, { chamada: [[ox, Y(0), ox, yb + tq], [ox + L, Y(0), ox + L, yb + tq]] })));
     var xl = ox - mg * 0.45;
@@ -603,11 +722,11 @@
       var tf = Math.min(fs, it.h * 0.32, it.w / Math.max(6, it.nome.length * 0.62));
       if (tf > fs * 0.35) {
         s.push('<text x="' + n1(it.x + it.w / 2) + '" y="' + n1(it.y + it.h / 2 - tf * 0.1) + '" font-size="' + n1(tf) + '" text-anchor="middle" fill="#3a2e26">' + esc(it.nome) + '</text>');
-        s.push('<text x="' + n1(it.x + it.w / 2) + '" y="' + n1(it.y + it.h / 2 + tf * 1.0) + '" font-size="' + n1(tf * 0.85) + '" text-anchor="middle" fill="#6b5b4f">' + Math.round(it.c) + '×' + Math.round(it.l) + (it.rot ? ' ↻' : '') + '</text>');
+        s.push('<text x="' + n1(it.x + it.w / 2) + '" y="' + n1(it.y + it.h / 2 + tf * 1.0) + '" font-size="' + n1(tf * 0.85) + '" text-anchor="middle" fill="#6b5b4f">' + Math.round(it.c) + '×' + Math.round(it.l) + (it.rot ? ' (girada)' : '') + '</text>');
       }
     });
     return '<svg class="desenho chapa" xmlns="http://www.w3.org/2000/svg" viewBox="-4 -4 ' + (g.w + 8) + ' ' + (g.h + 8) + '">' + s.join('') + '</svg>';
   }
 
-  return { frontalTecnico: frontalTecnico, plantaTecnica: plantaTecnica, escolherEscala: escolherEscala, fmtUn: fmtUn, cotaT: cotaT, frontal: frontal, planta: planta, perspectiva: perspectiva, chapaSvg: chapaSvg, cor: { shade: shade, lighten: lighten, lum: lum }, esc: esc, cotaH: cotaH, cotaV: cotaV };
+  return { frontalTecnico: frontalTecnico, plantaTecnica: plantaTecnica, corteTecnico: corteTecnico, colunasTipicas: colunasTipicas, balao: balao, COR_LED: COR_LED, escolherEscala: escolherEscala, fmtUn: fmtUn, cotaT: cotaT, frontal: frontal, planta: planta, perspectiva: perspectiva, chapaSvg: chapaSvg, cor: { shade: shade, lighten: lighten, lum: lum }, esc: esc, cotaH: cotaH, cotaV: cotaV };
 });

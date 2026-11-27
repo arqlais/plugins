@@ -88,8 +88,11 @@
   var PUXADORES = {
     cava: 'Cava 45° usinada',
     perfil: 'Perfil de alumínio',
-    passante: 'Perfil passante',
-    alca: 'Alça (barra)',
+    passante: 'Porta passante',
+    alca: 'Alça',
+    barra: 'Barra longa',
+    botao: 'Botão',
+    testeira: 'Perfil 45° (testeira)',
     toque: 'Toque (push)',
     nenhum: 'Sem puxador'
   };
@@ -112,8 +115,12 @@
     gaveta: { id: 'gen-branco', nome: 'Branco TX', marca: 'Genérico', cor: '#f2f1ec', veio: false, texturaLargura: 1200 },
     fundoGaveta: { id: 'gen-hdf-branco', nome: 'HDF Branco', marca: 'Genérico', cor: '#ecebe6', veio: false, texturaLargura: 1200 }
   };
+  var ESTILOS_FRENTE = { lisa: 'Lisa', ripada: 'Ripada', moldura: 'Moldura', vidro: 'Vidro canelado' };
+  var TEMP_LED = { 2700: '#ffcf8a', 3000: '#ffd9a0', 4000: '#fff1d6', 6000: '#eef4ff' };
   var MATERIAIS_FIXOS = {
     metal: { nome: 'Metal', cor: '#9a9ea3' },
+    vidro: { nome: 'Vidro canelado', cor: '#cfdde2' },
+    led: { nome: 'LED', cor: '#fff1d6' },
     aramado: { nome: 'Aramado cromado', cor: '#c3c7cc' },
     espelho: { nome: 'Espelho', cor: '#bcd3dc' },
     pedra: { nome: 'Pedra', cor: '#d9d6cf' },
@@ -171,8 +178,9 @@
       travessaLargura: 100,
       esp: { caixa: 18, frente: 18, fundo: 6, gaveta: 15, fundoGaveta: 6 },
       fundo: { tipo: 'sobreposto', recuoEncaixe: 10, rasgo: 8 },
-      frentes: { montagem: 'sobreposta', folga: 3, folgaTopo: t.folgaTopo, folgaEmbutida: 2, veio: 'vertical' },
-      puxador: { tipo: 'cava', tamanho: 25, comprimento: 160, posicao: 'auto' },
+      frentes: { montagem: 'sobreposta', folga: 3, folgaTopo: t.folgaTopo, folgaEmbutida: 2, veio: 'vertical', estilo: 'lisa', ripa: { largura: 20, espaco: 10, espessura: 9 } },
+      puxador: { tipo: 'cava', tamanho: 25, comprimento: 160, posicao: 'auto', passa: 25 },
+      led: { ativo: false, local: 'base', posicao: 'fundo', tipo: 'embutido', temperatura: 4000 },
       larguraMax: Math.min(t.larguraMax, AMBIENTES[ambiente].larguraMax === 500 ? 500 : t.larguraMax),
       divisorias: 'cada',     // cada | par | nenhuma
       gavetas: { corredica: 'telescopica' },
@@ -444,7 +452,15 @@
     var T = spec.esp.caixa, Tf = spec.esp.frente, F = spec.esp.fundo;
     var Tg = spec.esp.gaveta, Fg = spec.esp.fundoGaveta;
     var fr = spec.frentes, g = fr.folga;
-    var pux = spec.puxador;
+    var pux = deepMerge({ tipo: 'cava', tamanho: 25, comprimento: 160, posicao: 'auto', passa: 25 }, spec.puxador || {});
+    var estilo = ESTILOS_FRENTE[fr.estilo] ? fr.estilo : 'lisa';
+    var ripa = deepMerge({ largura: 20, espaco: 10, espessura: 9 }, fr.ripa || {});
+    var led = deepMerge({ ativo: false, local: 'base', posicao: 'fundo', tipo: 'embutido', temperatura: 4000 }, spec.led || {});
+    if (estilo === 'ripada' && pux.tipo === 'cava') {
+      pux = deepMerge(pux, { tipo: 'toque' });
+      info('Frente ripada: cava usinada não se aplica nas ripas — as frentes ficam com abertura por toque (ou escolha perfil, barra ou botão).');
+    }
+    var yApar = estilo === 'ripada' ? ripa.espessura : (estilo === 'moldura' ? 6 : 0); // espessura aplicada à frente
     var embutida = fr.montagem === 'embutida';
     var usavelC = spec.chapa.comprimento - 2 * spec.chapa.refilo;
     var usavelL = spec.chapa.largura - 2 * spec.chapa.refilo;
@@ -536,7 +552,8 @@
 
     var cont = { portas: 0, gavetas: 0, basculantes: 0, prateleirasMoveis: 0, prateleirasFixas: 0,
       dobradicas: { reta: 0, curva: 0, superCurva: 0 }, corredicas: {}, corredicasOcultas: {}, puxadores: 0, puxadorPerfilMm: 0,
-      pistoes: 0, cabideiroMm: 0, suportesCabideiro: 0, temperos: 0, lixeiras: [], fruteiras: 0, espelhoM2: 0, travessasCava: 0 };
+      pistoes: 0, cabideiroMm: 0, suportesCabideiro: 0, temperos: 0, lixeiras: [], fruteiras: 0, espelhoM2: 0, travessasCava: 0,
+      ripas: 0, vidroM2: 0, perfilVidroMm: 0, ledMm: 0, botoes: 0 };
 
     // ================================================================
     // CAIXARIA
@@ -633,9 +650,10 @@
     // Puxador / cava em uma frente (px..px+pw, pz..pz+ph)
     function aplicarPuxador(frenteP, info2) {
       // info2: {x, z, w, h, y0, conj, tipoFrente:'porta'|'gaveta'|'basculante', lado:'esq'|'dir'|'topo', vao, col, secao}
-      var w = info2.w, h = info2.h, x = info2.x, z = info2.z, y0 = info2.y0;
+      var w = info2.w, h = info2.h, x = info2.x, z = info2.z, y0 = info2.y0 - (info2.vidro ? 0 : yApar);
       var refs = { vao: info2.vao, col: info2.col, secao: info2.secao, conj: info2.conj };
       var posV = info2.tipoFrente === 'gaveta' || info2.tipoFrente === 'basculante' ? (puxPos === 'base' ? 'base' : 'topo') : puxPos;
+      if (pux.tipo === 'passante') return; // a própria porta passa da caixa
       if (pux.tipo === 'cava' && frenteP) {
         // chanfro 45° na borda superior (ou inferior) traseira da frente
         var c = clamp(pux.tamanho, 8, Tf - 4);
@@ -647,8 +665,21 @@
         frenteP.forma = { plano: 'yz', pts: pts, cava: posV };
         return;
       }
-      if (pux.tipo === 'alca') {
-        var comp = Math.min(pux.comprimento, (info2.tipoFrente === 'porta' && posV === 'lateral') ? h - 80 : w - 60);
+      if (pux.tipo === 'botao') {
+        var bxB = info2.tipoFrente === 'porta' ? (info2.lado === 'esq' ? x + w - 55 : x + 25) : x + w / 2 - 15;
+        var bzB = info2.tipoFrente === 'porta' ? (tipo === 'aereo' || posV === 'base' ? z + 50 : (tipo === 'balcao' ? z + h - 80 : z + h / 2 - 15)) : (posV === 'base' ? z + 30 : z + h - 60);
+        fab.objeto({ nome: 'Puxador botão', grupo: 'ferragem', mat: 'metal', x: bxB, y: y0 - 25, z: bzB, dx: 30, dy: 25, dz: 30, vao: refs.vao, col: refs.col, secao: refs.secao, conj: refs.conj });
+        cont.botoes++;
+        return;
+      }
+      if (pux.tipo === 'testeira') {
+        fab.objeto({ nome: 'Perfil testeira 45°', grupo: 'ferragem', mat: 'metal', x: x, y: y0 - 18, z: posV === 'base' ? z : z + h - 18, dx: w, dy: 18, dz: 18, vao: refs.vao, col: refs.col, secao: refs.secao, conj: refs.conj, forma: { plano: 'yz', pts: posV === 'base' ? [[0, 18], [18, 18], [18, 0]] : [[0, 0], [18, 0], [18, 18]] } });
+        cont.puxadorPerfilMm += w;
+        return;
+      }
+      if (pux.tipo === 'alca' || pux.tipo === 'barra') {
+        var compMax = pux.tipo === 'barra' ? 800 : pux.comprimento;
+        var comp = Math.min(compMax, (info2.tipoFrente === 'porta' && posV === 'lateral') ? h - 80 : w - 60);
         var bx, bz, bw, bh;
         if (info2.tipoFrente === 'porta' && posV === 'lateral') {
           bw = 12; bh = comp;
@@ -659,12 +690,12 @@
           bx = x + (w - comp) / 2;
           bz = posV === 'base' ? z + 35 : z + h - 47;
         }
-        fab.objeto({ nome: 'Puxador alça', grupo: 'ferragem', mat: 'metal', x: bx, y: y0 - 28, z: bz, dx: bw, dy: 28, dz: bh,
+        fab.objeto({ nome: pux.tipo === 'barra' ? 'Puxador barra' : 'Puxador alça', grupo: 'ferragem', mat: 'metal', x: bx, y: y0 - 28, z: bz, dx: bw, dy: 28, dz: bh,
           vao: refs.vao, col: refs.col, secao: refs.secao, conj: refs.conj });
         return;
       }
-      if (pux.tipo === 'perfil' || pux.tipo === 'passante') {
-        var ph = pux.tipo === 'passante' ? 30 : 22;
+      if (pux.tipo === 'perfil') {
+        var ph = 22;
         var pzp = posV === 'base' ? z : z + h - ph;
         if (info2.tipoFrente === 'porta' && posV === 'lateral') {
           var pxp = info2.lado === 'esq' ? x + w - 20 : x;
@@ -677,7 +708,40 @@
       }
     }
 
+    // Frente com estilo: lisa, ripada (ripas aplicadas), moldura (quadro aplicado) ou vidro canelado (quadro de alumínio)
+    function frente(o) {
+      var rf = { vao: o.vao, col: o.col, secao: o.secao, conj: o.conj };
+      function comRef(obj) { obj.vao = rf.vao; obj.col = rf.col; obj.secao = rf.secao; obj.conj = rf.conj; return obj; }
+      if (estilo === 'vidro' && o.vidroOk) {
+        var pf = 20;
+        fab.objeto(comRef({ nome: 'Perfil alumínio da porta', grupo: 'frente', mat: 'metal', x: o.x, y: o.y0, z: o.z, dx: pf, dy: Tf, dz: o.h }));
+        fab.objeto(comRef({ nome: 'Perfil alumínio da porta', grupo: 'frente', mat: 'metal', x: o.x + o.w - pf, y: o.y0, z: o.z, dx: pf, dy: Tf, dz: o.h }));
+        fab.objeto(comRef({ nome: 'Perfil alumínio da porta', grupo: 'frente', mat: 'metal', x: o.x + pf, y: o.y0, z: o.z, dx: o.w - 2 * pf, dy: Tf, dz: pf }));
+        fab.objeto(comRef({ nome: 'Perfil alumínio da porta', grupo: 'frente', mat: 'metal', x: o.x + pf, y: o.y0, z: o.z + o.h - pf, dx: o.w - 2 * pf, dy: Tf, dz: pf }));
+        fab.objeto(comRef({ nome: 'Vidro canelado 4 mm', grupo: 'frente', mat: 'vidro', x: o.x + pf, y: o.y0 + Tf / 2 - 2, z: o.z + pf, dx: o.w - 2 * pf, dy: 4, dz: o.h - 2 * pf, meta: o.meta, obs: o.obs }));
+        cont.vidroM2 += (o.w - 2 * pf) * (o.h - 2 * pf) / 1e6; cont.perfilVidroMm += 2 * (o.w + o.h);
+        return null;
+      }
+      var b = fab.chapa(comRef({ nome: o.nome, grupo: 'frente', mat: 'frente', eixoEsp: 'y', x: o.x, y: o.y0, z: o.z, dx: o.w, dy: Tf, dz: o.h, veio: o.veio, fitas: ['x', 'x', 'z', 'z'], obs: o.obs, meta: o.meta }));
+      if (estilo === 'ripada') {
+        var passo = ripa.largura + ripa.espaco;
+        var nR = Math.max(1, Math.floor((o.w + ripa.espaco) / passo));
+        var usado = nR * ripa.largura + (nR - 1) * ripa.espaco;
+        var xr = o.x + (o.w - usado) / 2;
+        for (var kr = 0; kr < nR; kr++) fab.chapa(comRef({ nome: 'Ripa', grupo: 'frente', mat: 'frente', eixoEsp: 'y', x: xr + kr * passo, y: o.y0 - ripa.espessura, z: o.z, dx: ripa.largura, dy: ripa.espessura, dz: o.h, veio: 'z', fitas: ['z', 'z'], obs: 'Ripa colada na frente' }));
+        cont.ripas += nR;
+      } else if (estilo === 'moldura') {
+        var mw = Math.max(25, Math.min(60, o.w / 4, o.h / 4)), me = 6;
+        fab.chapa(comRef({ nome: 'Moldura da frente', grupo: 'frente', mat: 'frente', eixoEsp: 'y', x: o.x, y: o.y0 - me, z: o.z + o.h - mw, dx: o.w, dy: me, dz: mw, veio: 'x', fitas: ['x', 'x'] }));
+        fab.chapa(comRef({ nome: 'Moldura da frente', grupo: 'frente', mat: 'frente', eixoEsp: 'y', x: o.x, y: o.y0 - me, z: o.z, dx: o.w, dy: me, dz: mw, veio: 'x', fitas: ['x', 'x'] }));
+        fab.chapa(comRef({ nome: 'Moldura da frente', grupo: 'frente', mat: 'frente', eixoEsp: 'y', x: o.x, y: o.y0 - me, z: o.z + mw, dx: mw, dy: me, dz: o.h - 2 * mw, veio: 'z', fitas: ['z', 'z'] }));
+        fab.chapa(comRef({ nome: 'Moldura da frente', grupo: 'frente', mat: 'frente', eixoEsp: 'y', x: o.x + o.w - mw, y: o.y0 - me, z: o.z + mw, dx: mw, dy: me, dz: o.h - 2 * mw, veio: 'z', fitas: ['z', 'z'] }));
+      }
+      return b;
+    }
+
     function dobradicasVisuais(px, pw, pz, ph, lado, nd, conj, refs) {
+      if (estilo === 'vidro') return; // porta de vidro usa dobradiça própria do perfil de alumínio
       for (var k = 0; k < nd; k++) {
         var zz = nd === 1 ? pz + ph / 2 : pz + 90 + (ph - 180) * k / (nd - 1);
         var xc = lado === 'esq' ? px + 22 : px + pw - 22 - 35;
@@ -713,7 +777,8 @@
         }
 
         var extEsq = vi === 0, extDir = vi === nV - 1, extBaixo = j === 0, extTopo = j === nS - 1;
-        var itCorre = (temTravCava && extTopo) ? Math.min(sm.it, topoTravCava - 6) : sm.it; // topo livre para o que corre
+        var itCorre = (temTravCava && extTopo) ? Math.min(sm.it, topoTravCava - 3) : sm.it; // topo livre para o que corre
+        var folgaTopoCorre = (temTravCava && extTopo) ? 2 : 15;
         // região de cobertura de toda a faixa
         var reg;
         if (embutida) {
@@ -722,6 +787,14 @@
         } else {
           reg = { x0: vm.x0 + (extEsq ? 0 : g / 2), x1: vm.x1 - (extDir ? 0 : g / 2),
             z0: sm.z0 + (extBaixo ? 0 : g / 2), z1: sm.z1 - (extTopo ? fr.folgaTopo : g / 2), y0: -Tf };
+        }
+        if (pux.tipo === 'passante' && !embutida) {
+          var posP = pux.posicao === 'auto' ? (aereoLike ? 'base' : 'topo') : pux.posicao;
+          if (posP === 'base' && extBaixo) reg.z0 -= pux.passa;
+          if (posP === 'topo' && extTopo) {
+            if (tipo === 'balcao' || tipo === 'gabinete') { if (j === nS - 1 && vi === 0) info('Porta passante no topo de balcão encosta no tampo: prefira cava ou passante na base.'); }
+            else reg.z1 += pux.passa;
+          }
         }
         var regW = reg.x1 - reg.x0, regH = reg.z1 - reg.z0;
         var veioF = fr.veio === 'horizontal' ? 'x' : 'z';
@@ -787,12 +860,11 @@
             cont.dobradicas[th] += nd; cont.portas++; puxadorConta();
             var pivX = lado === 'esq' ? pp.x : pp.x + pp.w;
             var cj = fab.conjunto({ nome: 'Porta', tipo: 'giro', eixo: 'z', pivot: { x: pivX, y: reg.y0, z: reg.z0 }, angulo: lado === 'esq' ? -95 : 95, vao: vi, col: pp.col, secao: j });
-            var porta = fab.chapa({ nome: 'Porta', grupo: 'frente', mat: 'frente', eixoEsp: 'y',
-              x: pp.x, y: reg.y0, z: reg.z0, dx: pp.w, dy: Tf, dz: regH, veio: veioF, fitas: ['x', 'x', 'z', 'z'],
+            var porta = frente({ nome: 'Porta', x: pp.x, y0: reg.y0, z: reg.z0, w: pp.w, h: regH, veio: veioF, vidroOk: true,
               vao: vi, col: pp.col, secao: j, conj: cj,
               obs: 'De abrir, dobradiça ' + nomeHinge[th] + ' à ' + (lado === 'esq' ? 'esquerda' : 'direita') + ' (' + nd + ' un)' + (vm.cuba ? ' · lado da cuba abaixo do fundo dela' : ''),
               meta: { tipo: 'porta', dobradica: lado, nDobradicas: nd, hinge: th } });
-            aplicarPuxador(porta, { x: pp.x, z: reg.z0, w: pp.w, h: regH, y0: reg.y0, conj: cj, tipoFrente: 'porta', lado: lado, vao: vi, col: pp.col, secao: j });
+            aplicarPuxador(porta, { x: pp.x, z: reg.z0, w: pp.w, h: regH, y0: reg.y0, vidro: !porta && estilo === 'vidro', conj: cj, tipoFrente: 'porta', lado: lado, vao: vi, col: pp.col, secao: j });
             dobradicasVisuais(pp.x, pp.w, reg.z0, regH, lado, nd, cj, { vao: vi, col: pp.col, secao: j });
             if (interno) erro(rot + ': sem divisória entre as portas, a ' + (k + 1) + 'ª porta não tem onde fixar a dobradiça — use divisórias "cada par" ou "cada porta".', ref);
             if (pp.w > 600) aviso(rot + ': porta com ' + fmtCm(pp.w) + ' de largura (acima de 60 cm pesa nas dobradiças e tende a cair).', ref);
@@ -809,11 +881,10 @@
           var ndB = regW <= 900 ? 2 : 3;
           cont.dobradicas[thB] += ndB; cont.basculantes++; cont.pistoes += regW > 600 ? 2 : 1; puxadorConta();
           var cjB = fab.conjunto({ nome: 'Basculante', tipo: 'giro', eixo: 'x', pivot: { x: reg.x0, y: reg.y0, z: reg.z1 }, angulo: -100, vao: vi, col: colIdx0, secao: j });
-          var pb = fab.chapa({ nome: 'Porta basculante', grupo: 'frente', mat: 'frente', eixoEsp: 'y',
-            x: reg.x0, y: reg.y0, z: reg.z0, dx: regW, dy: Tf, dz: regH, veio: veioF, fitas: ['x', 'x', 'z', 'z'],
+          var pb = frente({ nome: 'Porta basculante', x: reg.x0, y0: reg.y0, z: reg.z0, w: regW, h: regH, veio: veioF, vidroOk: true,
             vao: vi, col: colIdx0, secao: j, conj: cjB, obs: 'Abre para cima · ' + ndB + ' dobradiças ' + nomeHinge[thB] + ' + pistão a gás',
             meta: { tipo: 'basculante', dobradica: 'topo', nDobradicas: ndB, hinge: thB } });
-          aplicarPuxador(pb, { x: reg.x0, z: reg.z0, w: regW, h: regH, y0: reg.y0, conj: cjB, tipoFrente: 'basculante', vao: vi, col: colIdx0, secao: j });
+          aplicarPuxador(pb, { x: reg.x0, z: reg.z0, w: regW, h: regH, y0: reg.y0, vidro: !pb && estilo === 'vidro', conj: cjB, tipoFrente: 'basculante', vao: vi, col: colIdx0, secao: j });
           if (regH > 500) aviso(rot + ': basculante com ' + fmtCm(regH) + ' de altura fica pesado para abrir — considere articulador ou portas de giro.', ref);
           if (regW > 1000) aviso(rot + ': basculante com ' + fmtCm(regW) + ' de largura: use pistões reforçados ou divida em dois.', ref);
         }
@@ -846,21 +917,20 @@
             var nomeG = (it3.tipo === 'gaveta' ? 'Gaveta' : 'Gavetão') + ' ' + seqGav;
             cont.gavetas++; puxadorConta();
             var cjG = fab.conjunto({ nome: nomeG, tipo: 'corre', curso: Math.round(lenC * 0.85), vao: vi, col: colIdx0, secao: j });
-            var fg = fab.chapa({ nome: 'Frente gaveta', grupo: 'frente', mat: 'frente', eixoEsp: 'y',
-              x: reg.x0, y: reg.y0, z: f0, dx: regW, dy: Tf, dz: fh, veio: veioF, fitas: ['x', 'x', 'z', 'z'],
+            var fg = frente({ nome: 'Frente gaveta', x: reg.x0, y0: reg.y0, z: f0, w: regW, h: fh, veio: veioF,
               vao: vi, col: colIdx0, secao: j, conj: cjG, obs: nomeG,
               meta: { tipo: 'gaveta', ordem: k3, item: it3.tipo } });
             aplicarPuxador(fg, { x: reg.x0, z: f0, w: regW, h: fh, y0: reg.y0, conj: cjG, tipoFrente: 'gaveta', vao: vi, col: colIdx0, secao: j });
             if (fh < 100) aviso(rot + ': frente de gaveta com ' + fmtCm(fh) + ' é muito baixa (mín. ~10 cm).', ref);
             if (k3 > 0 && pux.tipo === 'cava') {
-              fab.chapa({ nome: 'Travessa entre gavetas', grupo: 'caixa', mat: matInt, eixoEsp: 'y', x: vm.il, y: yInt + 2, z: f0 - g / 2 - 25, dx: vm.largInt, dy: T, dz: 51, veio: 'x', fitas: [], vao: vi, col: colIdx0, secao: j });
+              fab.chapa({ nome: 'Travessa entre gavetas', grupo: 'caixa', mat: matInt, eixoEsp: 'y', x: vm.il, y: yInt + 2, z: f0 - g / 2 - 20, dx: vm.largInt, dy: T, dz: 40, veio: 'x', fitas: [], vao: vi, col: colIdx0, secao: j });
               cont.travessasCava++;
             }
             if (!lenC) continue;
             cont.corredicas[lenC] = (cont.corredicas[lenC] || 0) + 1;
             var cavaTrav = pux.tipo === 'cava';
-            var zBox = Math.max(f0 + (cavaTrav && k3 > 0 ? (oculta ? 38 : 30) : 20), sm.ib + 12);
-            var lim = k3 === nG - 1 ? itCorre - 15 : fz[k3 + 1][0] - (cavaTrav ? 32 : -8);
+            var zBox = Math.max(f0 + (cavaTrav && k3 > 0 ? (oculta ? 32 : 21) : 20), sm.ib + 12);
+            var lim = k3 === nG - 1 ? itCorre - folgaTopoCorre : fz[k3 + 1][0] - (cavaTrav ? 25 : -8);
             var hb = Math.min(fh - 40, lim - zBox);
             if (hb < 60) { aviso(rot + ': ' + nomeG.toLowerCase() + ' com caixa de só ' + fmtMm(hb) + ' de altura.', ref); hb = Math.max(hb, 40); }
             var obsG = nomeG + (vm.cuba ? ' · recorte p/ sifão' : '');
@@ -907,8 +977,7 @@
           if (!lenA) erro(rot + ': profundidade insuficiente para aramado de correr.', ref);
           var nomeA = { temperos: 'Porta-temperos', fruteira: 'Fruteira', lixeira: 'Lixeira' }[cfg.tipo];
           var cjA = fab.conjunto({ nome: nomeA, tipo: 'corre', curso: Math.round(lenA * 0.85), vao: vi, col: colIdx0, secao: j });
-          var fa = fab.chapa({ nome: 'Frente ' + nomeA.toLowerCase(), grupo: 'frente', mat: 'frente', eixoEsp: 'y',
-            x: reg.x0, y: reg.y0, z: reg.z0, dx: regW, dy: Tf, dz: regH, veio: veioF, fitas: ['x', 'x', 'z', 'z'],
+          var fa = frente({ nome: 'Frente ' + nomeA.toLowerCase(), x: reg.x0, y0: reg.y0, z: reg.z0, w: regW, h: regH, veio: veioF,
             vao: vi, col: colIdx0, secao: j, conj: cjA, obs: nomeA + ' de correr', meta: { tipo: cfg.tipo } });
           aplicarPuxador(fa, { x: reg.x0, z: reg.z0, w: regW, h: regH, y0: reg.y0, conj: cjA, tipoFrente: 'gaveta', vao: vi, col: colIdx0, secao: j });
           if (lenA) {
@@ -1079,6 +1148,45 @@
     }
 
     // ================================================================
+    // ILUMINAÇÃO (fita de LED em perfil de alumínio)
+    // ================================================================
+    if (led.ativo) {
+      var corLed = TEMP_LED[led.temperatura] || TEMP_LED[4000];
+      MATERIAIS_FIXOS.led = { nome: 'LED ' + led.temperatura + 'K', cor: corLed };
+      var ledW = 12, ledH = led.tipo === 'embutido' ? 10 : 8;
+      var yLed = function (y0, prof) { return led.posicao === 'frente' ? y0 + 40 : (led.posicao === 'meio' ? y0 + prof / 2 - ledW / 2 : y0 + prof - 20 - ledW); };
+      var trechosLed = [];
+      if (led.local === 'base') {
+        trechosLed.push({ x0: T + 20, x1: L - T - 20, zFace: z0 + (temBase ? T : 0), y0: 0, prof: Dc, nome: 'sob o móvel' });
+        if (temBase) trechosLed[0].zFace = z0; // com rodapé, o perfil fica sob a base, aparente acima do rodapé
+      } else {
+        vaosM.forEach(function (vm) {
+          vm.secoes.forEach(function (sm) {
+            if (!/nicho|arco|painel/.test(sm.cfg.tipo)) return;
+            var tetos = [sm.it];
+            fab.lista.forEach(function (p) { if ((p.nome === 'Prateleira' || p.nome === 'Prateleira fixa') && p.col === vm.colunas[0].idx && p.secao === sm.idx) tetos.push(p.z); });
+            tetos.forEach(function (zt) { trechosLed.push({ x0: vm.il + 20, x1: vm.ir - 20, zFace: zt, y0: yInt, prof: profUtil - yInt, teto: true, col: vm.colunas[0].idx }); });
+          });
+        });
+      }
+      trechosLed.forEach(function (tq) {
+        if (tq.x1 - tq.x0 < 80) return;
+        var zl = led.tipo === 'embutido' ? (tq.teto ? tq.zFace - ledH : tq.zFace) : (tq.teto ? tq.zFace - ledH : tq.zFace - ledH);
+        if (!tq.teto && led.tipo === 'embutido') zl = tq.zFace; // rasgo na face de baixo da base
+        fab.objeto({ nome: 'Perfil LED', grupo: 'led', mat: 'led', x: tq.x0, y: yLed(tq.y0, tq.prof), z: zl, dx: tq.x1 - tq.x0, dy: ledW, dz: ledH, col: tq.col,
+          obs: 'Fita ' + led.temperatura + 'K em perfil ' + (led.tipo === 'embutido' ? 'embutido (rasgo 12 × 10 mm)' : 'sobreposto') + ' com difusor leitoso' });
+        cont.ledMm += tq.x1 - tq.x0;
+      });
+      if (cont.ledMm) {
+        R.elementos.push({ tipo: 'led', nome: 'Perfil de LED ' + (led.tipo === 'embutido' ? 'embutido' : 'sobreposto'), col: null,
+          local: led.local === 'base' ? 'Embaixo do móvel' : 'Sob as prateleiras dos nichos', posicao: led.posicao, temperatura: led.temperatura, montagem: led.tipo, metros: Math.round(cont.ledMm / 100) / 10,
+          texto: (led.posicao === 'fundo' ? 'A 20 mm da borda do fundo: lava a parede e valoriza o revestimento. ' : led.posicao === 'frente' ? 'A 40 mm da frente: luz de tarefa sobre a bancada. ' : 'No meio da profundidade: luz difusa. ') +
+            (led.tipo === 'embutido' ? 'Rasgo de 12 × 10 mm na face de baixo, parando 20 mm antes das laterais; perfil de alumínio rente à face, com difusor leitoso.' : 'Perfil sobreposto colado na face de baixo, com difusor leitoso.') });
+        info('Iluminação: fita de LED ' + led.temperatura + 'K (' + (Math.round(cont.ledMm / 100) / 10).toString().replace('.', ',') + ' m) — prever a fonte (driver) em local ventilado e acessível e a passagem do fio pelo fundo.');
+      }
+    }
+
+    // ================================================================
     // PEDRA
     // ================================================================
     if (spec.pedra.ativa && (tipo === 'balcao' || tipo === 'gabinete')) {
@@ -1136,6 +1244,7 @@
     // ================================================================
     var fer = [];
     var amort = pux.tipo === 'toque' ? 'sem amortecedor' : 'com amortecedor';
+    if (estilo === 'vidro') amort += ' para perfil de alumínio';
     if (cont.dobradicas.reta) fer.push({ item: 'Dobradiça reta 35 mm ' + amort, qtd: cont.dobradicas.reta, un: 'un' });
     if (cont.dobradicas.curva) fer.push({ item: 'Dobradiça curva 35 mm ' + amort, qtd: cont.dobradicas.curva, un: 'un' });
     if (cont.dobradicas.superCurva) fer.push({ item: 'Dobradiça super curva 35 mm ' + amort, qtd: cont.dobradicas.superCurva, un: 'un' });
@@ -1149,12 +1258,19 @@
     if (cont.fruteiras) fer.push({ item: 'Fruteira aramada de correr', qtd: cont.fruteiras, un: 'cj' });
     if (cont.puxadores) {
       if (pux.tipo === 'alca') fer.push({ item: 'Puxador alça ' + pux.comprimento + ' mm', qtd: cont.puxadores, un: 'un' });
-      else if (pux.tipo === 'perfil' || pux.tipo === 'passante') fer.push({ item: 'Perfil puxador de alumínio', qtd: r1(cont.puxadorPerfilMm / 1000), un: 'm' });
+      else if (pux.tipo === 'barra') fer.push({ item: 'Puxador barra longa', qtd: cont.puxadores, un: 'un' });
+      else if (pux.tipo === 'botao') fer.push({ item: 'Puxador botão', qtd: cont.puxadores, un: 'un' });
+      else if (pux.tipo === 'testeira') fer.push({ item: 'Perfil puxador 45° (testeira) em alumínio', qtd: r1(cont.puxadorPerfilMm / 1000), un: 'm' });
+      else if (pux.tipo === 'perfil') fer.push({ item: 'Perfil puxador de alumínio', qtd: r1(cont.puxadorPerfilMm / 1000), un: 'm' });
+      else if (pux.tipo === 'passante') fer.push({ item: 'Frentes passantes ' + pux.passa + ' mm (sem puxador)', qtd: cont.puxadores, un: 'frente' });
       else if (pux.tipo === 'cava') fer.push({ item: 'Usinagem cava 45° nas frentes', qtd: cont.puxadores, un: 'frente' });
     }
     if (pux.tipo === 'toque') fer.push({ item: 'Fecho toque (push)', qtd: cont.portas + cont.gavetas + cont.basculantes, un: 'un' });
     if (cont.prateleirasMoveis) fer.push({ item: 'Suporte de prateleira (pino)', qtd: cont.prateleirasMoveis * 4, un: 'un' });
     if (cont.cabideiroMm) { fer.push({ item: 'Tubo cabideiro oblongo', qtd: r1(cont.cabideiroMm / 1000), un: 'm' }); fer.push({ item: 'Suporte de tubo cabideiro', qtd: cont.suportesCabideiro, un: 'un' }); }
+    if (cont.vidroM2) { fer.push({ item: 'Perfil de alumínio para porta de vidro', qtd: r1(cont.perfilVidroMm / 1000), un: 'm' }); fer.push({ item: 'Vidro canelado 4 mm', qtd: r1(cont.vidroM2 * 100) / 100, un: 'm²' }); }
+    if (cont.ripas) fer.push({ item: 'Ripas ' + ripa.largura + ' × ' + ripa.espessura + ' mm coladas nas frentes', qtd: cont.ripas, un: 'un' });
+    if (cont.ledMm) { var mLed = r1(cont.ledMm / 1000); fer.push({ item: 'Fita de LED ' + led.temperatura + 'K 12 V + perfil de alumínio ' + led.tipo + ' com difusor leitoso', qtd: mLed, un: 'm' }); fer.push({ item: 'Fonte (driver) 12 V ' + Math.max(30, Math.ceil(mLed * 9.6 * 1.25 / 10) * 10) + ' W', qtd: 1, un: 'un' }); }
     if (cont.espelhoM2) fer.push({ item: 'Espelho 4 mm lapidado (recorte em arco)', qtd: r1(cont.espelhoM2 * 100) / 100, un: 'm²' });
     if (nPes) fer.push({ item: 'Pé regulável plástico + clipe de rodapé', qtd: nPes, un: 'un' });
     if (spec.topo === 'travessas' && (tipo === 'balcao' || tipo === 'gabinete')) fer.push({ item: 'Cantoneira para fixação do tampo', qtd: Math.max(4, (divs.length + 2) * 2), un: 'un' });
@@ -1300,7 +1416,7 @@
 
   return {
     TIPOS: TIPOS, AMBIENTES: AMBIENTES, TIPOS_SECAO: TIPOS_SECAO, TIPOS_ITEM_GAVETA: TIPOS_ITEM_GAVETA,
-    PUXADORES: PUXADORES, COMPOSICOES: COMPOSICOES, CORREDICAS: CORREDICAS,
+    PUXADORES: PUXADORES, COMPOSICOES: COMPOSICOES, ESTILOS_FRENTE: ESTILOS_FRENTE, TEMP_LED: TEMP_LED, CORREDICAS: CORREDICAS,
     MATERIAIS_PADRAO: MATERIAIS_PADRAO, MATERIAIS_FIXOS: MATERIAIS_FIXOS,
     VERIFICACOES: VERIFICACOES, CHECKLIST: CHECKLIST,
     specPadrao: specPadrao, aplicarTipo: aplicarTipo, normalizar: normalizar,

@@ -7,6 +7,7 @@
  */
 (function () {
   'use strict';
+  var ILU = window.MarceIlustra || {};
   var E = window.MarceEngine, R = window.MarceRender, C = window.MarceCatalogo, N = window.MarceNesting, REL = window.MarceRelatorio;
   var emSketchUp = typeof window.sketchup !== 'undefined';
 
@@ -14,7 +15,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: true, relatorioJunto: true,
-    padroes: null, projeto: {}, versao: '1.4.0', gerando: false, atualizacao: null, atualizando: false
+    padroes: null, projeto: {}, versao: '1.5.0', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -69,7 +70,10 @@
     // puxadores
     cava: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 26V9h12l4-4v21z"/><path d="M20 9l4-4"/></svg>',
     perfil: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="8" y="9" width="16" height="18" rx="1"/><rect x="8" y="6" width="16" height="3" rx="1"/></svg>',
-    passante: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="10" width="11" height="16" rx="1"/><rect x="17" y="10" width="11" height="16" rx="1"/><path d="M3 7h26" stroke-width="3"/></svg>',
+    passante: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 6h20v18H6z"/><path d="M9 8h14v22H9z" stroke-dasharray="0"/><path d="M9 24v6h14v-6" stroke="#d6b3ab" stroke-width="2"/></svg>',
+    barra: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="3" width="14" height="26" rx="1"/><path d="M19 6v20" stroke-width="2.5"/></svg>',
+    botao: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="4" width="14" height="24" rx="1"/><circle cx="18.5" cy="16" r="2.4" fill="currentColor"/></svg>',
+    testeira: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="8" width="14" height="20" rx="1"/><path d="M8 8l4-4h16l-5 4z" fill="#d6b3ab" fill-opacity=".5"/></svg>',
     alca: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="4" width="14" height="24" rx="1"/><path d="M19 10v10" stroke-width="2.5"/></svg>',
     toque: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="4" width="14" height="24" rx="1"/><path d="M14 16a2 2 0 1 1 4 0v5" /><path d="M12 13a4 4 0 0 1 8 0"/></svg>',
     nenhum: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="4" width="14" height="24" rx="1"/><path d="M6 6l20 20"/></svg>',
@@ -189,14 +193,14 @@
     if (r.erros) cont += '<span class="contador erro">' + r.erros + ' erro' + (r.erros > 1 ? 's' : '') + '</span>';
     if (r.avisos) cont += '<span class="contador aviso">' + r.avisos + ' aviso' + (r.avisos > 1 ? 's' : '') + '</span>';
     if (!r.erros && !r.avisos) cont += '<span class="contador ok">tudo certo</span>';
-    var ic = { erro: '!', aviso: '⚠', info: 'i', dica: '✓' };
+    var ic = { erro: ILU.st_erro, aviso: ILU.st_aviso, info: ILU.st_info, dica: ILU.st_dica };
     var itens = M.avisos.map(function (a) {
       var cl = a.ref && a.ref.col !== undefined && a.ref.col !== null;
-      return '<li class="' + (cl ? 'clicavel' : '') + '"' + (cl ? ' data-act="irpara:' + a.ref.col + ':' + (a.ref.secao || 0) + '"' : '') + '><span class="ic ' + a.nivel + '">' + ic[a.nivel] + '</span><span>' + esc(a.msg) + '</span></li>';
+      return '<li class="' + (cl ? 'clicavel' : '') + '"' + (cl ? ' data-act="irpara:' + a.ref.col + ':' + (a.ref.secao || 0) + '"' : '') + '><span class="ic-svg">' + ic[a.nivel] + '</span><span>' + esc(a.msg) + '</span></li>';
     }).join('');
     var el = $('#conferencia');
     el.className = 'cartao conferencia' + (st.confAberta ? '' : ' fechada');
-    el.innerHTML = '<div class="topo-conf" data-act="conf"><h3>Conferência técnica</h3>' + aj('conferencia') + cont + '<span class="seta">▾</span></div><ul class="lista-conf">' + itens + '</ul>';
+    el.innerHTML = '<div class="topo-conf" data-act="conf"><h3>Conferência técnica</h3>' + aj('conferencia') + cont + '<span class="seta">' + ILU.seta + '</span></div><ul class="lista-conf">' + itens + '</ul>';
   }
 
   function renderRodape() {
@@ -207,7 +211,7 @@
     var htmlVersao = '<span class="versao">marc<i>ê</i> ' + esc(st.versao) + '</span>';
     if (st.atualizando) htmlVersao += '<span class="pilula-atualizar ocupado">atualizando…</span>';
     else if (at && at.nova) htmlVersao += '<button class="pilula-atualizar nova" data-act="atualizar" title="' + esc((at.notas || []).join(' · ')) + '">nova versão ' + esc(at.versao) + ' · atualizar</button>';
-    else htmlVersao += '<button class="pilula-atualizar" data-act="verificarAtualizacao">' + (at && at.verificado ? (at.erro ? 'sem conexão · tentar de novo' : 'está atualizado ✓') : 'verificar atualização') + '</button>';
+    else htmlVersao += '<button class="pilula-atualizar" data-act="verificarAtualizacao">' + (at && at.verificado ? (at.erro ? 'sem conexão · tentar de novo' : 'está atualizado') : 'verificar atualização') + '</button>';
     $('#rodape').innerHTML = '<div class="bloco-versao">' + htmlVersao + '</div><div class="resumo-conf">' +
       (r.erros ? '<span class="contador erro">' + r.erros + ' erro' + (r.erros > 1 ? 's' : '') + '</span>' : '') +
       '<span class="contador aviso">' + r.avisos + ' aviso' + (r.avisos === 1 ? '' : 's') + '</span>' +
@@ -217,7 +221,7 @@
   }
 
   // ---------------------------------------------------------------- painel
-  var ABAS = [['movel', 'Móvel', IC.abaMovel], ['montagem', 'Montagem', IC.abaMontagem], ['frentes', 'Frentes', IC.abaFrentes], ['acabamento', 'Acabamento', IC.abaAcab], ['relatorio', 'Relatório', IC.abaRel]];
+  var ABAS = [['movel', 'Móvel', IC.abaMovel], ['montagem', 'Montagem', IC.abaMontagem], ['frentes', 'Detalhes', IC.abaFrentes], ['acabamento', 'Acabamento', IC.abaAcab], ['relatorio', 'Relatório', IC.abaRel]];
 
   function renderPainel() {
     $('#abas').innerHTML = ABAS.map(function (a) { return '<button data-act="aba:' + a[0] + '" class="' + (st.aba === a[0] ? 'ativo' : '') + '">' + a[2] + '<span>' + a[1] + '</span></button>'; }).join('');
@@ -247,6 +251,12 @@
     var v = getPath(st.spec, path);
     return '<div class="pilulas">' + ops.map(function (o) { return '<button class="pilula' + (pequena ? ' pequena' : '') + (String(v) === String(o[0]) ? ' ativo' : '') + '" data-act="set" data-path="' + path + '" data-val="' + esc(o[0]) + '">' + o[1] + '</button>'; }).join('') + '</div>';
   }
+  function cartoes(path, ops) {
+    var v = getPath(st.spec, path);
+    return '<div class="grade-ilus c' + ops.length + '">' + ops.map(function (o) {
+      return '<button class="card-ilus' + (String(v) === String(o[0]) ? ' ativo' : '') + '" data-act="set" data-path="' + path + '" data-val="' + esc(o[0]) + '" title="' + esc(o[1]) + '">' + (ILU[o[2]] || '') + '<span>' + o[1] + '</span></button>';
+    }).join('') + '</div>';
+  }
   function fmtMm(v) { return Math.round(v) + ' mm'; }
   function fmtM(v) { return m2(v) + ' m'; }
 
@@ -271,16 +281,16 @@
       '<div><label>Altura (A) mm</label><input type="number" data-path="H" data-tipo="num" value="' + Math.round(s.H) + '"' + ro + '></div></div>' +
       (s.origemVolume ? '<p class="ajuda">Medidas do volume selecionado no modelo. <a href="#" data-act="liberarMedidas">Editar mesmo assim</a></p>' : '<p class="ajuda">Dica: selecione um volume (caixa) no SketchUp antes de abrir o marcê para puxar as medidas e a posição.</p>') + '</div>';
 
-    h += '<div class="grupo"><h4>Base · rodapé' + aj('base') + '</h4>' + pilulas('base.tipo', [['rodape', 'Rodapé recuado'], ['suspenso', 'Suspenso'], ['pes', 'Pés'], ['nenhum', 'Sem base']]);
+    h += '<div class="grupo"><h4>Base · rodapé' + aj('base') + '</h4>' + cartoes('base.tipo', [['rodape', 'Rodapé recuado', 'base_rodape'], ['suspenso', 'Suspenso', 'base_suspenso'], ['pes', 'Pés', 'base_pes'], ['nenhum', 'Sem base', 'base_nenhum']]);
     if (s.base.tipo === 'rodape' || s.base.tipo === 'pes') h += deslizante('Altura', 'base.altura', 40, 200, 5, fmtMm) + deslizante('Recuo', 'base.recuo', 0, 120, 5, fmtMm);
     if (s.base.tipo === 'suspenso') h += campoNum('Altura do piso até o móvel', 'elevacao', 'mm');
     h += '</div>';
     h += '<div class="grupo"><h4>Roda-teto' + aj('rodaTeto') + '</h4>' + interruptor('Fechar até o teto com roda-teto', 'rodaTeto.ativo');
     if (s.rodaTeto.ativo) h += deslizante('Altura', 'rodaTeto.altura', 20, 300, 5, fmtMm) + deslizante('Recuo', 'rodaTeto.recuo', 0, 80, 5, fmtMm);
     h += '</div>';
-    h += '<div class="grupo"><h4>Estrutura' + aj('estrutura') + '</h4><div class="campo"><label>Topo</label></div>' + pilulas('topo', [['travessas', 'Travessas (sob tampo)'], ['chapa', 'Chapa inteira']], true);
+    h += '<div class="grupo"><h4>Estrutura' + aj('estrutura') + '</h4><div class="campo"><label>Topo</label></div>' + cartoes('topo', [['travessas', 'Travessas sob o tampo', 'topo_travessas'], ['chapa', 'Chapa inteira', 'topo_chapa']]);
     if (s.topo === 'travessas') h += campoNum('Largura das travessas', 'travessaLargura', 'mm');
-    h += '<div class="campo"><label>Fundo</label></div>' + pilulas('fundo.tipo', [['sobreposto', 'Sobreposto'], ['encaixado', 'Encaixado'], ['nenhum', 'Sem fundo']], true);
+    h += '<div class="campo"><label>Fundo</label></div>' + cartoes('fundo.tipo', [['sobreposto', 'Sobreposto', 'fundo_sobreposto'], ['encaixado', 'Encaixado', 'fundo_encaixado'], ['nenhum', 'Sem fundo', 'fundo_nenhum']]);
     h += '<div class="tres-campos" style="margin-top:10px"><div><label>Caixaria</label><input type="number" data-path="esp.caixa" data-tipo="num" value="' + s.esp.caixa + '"></div><div><label>Frentes</label><input type="number" data-path="esp.frente" data-tipo="num" value="' + s.esp.frente + '"></div><div><label>Fundo</label><input type="number" data-path="esp.fundo" data-tipo="num" value="' + s.esp.fundo + '"></div></div>';
     h += '<p class="ajuda">Espessuras em mm. Gavetas: ' + s.esp.gaveta + ' mm (lateral) e ' + s.esp.fundoGaveta + ' mm (fundo).</p></div>';
 
@@ -289,7 +299,7 @@
       h += '<div class="grupo"><h4>Cuba e tampo' + aj('cuba') + '</h4>' + interruptor('Tem cuba sobre este móvel', 'cuba.ativa');
       if (s.cuba.ativa) {
         h += campoNum('Centro da cuba (a partir da esquerda)', 'cuba.centro', 'mm') + campoNum('Largura da cuba', 'cuba.largura', 'mm') + campoNum('Profundidade da cuba', 'cuba.profundidade', 'mm');
-        if (s.cuba.origem === 'modelo') h += '<p class="ajuda">✓ Posição detectada no modelo.</p>';
+        if (s.cuba.origem === 'modelo') h += '<p class="ajuda ok-linha">' + ILU.st_ok + 'Posição detectada no modelo.</p>';
       }
       h += '<div class="linha-botoes">' + (emSketchUp ? '<button class="botao pequeno" data-act="detectarCuba">Detectar cuba no modelo</button>' : '') + '<button class="botao pequeno" data-act="redistribuir">Redistribuir colunas</button></div>';
       h += interruptor('Desenhar tampo de pedra', 'pedra.ativa', 'Deixe desligado se o tampo já está modelado no projeto.');
@@ -311,7 +321,7 @@
     var s = st.spec, M = st.modelo;
     var h = '<div class="grupo"><h4>Portas, gavetas e interior' + aj('larguraMax') + '</h4>';
     h += deslizante('Largura máxima de porta', 'larguraMax', 300, 1000, 10, fmtM);
-    h += '<div class="campo"><label>Divisórias internas' + aj('divisorias') + '</label></div>' + pilulas('divisorias', [['cada', 'Cada porta'], ['par', 'Cada par'], ['nenhuma', 'Nenhuma']], true);
+    h += '<div class="campo"><label>Divisórias internas' + aj('divisorias') + '</label></div>' + cartoes('divisorias', [['cada', 'Cada porta', 'div_cada'], ['par', 'Cada par', 'div_par'], ['nenhuma', 'Nenhuma', 'div_nenhuma']]);
     h += '<div class="campo" style="margin-top:10px"><label>Prateleiras por vão' + aj('prateleiras') + '</label><span class="passo"><button data-act="pratTodas:-1">−</button><span>' + pratComum() + '</span><button data-act="pratTodas:1">+</button></span></div>';
     h += '<div class="linha-botoes"><button class="botao pequeno" data-act="redistribuir">Redistribuir colunas pela largura máxima</button></div></div>';
 
@@ -379,7 +389,7 @@
       for (var k = sec.itens.length - 1; k >= 0; k--) {
         var it = sec.itens[k];
         h += '<div class="gav-item"><span class="ngv">' + (sec.itens.length - k) + '</span><div class="pilulas" style="flex:1">' +
-          Object.keys(E.TIPOS_ITEM_GAVETA).map(function (t) { return '<button class="pilula pequena' + (it.tipo === t ? ' ativo' : '') + '" data-act="gavTipo:' + k + ':' + t + '">' + E.TIPOS_ITEM_GAVETA[t] + '</button>'; }).join('') +
+          Object.keys(E.TIPOS_ITEM_GAVETA).map(function (t) { return '<button class="mini-ilus' + (it.tipo === t ? ' ativo' : '') + '" data-act="gavTipo:' + k + ':' + t + '" title="' + E.TIPOS_ITEM_GAVETA[t] + '">' + (ILU['gav_' + t] || '') + '<span>' + E.TIPOS_ITEM_GAVETA[t] + '</span></button>'; }).join('') +
           '</div><input type="number" data-path="' + base + 'itens.' + k + '.altura" data-tipo="numnull" value="' + (it.altura || '') + '" placeholder="auto" title="Altura da frente (mm)"></div>';
       }
       h += '</div><p class="ajuda">Gaveta 1 é a de cima. "Gavetão c/ interna" cria uma gaveta oculta de 80 mm dentro do gavetão.</p>';
@@ -396,25 +406,44 @@
   // ---------- aba Frentes
   function abaFrentes() {
     var s = st.spec;
-    var h = '<div class="grupo"><h4>Puxador' + aj('puxador') + '</h4><div class="grade-cards tres">';
+    var est = s.frentes.estilo || 'lisa';
+    var h = '<div class="grupo"><h4>Tipo de frente' + aj('estiloFrente') + '</h4>' +
+      cartoes('frentes.estilo', [['lisa', 'Lisa', 'porta_lisa'], ['ripada', 'Ripada', 'porta_ripada'], ['moldura', 'Moldura', 'porta_moldura'], ['vidro', 'Vidro canelado', 'porta_vidro']]);
+    if (est === 'ripada') h += deslizante('Largura da ripa', 'frentes.ripa.largura', 10, 60, 1, fmtMm) + deslizante('Espaçamento entre ripas', 'frentes.ripa.espaco', 3, 40, 1, fmtMm) + deslizante('Espessura da ripa', 'frentes.ripa.espessura', 6, 20, 1, fmtMm) + '<p class="ajuda">Ripas aplicadas sobre todas as frentes (portas, gavetas, porta-temperos e lixeira). Cava usinada não se aplica no ripado: fica com toque, perfil ou puxador aplicado.</p>';
+    if (est === 'moldura') h += '<p class="ajuda">Quadro de 6 mm aplicado sobre a frente, com largura proporcional ao tamanho da porta (25 a 60 mm).</p>';
+    if (est === 'vidro') h += '<p class="ajuda">Portas e basculantes em quadro de alumínio de 20 mm com vidro canelado 4 mm. Gavetas e aramados continuam em MDF.</p>';
+    h += '</div>';
+    h += '<div class="grupo"><h4>Puxador' + aj('puxador') + '</h4><div class="grade-cards">';
     Object.keys(E.PUXADORES).forEach(function (k) {
-      h += '<button class="card-op' + (s.puxador.tipo === k ? ' ativo' : '') + '" data-act="set" data-path="puxador.tipo" data-val="' + k + '">' + IC[k] + '<span>' + E.PUXADORES[k] + '</span></button>';
+      var bloqueado = est === 'ripada' && k === 'cava';
+      h += '<button class="card-op' + (s.puxador.tipo === k ? ' ativo' : '') + (bloqueado ? ' desativado' : '') + '" data-act="set" data-path="puxador.tipo" data-val="' + k + '"' + (bloqueado ? ' disabled title="Cava não se aplica no ripado"' : '') + '>' + (IC[k] || '') + '<span>' + E.PUXADORES[k] + '</span></button>';
     });
     h += '</div>';
-    if (s.puxador.tipo !== 'toque' && s.puxador.tipo !== 'nenhum') {
-      h += '<div class="campo"><label>Posição' + aj('posicao') + '</label></div>' + pilulas('puxador.posicao', [['auto', 'Auto'], ['topo', 'Topo'], ['base', 'Base'], ['lateral', 'Lateral']], true);
-    }
+    if (s.puxador.tipo !== 'toque' && s.puxador.tipo !== 'nenhum') h += '<div class="campo"><label>Posição' + aj('posicao') + '</label></div>' + pilulas('puxador.posicao', [['auto', 'Auto'], ['topo', 'Topo'], ['base', 'Base'], ['lateral', 'Lateral']], true);
     if (s.puxador.tipo === 'cava') h += deslizante('Vão da cava 45°', 'puxador.tamanho', 8, 14, 1, fmtMm);
+    if (s.puxador.tipo === 'passante') h += deslizante('Quanto a porta passa da caixa', 'puxador.passa', 10, 60, 1, fmtMm) + '<p class="ajuda">A frente passa além da caixa e vira a pega. Em aéreo, passa por baixo; em torre e roupeiro, por cima.</p>';
     if (s.puxador.tipo === 'alca') h += '<div class="campo"><label>Comprimento da alça</label></div>' + pilulas('puxador.comprimento', [[96, '96'], [128, '128'], [160, '160'], [192, '192'], [256, '256'], [320, '320']], true);
     h += '</div>';
-    h += '<div class="grupo"><h4>Montagem das frentes' + aj('montagem') + '</h4>' + pilulas('frentes.montagem', [['sobreposta', 'Sobreposta'], ['embutida', 'Embutida']]);
+    h += '<div class="grupo"><h4>Montagem das frentes' + aj('montagem') + '</h4>' + cartoes('frentes.montagem', [['sobreposta', 'Sobreposta', 'mont_sobreposta'], ['embutida', 'Embutida', 'mont_embutida']]);
     h += deslizante('Folga entre frentes' + aj('folgas'), 'frentes.folga', 1, 6, 0.5, fmtMm);
     h += deslizante('Folga no topo (sob o tampo)', 'frentes.folgaTopo', 0, 10, 1, fmtMm);
     h += '<div class="campo"><label>Veio das frentes' + aj('veio') + '</label></div>' + pilulas('frentes.veio', [['vertical', 'Vertical'], ['horizontal', 'Horizontal']], true) + '</div>';
-    h += '<div class="grupo"><h4>Gavetas' + aj('corredica') + '</h4>' + pilulas('gavetas.corredica', [['telescopica', 'Corrediça telescópica'], ['oculta', 'Corrediça oculta']], true) +
-      '<p class="ajuda">Telescópica: 12,5 mm de cada lado. Oculta com amortecedor: 5 mm de cada lado (gaveta mais larga).</p>' +
+    h += '<div class="grupo"><h4>Gavetas' + aj('corredica') + '</h4>' + cartoes('gavetas.corredica', [['telescopica', 'Telescópica', 'corr_telescopica'], ['oculta', 'Oculta', 'corr_oculta']]) +
+      '<p class="ajuda">Telescópica: 12,5 mm de cada lado. Oculta com amortecedor: 5 mm de cada lado, fica embaixo da gaveta.</p>' +
       '<div class="tres-campos" style="margin-top:8px"><div><label>Lateral gaveta</label><input type="number" data-path="esp.gaveta" data-tipo="num" value="' + s.esp.gaveta + '"></div><div><label>Fundo gaveta</label><input type="number" data-path="esp.fundoGaveta" data-tipo="num" value="' + s.esp.fundoGaveta + '"></div><div></div></div></div>';
     h += '<div class="grupo"><h4>Prateleiras' + aj('prateleiras') + '</h4>' + deslizante('Recuo frontal', 'prateleiras.recuo', 0, 60, 5, fmtMm) + '</div>';
+    var led = s.led || {};
+    h += '<div class="grupo"><h4>Iluminação' + aj('iluminacao') + '</h4>' + interruptor('Fita de LED em perfil de alumínio', 'led.ativo');
+    if (led.ativo) {
+      h += '<div class="campo"><label>Onde</label></div>' + cartoes('led.local', [['base', 'Sob o móvel', 'led_fundo'], ['prateleiras', 'Nas prateleiras dos nichos', 'nicho_led']]);
+      h += '<div class="campo"><label>Posição na profundidade</label></div>' + cartoes('led.posicao', [['frente', 'Frente', 'led_frente'], ['meio', 'Meio', 'led_meio'], ['fundo', 'Fundo', 'led_fundo']]);
+      h += '<div class="campo"><label>Perfil</label></div>' + cartoes('led.tipo', [['embutido', 'Embutido', 'led_embutido'], ['sobreposto', 'Sobreposto', 'led_sobreposto']]);
+      h += '<div class="campo"><label>Temperatura da luz</label></div><div class="pilulas">' + [[2700, 'quente'], [3000, 'quente'], [4000, 'neutra'], [6000, 'fria']].map(function (t) {
+        return '<button class="pilula pequena com-cor' + (Number(led.temperatura) === t[0] ? ' ativo' : '') + '" data-act="set" data-path="led.temperatura" data-val="' + t[0] + '"><i style="background:' + E.TEMP_LED[t[0]] + '"></i>' + t[0] + 'K ' + t[1] + '</button>';
+      }).join('') + '</div>';
+      h += '<p class="ajuda">' + (led.posicao === 'fundo' ? 'No fundo, a 20 mm da borda: lava a parede e valoriza o revestimento.' : led.posicao === 'frente' ? 'Na frente: luz de tarefa direta sobre a bancada.' : 'No meio: luz difusa, sem ofuscar.') + ' A fonte (driver) é calculada e entra na lista de ferragens.</p>';
+    }
+    h += '</div>';
     return h;
   }
 
@@ -750,6 +779,16 @@
 
   // ---------------------------------------------------------------- Ruby -> JS
   // ---------------------------------------------------------------- ajuda ("?")
+  var AJ_ILUS = {
+    base: [['base_rodape', 'rodapé recuado'], ['base_suspenso', 'suspenso'], ['base_pes', 'pés']],
+    estrutura: [['topo_travessas', 'travessas'], ['topo_chapa', 'chapa'], ['fundo_sobreposto', 'fundo sobreposto'], ['fundo_encaixado', 'fundo encaixado']],
+    divisorias: [['div_cada', 'cada porta'], ['div_par', 'cada par'], ['div_nenhuma', 'nenhuma']],
+    montagem: [['mont_sobreposta', 'sobreposta'], ['mont_embutida', 'embutida']],
+    corredica: [['corr_telescopica', 'telescópica'], ['corr_oculta', 'oculta']],
+    gavetas: [['gav_gaveta', 'gaveta'], ['gav_gavetao', 'gavetão'], ['gav_interna', 'c/ interna']],
+    portas: [['div_par', 'par de portas'], ['porta_lisa', 'porta única']]
+  };
+  var abertoEm = 0;
   function fecharAjuda() { var p = document.querySelector('.pop-ajuda'); if (p) p.remove(); }
   function abrirAjuda(btn) {
     var ja = document.querySelector('.pop-ajuda');
@@ -758,8 +797,9 @@
     var item = (window.MarceAjuda && window.MarceAjuda.itens[btn.getAttribute('data-ajuda')]) || null;
     if (!item) return;
     var pop = document.createElement('div');
-    pop.className = 'pop-ajuda'; pop.dataset.chave = btn.getAttribute('data-ajuda'); pop.setAttribute('role', 'dialog');
-    pop.innerHTML = '<div class="pop-topo"><b>' + esc(item.titulo) + '</b><button type="button" class="pop-x" aria-label="Fechar">×</button></div><p>' + esc(item.texto) + '</p>' + (item.dica ? '<p class="pop-dica"><span>dica</span>' + esc(item.dica) + '</p>' : '');
+    pop.className = 'pop-ajuda'; abertoEm = Date.now(); pop.dataset.chave = btn.getAttribute('data-ajuda'); pop.setAttribute('role', 'dialog');
+    var ilus = (AJ_ILUS[btn.getAttribute('data-ajuda')] || []).map(function (k) { return '<figure>' + (ILU[k[0]] || '') + '<figcaption>' + k[1] + '</figcaption></figure>'; }).join('');
+    pop.innerHTML = '<div class="pop-topo"><b>' + esc(item.titulo) + '</b><button type="button" class="pop-x" aria-label="Fechar">×</button></div>' + (ilus ? '<div class="pop-ilus">' + ilus + '</div>' : '') + '<p>' + esc(item.texto) + '</p>' + (item.dica ? '<p class="pop-dica"><span>dica</span>' + esc(item.dica) + '</p>' : '');
     document.body.appendChild(pop);
     var r = btn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
     var x = Math.min(Math.max(12, r.left + r.width / 2 - w / 2), window.innerWidth - w - 12);
@@ -785,7 +825,7 @@
     if (ev.target.closest('.pop-x') || !ev.target.closest('.pop-ajuda')) fecharAjuda();
   }, true);
   document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') { fecharAjuda(); var m = document.querySelector('.modal-fundo'); if (m) m.remove(); } });
-  document.getElementById('conteudo').addEventListener('scroll', fecharAjuda);
+  document.getElementById('conteudo').addEventListener('scroll', function () { if (Date.now() - abertoEm > 500) fecharAjuda(); });
 
   function mostrarNovidades(versoes, versao) {
     if (!versoes || !versoes.length) return;

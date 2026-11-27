@@ -24,6 +24,7 @@ function embutir(html) {
   s.colunas[0].secoes = [E.novaSecao('temperos')]; s.colunas[0].largura = 250;
   s.colunas[3].secoes = [E.novaSecao('gavetas', { itens: [{ tipo: 'interna' }, { tipo: 'gaveta' }, { tipo: 'gaveta' }] })];
   s.colunas[5].secoes = [E.novaSecao('lixeira')];
+  if (process.argv[5] === 'detalhes') { s.frentes.estilo = 'ripada'; s.puxador.tipo = 'toque'; s.led.ativo = true; s.led.local = 'base'; s.led.posicao = 'fundo'; }
   const html = embutir(REL.gerar(E.calcular(s), {
     versao: 'teste', prancha: { folha, visual, unidade: 'm', corCota: '#c0392b' },
     projeto: { cliente: 'Laura e Pedro', obra: 'Apto 1203 · Integrada', etapa: 'Detalhamento de marcenaria', revisao: 'R00' },

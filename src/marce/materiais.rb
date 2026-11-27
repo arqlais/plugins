@@ -9,8 +9,11 @@ module ArqLais
         'aramado' => ['Aramado cromado', [195, 199, 204], 1.0],
         'espelho' => ['Espelho', [188, 211, 220], 0.85],
         'pedra' => ['Pedra', [220, 217, 210], 1.0],
-        'plastico' => ['Plástico grafite', [91, 91, 91], 1.0]
+        'plastico' => ['Plástico grafite', [91, 91, 91], 1.0],
+        'vidro' => ['Vidro canelado', [207, 221, 226], 0.55]
       }.freeze
+
+      TEMP_LED = { 2700 => [255, 207, 138], 3000 => [255, 217, 160], 4000 => [255, 241, 214], 6000 => [238, 244, 255] }.freeze
 
       TAGS = {
         'caixa' => 'marcê · caixaria',
@@ -19,7 +22,8 @@ module ArqLais
         'gaveta' => 'marcê · gavetas',
         'ferragem' => 'marcê · ferragens',
         'rodape' => 'marcê · rodapé e roda-teto',
-        'pedra' => 'marcê · tampo'
+        'pedra' => 'marcê · tampo',
+        'led' => 'marcê · iluminação'
       }.freeze
 
       module_function
@@ -40,6 +44,12 @@ module ArqLais
       def para(model, spec, chave, cache)
         return cache[chave] if cache.key?(chave)
         mats = model.materials
+        if chave == 'led'
+          temp = (spec.dig('led', 'temperatura') || 4000).to_i
+          m = mats[PREFIXO + "LED #{temp}K"] || mats.add(PREFIXO + "LED #{temp}K")
+          m.color = Sketchup::Color.new(*(TEMP_LED[temp] || TEMP_LED[4000]))
+          return cache[chave] = m
+        end
         if FIXOS.key?(chave)
           nome, rgb, alpha = FIXOS[chave]
           m = mats[PREFIXO + nome] || mats.add(PREFIXO + nome)

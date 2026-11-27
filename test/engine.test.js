@@ -17,6 +17,12 @@ function cenarios() {
   lista.push(['video', v]);
   const emb = E.specPadrao('aereo'); emb.frentes.montagem = 'embutida'; emb.puxador.tipo = 'alca'; lista.push(['embutida', emb]);
   const rt = E.specPadrao('roupeiro'); rt.rodaTeto.ativo = true; rt.base.tipo = 'pes'; rt.fundo.tipo = 'encaixado'; lista.push(['roda-teto', rt]);
+  for (const est of ['ripada', 'moldura', 'vidro']) for (const px of ['barra', 'botao', 'testeira', 'passante']) {
+    const a = E.specPadrao('aereo'); a.frentes.estilo = est; a.puxador.tipo = px; a.led.ativo = true; a.led.tipo = 'embutido';
+    lista.push(['aereo:' + est + ':' + px, a]);
+    const n = E.specPadrao('estante'); n.frentes.estilo = est; n.puxador.tipo = px; n.led.ativo = true; n.led.local = 'prateleiras'; n.led.tipo = 'sobreposto';
+    lista.push(['estante-led:' + est + ':' + px, n]);
+  }
   // móvel com todos os tipos de faixa, em todas as combinações de puxador/montagem/corrediça/fundo
   const tipos = Object.keys(E.TIPOS_SECAO);
   for (const pux of Object.keys(E.PUXADORES)) for (const mont of ['sobreposta', 'embutida']) for (const corr of ['telescopica', 'oculta']) for (const fundo of ['sobreposto', 'encaixado']) {
@@ -132,7 +138,8 @@ function permitido(a, b) {
   if (um(/^Fundo gaveta/) && um(/gaveta|Contrafrente/i)) return true; // fundo da gaveta em rasgo
   if (um(/^Fundo$/) && a.grupo !== b.grupo && (um(/^Lateral|^Divisória|^Base|^Topo|^Travessa superior/))) return true; // fundo encaixado em rasgo
   if (um(/^Travessa da cava/) && um(/^Divisória/)) return true; // divisória entalhada para a travessa da cava
-  if (um(/^Dobradiça \(caneco\)/) && um(/^Porta/)) return true; // caneco embutido no furo de 35 mm da porta
+  if (um(/^Dobradiça \(caneco\)/) && um(/^Porta/)) return true;
+  if (um(/^Perfil LED/) && um(/^Base|^Prateleira/)) return true; // perfil de LED embutido em rasgo // caneco embutido no furo de 35 mm da porta
   if (um(/^Pedra/)) return false;
   return false && n;
 }

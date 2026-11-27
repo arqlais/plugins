@@ -327,3 +327,29 @@ table.tab tr.sep td { background: #fbf8f6; font-weight: 600; color: var(--rose-i
 .campo-txt input[type=text] { width: 190px; }
 
 .pilula[data-path="prancha.folha"] { text-transform: none; }
+
+/* ilustrações das opções */
+.grade-ilus { display: grid; gap: 6px; margin: 4px 0 8px; }
+.grade-ilus.c2 { grid-template-columns: repeat(2, 1fr); }
+.grade-ilus.c3 { grid-template-columns: repeat(3, 1fr); }
+.grade-ilus.c4 { grid-template-columns: repeat(4, 1fr); }
+.card-ilus { border: 1px solid var(--linha); background: #fff; border-radius: 14px; padding: 8px 4px 7px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10.8px; color: var(--texto-2); line-height: 1.15; text-align: center; text-transform: lowercase; transition: border-color .15s, background .15s; }
+.card-ilus .ilus { width: 100%; max-width: 72px; height: 44px; color: var(--texto-2); }
+.card-ilus:hover { border-color: var(--linha-forte); }
+.card-ilus.ativo { border-color: var(--rose); background: var(--acento-claro); color: var(--texto); font-weight: 600; box-shadow: 0 0 0 1px var(--rose) inset; }
+.card-ilus.ativo .ilus { color: var(--texto); }
+.mini-ilus { border: 1px solid var(--linha); background: #fff; border-radius: 10px; padding: 3px 6px 3px 3px; display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; color: var(--texto-2); text-transform: lowercase; }
+.mini-ilus .ilus { width: 26px; height: 20px; }
+.mini-ilus.ativo { border-color: var(--rose); background: var(--acento-claro); color: var(--texto); font-weight: 600; }
+.gav-item .pilulas { gap: 4px; }
+.ic-svg { flex: none; width: 16px; height: 16px; margin-top: 1px; }
+.ic-svg .st, .ok-linha .st { width: 16px; height: 16px; display: block; }
+.ok-linha { display: flex; align-items: center; gap: 6px; color: var(--dica); }
+.seta .seta-ic { width: 16px; height: 16px; display: block; }
+.pop-ilus { display: flex; gap: 6px; margin: 4px 0 8px; background: rgba(255,255,255,.07); border-radius: 10px; padding: 6px; }
+.pop-ilus figure { margin: 0; flex: 1; text-align: center; color: #e8edf1; }
+.pop-ilus .ilus { width: 100%; height: 40px; }
+.pop-ilus figcaption { font-size: 10px; color: #c8d0d6; text-transform: lowercase; }
+
+.card-op.desativado { opacity: .38; cursor: not-allowed; }
+.pilula.com-cor i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; border: 1px solid rgba(0,0,0,.15); vertical-align: -1px; }

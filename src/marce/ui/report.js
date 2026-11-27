@@ -70,11 +70,16 @@
     '.dets{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(var(--k)*2.5mm);align-content:start}.det{border:calc(var(--k)*.25mm) solid var(--b);border-radius:calc(var(--k)*2.5mm);padding:calc(var(--k)*2mm);display:grid;grid-template-columns:34% 1fr;gap:calc(var(--k)*2mm);font-size:.86em}.det svg{width:100%;height:auto}.det h3{margin:0 0 calc(var(--k)*1mm);font-size:1.08em;font-weight:600}.det table{border-collapse:collapse}.det td{padding:.1em 0;vertical-align:top}.det td:first-child{color:var(--m);padding-right:calc(var(--k)*1.5mm);text-transform:lowercase;white-space:nowrap}',
     '.col2{display:grid;grid-template-columns:1.25fr 1fr;gap:calc(var(--k)*5mm);flex:1;min-height:0}',
     'table.spec{width:100%;border-collapse:collapse;font-size:.92em}table.spec td{padding:calc(var(--k)*1.1mm) calc(var(--k)*1.5mm);border-top:calc(var(--k)*.2mm) solid #eee6e2;vertical-align:top}table.spec td:first-child{width:30%;color:var(--m);text-transform:lowercase}',
-    'ul.conf{list-style:none;margin:0;padding:0;font-size:.9em}ul.conf li{display:flex;gap:calc(var(--k)*1.6mm);padding:calc(var(--k)*1mm) 0;border-top:calc(var(--k)*.2mm) solid #eee6e2}.ic{flex:none;width:calc(var(--k)*3mm);height:calc(var(--k)*3mm);border-radius:calc(var(--k)*.7mm);color:#fff;font-size:.72em;font-weight:700;display:grid;place-items:center;margin-top:.1em}.ic.erro{background:#9a5b53}.ic.aviso{background:var(--rose)}.ic.info{background:#4f6475}.ic.dica{background:#6b8a72}',
+    'ul.conf{list-style:none;margin:0;padding:0;font-size:.9em}ul.conf li{display:flex;gap:calc(var(--k)*1.6mm);padding:calc(var(--k)*1mm) 0;border-top:calc(var(--k)*.2mm) solid #eee6e2}.ic{flex:none;width:calc(var(--k)*3.2mm);height:calc(var(--k)*3.2mm);border-radius:calc(var(--k)*.8mm);color:#fff;display:grid;place-items:center;margin-top:.05em;padding:calc(var(--k)*.45mm)}.ic.erro{background:#9a5b53}.ic.aviso{background:var(--rose)}.ic.info{background:#4f6475}.ic.dica{background:#6b8a72}',
     'table.lista{width:100%;border-collapse:collapse;font-size:.86em}table.lista th{text-align:left;font-weight:600;color:var(--m);text-transform:lowercase;padding:calc(var(--k)*1mm) calc(var(--k)*1.2mm);border-bottom:calc(var(--k)*.3mm) solid var(--t)}table.lista td{padding:calc(var(--k)*.75mm) calc(var(--k)*1.2mm);border-bottom:calc(var(--k)*.2mm) solid #f0e9e6;white-space:nowrap}table.lista td.o{max-width:calc(var(--k)*78mm);overflow:hidden;text-overflow:ellipsis}table.lista td.n{text-align:right;font-variant-numeric:tabular-nums}table.lista tr.sep td{color:var(--ink);font-weight:600;text-transform:lowercase}',
     '.chapas{display:grid;grid-template-columns:repeat(4,1fr);gap:calc(var(--k)*3mm)}.chapas figure{margin:0}.chapas figcaption{font-size:.8em;color:var(--m);margin-bottom:calc(var(--k)*.6mm)}.chapas svg{width:100%;height:auto}',
     'ul.check{list-style:none;margin:0;padding:0;font-size:.92em}ul.check li{display:flex;gap:calc(var(--k)*1.8mm);padding:calc(var(--k)*1.1mm) 0;border-top:calc(var(--k)*.2mm) solid #eee6e2}ul.check li:before{content:"";width:calc(var(--k)*2.8mm);height:calc(var(--k)*2.8mm);border:calc(var(--k)*.35mm) solid var(--rose);border-radius:calc(var(--k)*.7mm);flex:none;margin-top:.15em}ul.check b{font-weight:600}',
     '.nota{color:var(--m);font-size:.82em}',
+    '.fr-baixo{display:grid;gap:calc(var(--k)*3mm);min-height:0}.cortes{display:flex;gap:calc(var(--k)*3mm);min-width:0;align-items:stretch}.corte{flex:1;min-width:0;margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center}.corte .img{min-height:0;display:flex;align-items:center;justify-content:center}',
+    '.leg .bal{display:inline-grid;place-items:center;width:calc(var(--k)*4.2mm);height:calc(var(--k)*4.2mm);border:calc(var(--k)*.3mm) solid var(--t);border-radius:50%;font-size:.86em;letter-spacing:0;margin-right:calc(var(--k)*.4mm)}.leg.sem:before{display:none}',
+    '.simb{border:calc(var(--k)*.25mm) solid var(--b);border-radius:calc(var(--k)*2.5mm);padding:calc(var(--k)*2.2mm) calc(var(--k)*3mm);align-self:end}.simb h2{margin-bottom:calc(var(--k)*1.4mm)}.simb ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--k)*1mm) calc(var(--k)*3mm);font-size:.8em;line-height:1.2}.simb li{display:flex;align-items:center;gap:calc(var(--k)*1.6mm)}.simb svg{flex:none;width:calc(var(--k)*9mm);height:calc(var(--k)*6mm)}',
+    '.det h3 .bal{display:inline-grid;place-items:center;width:1.7em;height:1.7em;border:calc(var(--k)*.3mm) solid var(--t);border-radius:50%;font-size:.78em;margin-right:.4em;vertical-align:middle}',
+    '.ic svg{width:100%;height:100%;display:block}',
     '.desenho text{font-family:Poppins,sans-serif;fill:#66717b}.desenho .rotulo{fill:#3e4b57;font-weight:600}.desenho .piso{stroke:#b9b0a6;stroke-width:1.2;vector-effect:non-scaling-stroke}.desenho .cota line{stroke:#8f857d;stroke-width:.7;vector-effect:non-scaling-stroke}.desenho .abertura{fill:none;stroke-width:.8;stroke-dasharray:5 4;vector-effect:non-scaling-stroke;opacity:.8}.desenho .cuba-linha{stroke:#6f8fb6;stroke-width:1.4;stroke-dasharray:5 3;vector-effect:non-scaling-stroke}.desenho .cuba-txt{fill:#4d6f99}.desenho .tracejado{fill:none;stroke:#fff;stroke-width:1;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}.desenho .rotulo-frente{fill:#fff;font-weight:600}.desenho .rotulo-claro{fill:#ddd}.desenho .alvo{display:none}',
     '.det line,.det rect,.det path{vector-effect:non-scaling-stroke}.det text{font-family:Poppins,sans-serif;fill:#66717b}',
     '@media print{body{background:#fff}.barra{display:none}#pranchas{padding:0;gap:0;zoom:1!important}.folha{box-shadow:none;break-after:page;page-break-after:always}.folha:last-child{break-after:auto}}'
@@ -114,6 +119,27 @@
       s += '<text x="' + n1(x2 + ft + 2 + dw / 2) + '" y="' + n1(y2 + 11 + ih / 2 + 3) + '" font-size="8" text-anchor="middle">gaveta interna</text><text x="' + n1(x2 + ft + 2 + dw / 2) + '" y="' + n1(y2 + dh * 0.7) + '" font-size="8.5" text-anchor="middle">gavetão</text>';
       return detSvg(W, H, s + dcH(x2 + ft + 2, x2 + ft + 2 + dw, y2 + dh + 10, 'corrediça ' + el.corredica) + dcV(y2, y2 + dh, x2 - 8, Math.round(el.frenteH)) + dcV(y2 + 11, y2 + 11 + ih, x2 + ft + dw + 12, el.alturaInterna));
     }
+    if (el.tipo === 'led') {
+      // corte da chapa: rasgo 12 × 10, perfil e difusor, cone de luz
+      var cx0 = 14, cy0 = 40, cw = 122, ch = 36, emb = el.montagem === 'embutido';
+      var px = cx0 + (el.posicao === 'fundo' ? cw - 34 : el.posicao === 'frente' ? 22 : cw / 2 - 12), pw = 24, ph = 18;
+      s += '<defs><pattern id="hl" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="5" stroke="#aaa" stroke-width=".7"/></pattern></defs>';
+      if (emb) {
+        s += '<path d="M' + cx0 + ' ' + cy0 + 'H' + (cx0 + cw) + 'V' + (cy0 + ch) + 'H' + (px + pw) + 'V' + (cy0 + ch - ph - 2) + 'H' + px + 'V' + (cy0 + ch) + 'H' + cx0 + 'Z" fill="url(#hl)" stroke="' + linha + '"/>';
+        s += '<rect x="' + (px + 1.5) + '" y="' + (cy0 + ch - ph) + '" width="' + (pw - 3) + '" height="' + (ph - 4) + '" fill="#c9cdd1" stroke="#6b6b6b"/><rect x="' + (px + 1.5) + '" y="' + (cy0 + ch - 4) + '" width="' + (pw - 3) + '" height="4" fill="#fff6dc" stroke="#d9a400"/>';
+      } else {
+        s += '<rect x="' + cx0 + '" y="' + cy0 + '" width="' + cw + '" height="' + ch + '" fill="url(#hl)" stroke="' + linha + '"/>';
+        s += '<rect x="' + px + '" y="' + (cy0 + ch) + '" width="' + pw + '" height="' + (ph - 6) + '" fill="#c9cdd1" stroke="#6b6b6b"/><rect x="' + px + '" y="' + (cy0 + ch + ph - 6) + '" width="' + pw + '" height="4" fill="#fff6dc" stroke="#d9a400"/>';
+      }
+      var ly = cy0 + ch + (emb ? 0 : ph - 2), lc = px + pw / 2;
+      s += '<path d="M' + lc + ' ' + ly + 'L' + (lc - 38) + ' ' + (ly + 70) + 'H' + (lc + 38) + 'Z" fill="#d9a400" opacity=".16"/>';
+      s += '<text x="' + cx0 + '" y="' + (cy0 - 22) + '" font-size="8">' + (emb ? 'chapa 18 mm com rasgo' : 'chapa 18 mm') + '</text>';
+      s += '<text x="' + lc + '" y="' + (ly + 52) + '" font-size="8" text-anchor="middle">luz ' + el.temperatura + 'K</text>';
+      var ref = el.posicao === 'fundo' ? [px + pw, cx0 + cw, 20] : el.posicao === 'frente' ? [cx0, px, 40] : null;
+      if (ref) s += dcH(ref[0], ref[1], cy0 - 6, ref[2]);
+      if (emb) s += dcV(cy0 + ch - ph - 2, cy0 + ch, px - 6, 10) + dcH(px, px + pw, cy0 + ch + 14, 12);
+      return detSvg(W, H, s);
+    }
     if (el.tipo === 'eletro') {
       var e5 = Math.min(110 / el.largura, 150 / el.altura);
       fw = el.largura * e5; fh = el.altura * e5;
@@ -122,6 +148,36 @@
       return detSvg(W, H, s + dcH(x3, x3 + fw, y3 + fh + 9, Math.round(el.largura)) + dcV(y3, y3 + fh, x3 - 8, Math.round(el.altura)));
     }
     return '';
+  }
+
+  // Ícones de status em SVG (sem caracteres que viram emoji)
+  var ICONE = {
+    erro: '<svg viewBox="0 0 10 10"><path d="M5 2v3.6" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><circle cx="5" cy="7.8" r=".85" fill="#fff"/></svg>',
+    aviso: '<svg viewBox="0 0 10 10"><path d="M5 2v3.6" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><circle cx="5" cy="7.8" r=".85" fill="#fff"/></svg>',
+    info: '<svg viewBox="0 0 10 10"><circle cx="5" cy="2.4" r=".85" fill="#fff"/><path d="M5 4.4v3.8" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>',
+    dica: '<svg viewBox="0 0 10 10"><path d="M2.4 5.2l1.8 1.8 3.5-3.8" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+  };
+
+  // Quadro de simbologia: o que cada traço da prancha quer dizer
+  function simbologia(M, cor, comCorte) {
+    var t = '#2b2b2b', f = '#5a5a5a';
+    function sv(x) { return '<svg viewBox="0 0 30 20">' + x + '</svg>'; }
+    var it = [
+      [sv('<circle cx="15" cy="10" r="7" fill="#fff" stroke="#3e4b57" stroke-width="1.2"/><text x="15" y="13" font-size="8" font-weight="600" text-anchor="middle" fill="#3e4b57" font-family="Poppins,sans-serif">C1</text>'), 'coluna — mesma numeração no corte, na planta e nos detalhes'],
+      [sv('<rect x="6" y="2" width="18" height="16" fill="#fff" stroke="' + t + '" stroke-width="1.3"/><path d="M6 2L24 10L6 18" fill="none" stroke="' + f + '" stroke-width=".8" stroke-dasharray="2.4 1.4"/>'), 'porta de giro — as linhas saem do lado da dobradiça'],
+      [sv('<rect x="4" y="3" width="22" height="14" fill="#fff" stroke="' + t + '" stroke-width="1.3"/><path d="M4 3L15 17L26 3" fill="none" stroke="' + f + '" stroke-width=".8" stroke-dasharray="2.4 1.4"/>'), 'basculante — abre para cima, dobradiças no topo'],
+      [sv('<rect x="4" y="2" width="22" height="7" fill="#fff" stroke="' + t + '" stroke-width="1.3"/><rect x="4" y="11" width="22" height="7" fill="#fff" stroke="' + t + '" stroke-width="1.3"/>'), 'gaveta — frente lisa, sem traço de abertura'],
+      [sv('<path d="M3 12H27" stroke="' + cor + '" stroke-width=".8"/><path d="M3 7v8M27 7v8" stroke="' + cor + '" stroke-width=".6"/><path d="M1.5 13.5l3-3M25.5 13.5l3-3" stroke="' + cor + '" stroke-width=".9"/><text x="15" y="9.5" font-size="6" text-anchor="middle" fill="' + cor + '" font-family="Poppins,sans-serif">0,60</text>'), 'cota — medida da peça ou do vão'],
+      [sv('<path d="M3 4H27" stroke="' + f + '" stroke-width="1.1"/><path d="M3 10H27M3 16H27" stroke="' + f + '" stroke-width=".55"/>'), 'linha cheia — peça vista; fina — prateleira']
+    ];
+    if (M.pecas.some(function (p) { return p.nome === 'Ripa'; })) it.push([sv('<rect x="4" y="2" width="22" height="16" fill="#fff" stroke="' + t + '" stroke-width="1.2"/><path d="M8 2v16M12 2v16M16 2v16M20 2v16" stroke="' + f + '" stroke-width=".55"/>'), 'ripado — ripas coladas sobre a frente']);
+    if (M.pecas.some(function (p) { return p.grupo === 'led'; })) it.push([sv('<path d="M3 7H27" stroke="#d9a400" stroke-width="2" stroke-dasharray="3 1.5"/><path d="M15 8L9 18H21Z" fill="#d9a400" opacity=".25"/>'), 'perfil de LED — linha amarela, luz para baixo']);
+    if (M.cuba) {
+      it.push([sv('<rect x="5" y="4" width="20" height="12" fill="none" stroke="#4d6f99" stroke-width=".9" stroke-dasharray="2.4 1.4"/>'), 'cuba — projeção sob o tampo']);
+      it.push([sv('<path d="M15 1V19" stroke="' + cor + '" stroke-width=".8" stroke-dasharray="4 1 .6 1"/>'), 'eixo hidráulico — centro da cuba e do sifão']);
+    }
+    if (comCorte) it.push([sv('<rect x="4" y="4" width="22" height="5" fill="#cfc6c0" stroke="' + t + '" stroke-width=".8"/><rect x="4" y="11" width="22" height="5" fill="#a89f99" stroke="' + t + '" stroke-width=".8"/>'), 'no corte: peça cortada preenchida (frente mais escura)']);
+    return '<div class="simb"><h2>simbologia</h2><ul>' + it.map(function (i) { return '<li>' + i[0] + '<span>' + esc(i[1]) + '</span></li>'; }).join('') + '</ul></div>';
   }
 
   function tr2(r, v) { return '<tr><td>' + esc(r) + '</td><td>' + v + '</td></tr>'; }
@@ -167,15 +223,26 @@
       '<div class="duas"><figure><div class="img">' + persp + '</div><div class="leg">perspectiva</div></figure><figure><div class="img">' + R.frontal(M, { rotulo: ' ' }) + '</div><div class="leg">vista frontal <small>(acabamentos)</small></div></figure></div>');
 
     // 02 · vista frontal cotada (escala real)
-    var fT = R.frontalTecnico(M, { areaW: areaW, areaH: areaH - 12 * k, unidade: est.unidade, corCota: est.corCota });
-    pagina(cabeca('vista frontal') + '<div class="desenho-escala">' + fT.svg + '<div class="leg">vista frontal <small>escala 1/' + fT.escala + '</small></div></div>', fT.escala);
+    var tipicas = R.colunasTipicas(M, est.folha === 'A4' ? 3 : 4);
+    var hBaixo = Math.min(areaH * 0.46, 80 * k);
+    var fT = R.frontalTecnico(M, { areaW: areaW, areaH: areaH - hBaixo - 16 * k, unidade: est.unidade, corCota: est.corCota });
+    var wSimb = areaW * 0.33, wCorte = (areaW - wSimb - 3 * k * (tipicas.length + 1)) / Math.max(1, tipicas.length);
+    var escCorte = 0;
+    tipicas.forEach(function (ci) { escCorte = Math.max(escCorte, R.corteTecnico(M, ci, { areaW: wCorte, areaH: hBaixo - 7 * k }).escala); });
+    var cortes = tipicas.map(function (ci) {
+      var cT = R.corteTecnico(M, ci, { areaW: wCorte, areaH: hBaixo - 7 * k, escala: escCorte, unidade: est.unidade, corCota: est.corCota });
+      return '<figure class="corte"><div class="img">' + cT.svg + '</div><div class="leg sem"><span class="bal">C' + (ci + 1) + '</span>corte <small>1/' + escCorte + '</small></div></figure>';
+    }).join('');
+    pagina(cabeca('vista frontal e cortes') + '<div class="desenho-escala">' + fT.svg + '<div class="leg">vista frontal <small>escala 1/' + fT.escala + '</small></div></div>' +
+      '<div class="fr-baixo" style="height:' + n1(hBaixo) + 'mm;grid-template-columns:1fr ' + n1(wSimb) + 'mm"><div class="cortes">' + cortes + '</div>' + simbologia(M, est.corCota, tipicas.length > 0) + '</div>', fT.escala);
 
     // 03 · planta baixa + detalhes
     var els = (M.elementos || []).slice();
     (M.eletros || []).forEach(function (e) { els.push({ tipo: 'eletro', nome: 'Nicho ' + e.tipo.toLowerCase(), col: e.col, largura: e.largura, altura: e.altura, prof: e.prof, recomendado: e.recomendado, texto: e.obs }); });
     var cards = els.map(function (el) {
-      var t = '<table>' + tr2('coluna', el.col + 1);
-      if (el.tipo === 'eletro') t += tr2('interno', Math.round(el.largura) + ' × ' + Math.round(el.altura) + ' mm') + tr2('padrão', esc(el.recomendado));
+      var t = '<table>' + (el.col === null || el.col === undefined ? tr2('onde', esc(el.local || '')) : '');
+      if (el.tipo === 'led') t += tr2('posição', esc({ fundo: 'no fundo (20 mm da borda)', frente: 'na frente (40 mm da borda)', meio: 'no meio da profundidade' }[el.posicao] || el.posicao)) + tr2('fita', String(el.metros).replace('.', ',') + ' m · ' + el.temperatura + 'K') + tr2('perfil', el.montagem === 'embutido' ? 'embutido no rasgo 12 × 10 mm' : 'sobreposto, colado');
+      else if (el.tipo === 'eletro') t += tr2('interno', Math.round(el.largura) + ' × ' + Math.round(el.altura) + ' mm') + tr2('padrão', esc(el.recomendado));
       else {
         t += tr2('frente', Math.round(el.frenteW) + ' × ' + Math.round(el.frenteH) + ' mm');
         if (el.cestos) t += tr2('interior', el.cestos + ' cesto(s) aramado(s)');
@@ -184,20 +251,20 @@
         t += tr2('ferragem', 'corrediça ' + el.corredica + ' mm' + (el.corredicaInterna ? ' + ' + el.corredicaInterna : ''));
       }
       t += tr2('obs.', esc(el.texto || '')) + '</table>';
-      return '<div class="det">' + detalhe(el) + '<div><h3>' + esc(el.nome) + '</h3>' + t + '</div></div>';
+      var bal = el.col === null || el.col === undefined ? '' : '<span class="bal">C' + (el.col + 1) + '</span>';
+      return '<div class="det">' + detalhe(el) + '<div><h3>' + bal + esc(el.nome) + '</h3>' + t + '</div></div>';
     });
+    var porPagina = els.length === 4 ? 4 : 3;
     var alturaPlanta = els.length ? areaH * 0.55 : areaH - 12 * k;
     var pT = R.plantaTecnica(M, { areaW: areaW, areaH: alturaPlanta, unidade: est.unidade, corCota: est.corCota, escala: fT.escala <= 25 && els.length ? null : null });
-    var porPagina = 3;
     pagina(cabeca('planta baixa' + (els.length ? ' e detalhes' : '')) + '<div class="planta-det"><div class="desenho-escala">' + pT.svg + '<div class="leg">planta baixa <small>escala 1/' + pT.escala + '</small></div></div>' +
-      (els.length ? '<div class="dets">' + cards.slice(0, porPagina).join('') + '</div>' : '') + '</div>', pT.escala);
+      (els.length ? '<div class="dets"' + (porPagina === 4 ? ' style="grid-template-columns:repeat(4,1fr)"' : '') + '>' + cards.slice(0, porPagina).join('') + '</div>' : '') + '</div>', pT.escala);
     for (var ci = porPagina; ci < cards.length; ci += 6) pagina(cabeca('detalhamento dos elementos') + '<div class="dets">' + cards.slice(ci, ci + 6).join('') + '</div>');
 
     // 04 · especificação + conferência
     var pux = E.PUXADORES[spec.puxador.tipo] + (spec.puxador.tipo === 'alca' ? ' ' + spec.puxador.comprimento + ' mm' : '');
     var base = { rodape: 'Rodapé recuado ' + spec.base.altura + ' mm (recuo ' + spec.base.recuo + ' mm)', pes: 'Pés reguláveis com saia (' + spec.base.altura + ' mm)', suspenso: 'Suspenso — fixação oculta na parede', nenhum: 'Sobre base existente na obra' }[spec.base.tipo];
     var fer = M.ferragens.map(function (f) { return f.qtd + (f.un === 'm' || f.un === 'm²' ? ' ' + f.un : '') + ' × ' + esc(f.item); }).join('<br>');
-    var ic = { erro: '!', aviso: '!', info: 'i', dica: '✓' };
     pagina(cabeca('especificação e conferência técnica') + '<div class="col2"><table class="spec">' +
       tr2('tipo', esc(tipoLabel)) + tr2('ambiente', esc(amb.label)) +
       tr2('medidas totais', cm(d.L) + ' × ' + cm(d.D) + ' × ' + cm(d.H) + ' cm') +
@@ -207,7 +274,7 @@
       tr2('portas', spec.frentes.montagem === 'embutida' ? 'Embutidas — dobradiça super curva' : 'Sobrepostas — reta na lateral externa, curva na divisória') +
       tr2('puxador', esc(pux)) + tr2('base', esc(base)) + tr2('ferragens', fer) +
       '</table><div><h2 style="margin-bottom:' + n1(2 * k) + 'mm">conferência técnica</h2><ul class="conf">' +
-      M.avisos.map(function (a) { return '<li><span class="ic ' + a.nivel + '">' + ic[a.nivel] + '</span><span>' + esc(a.msg) + '</span></li>'; }).join('') + '</ul></div></div>');
+      M.avisos.map(function (a) { return '<li><span class="ic ' + a.nivel + '">' + (ICONE[a.nivel] || ICONE.info) + '</span><span>' + esc(a.msg) + '</span></li>'; }).join('') + '</ul></div></div>');
 
     // 05 · lista de peças (paginada)
     var linhas = E.listaDePecas(M.pecas, spec.materiais);

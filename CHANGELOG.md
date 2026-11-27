@@ -1,5 +1,17 @@
 # Novidades do marcê
 
+## 1.5.0
+- Nova aba "detalhes": tipo de frente (lisa, ripada, moldura ou vidro canelado) com cartões ilustrados
+- Ripado com largura, espaçamento e espessura das ripas; as ripas entram na lista de peças
+- Puxadores novos: barra longa, botão, perfil 45° (testeira) e porta passante
+- Iluminação: fita de LED em perfil de alumínio sob o móvel ou nas prateleiras dos nichos, na frente, no meio ou no fundo, embutida ou sobreposta, com temperatura de cor (2700K a 6000K); fonte calculada nas ferragens
+- Ilustrações nas opções de montagem, base, fundo, divisórias e corrediças; ícones de status desenhados
+- Vista 3D da janela mais fiel (ripas e peças finas aparecem na ordem certa)
+- Pranchas mais fáceis de ler: colunas numeradas (C1, C2...) na vista, na planta e nos detalhes
+- Cortes laterais de cada tipo de coluna, em escala, com cotas
+- Quadro de simbologia explicando cada traço da prancha
+- Detalhe do perfil de LED (rasgo, perfil, difusor e distância da borda)
+
 ## 1.4.0
 - Relatório em pranchas A4, A3, A2, A1 ou A0 (deitadas), com carimbo em todas as folhas
 - Vista frontal e planta em desenho técnico, na escala real (1/10, 1/20, 1/25, 1/50…), com cotas no padrão ABNT
