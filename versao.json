@@ -1,15 +1,13 @@
 {
-  "versao": "1.3.1",
+  "versao": "1.3.2",
   "rbz": "dist/marce.rbz",
-  "sha256": "13cc64390bce422d3cd177e7d6e28301256f04a393479fef65db1171934854fb",
+  "sha256": "ab906ddb1dde4cd73b94eb0bec729f60706360d65b0f83aa975f9a1537b19417",
   "notas": [
-    "Abrir/fechar portas e gavetas: o destaque não some nem é cortado ao dar zoom e fica no lugar certo",
-    "Fim do \"pisca-pisca\" no zoom: caneco da dobradiça e cestos aramados sem faces sobrepostas",
-    "Gavetas com puxador cava não batem mais na travessa da cava nem nas travessas entre gavetas",
-    "Corrediça oculta desenhada embaixo da gaveta; prateleira fixa para no fundo encaixado",
-    "O Ctrl+Z não desalinha mais portas abertas",
-    "Editar o móvel não acumula componentes velhos no arquivo",
-    "Volume dentro de grupo aberto: o móvel sai na posição certa; botão direito não mexe na seleção",
-    "Relatório abre certo mesmo com acentos e espaços no caminho da pasta"
+    "Depois de um Ctrl+Z, \"Gerar\" volta a criar o móvel no volume (antes ia para a origem)",
+    "O móvel é sempre criado no nível do modelo, mesmo com um grupo aberto em edição",
+    "Detectar cuba usa a altura real do móvel (aéreos e torres)",
+    "O atualizador confere se a versão nova foi mesmo instalada e não trava o SketchUp sem internet",
+    "Animação de abrir/fechar nunca fica presa; falhas não deixam componentes soltos no arquivo",
+    "Lista de peças do projeto exporta mesmo se um móvel estiver com dados corrompidos"
   ]
 }

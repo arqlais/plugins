@@ -27,12 +27,14 @@ module ArqLais
         return nil if sel.empty?
         cadeia = Geom::Transformation.new
         if model.active_path && !model.active_path.empty?
-          cadeia = model.edit_transform
+          caminho = model.active_path.to_a
           guarda = 0
           while model.active_path && !model.active_path.empty? && guarda < 20
             model.close_active
             guarda += 1
           end
+          # fora da edição as transformações são locais e confiáveis
+          cadeia = caminho.reduce(Geom::Transformation.new) { |t, i| t * i.transformation }
         end
         sel = sel.select { |e| e.valid? }
         return nil if sel.empty?

@@ -396,6 +396,200 @@
     return '<svg class="desenho perspectiva" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + n1(maxX - minX + 2 * m) + ' ' + n1(maxY - minY + 2 * m) + '" preserveAspectRatio="xMidYMid meet">' + s.join('') + '</svg>';
   }
 
+
+  // ================================================================
+  // DESENHO TÉCNICO EM ESCALA (pranchas) — linhas, cotas ABNT
+  // ================================================================
+  var ESCALAS = [5, 10, 20, 25, 50, 75, 100, 200, 250, 500];
+
+  function fmtUn(mm, un) {
+    if (un === 'm') return (mm / 1000).toFixed(Math.round(mm) % 10 === 0 ? 2 : 3).replace('.', ',');
+    if (un === 'cm') { var c = Math.round(mm) / 10; return String(c % 1 === 0 ? c : c.toFixed(1)).replace('.', ','); }
+    return String(Math.round(mm));
+  }
+
+  // cota ABNT: linhas de chamada, tiques a 45° e texto acima da linha
+  function cotaT(x0, y0, x1, y1, txt, o) {
+    var vert = Math.abs(x1 - x0) < 1e-6;
+    var len = vert ? Math.abs(y1 - y0) : Math.abs(x1 - x0);
+    if (len < 0.5) return '';
+    var t = o.tique, f = o.fs, s = [];
+    var sw = 'stroke="' + o.cor + '" stroke-width="' + o.lw + '"';
+    s.push('<line x1="' + n1(x0) + '" y1="' + n1(y0) + '" x2="' + n1(x1) + '" y2="' + n1(y1) + '" ' + sw + '/>');
+    [[x0, y0], [x1, y1]].forEach(function (p) { s.push('<line x1="' + n1(p[0] - t) + '" y1="' + n1(p[1] + t) + '" x2="' + n1(p[0] + t) + '" y2="' + n1(p[1] - t) + '" ' + sw + '/>'); });
+    if (o.chamada) o.chamada.forEach(function (c) { s.push('<line x1="' + n1(c[0]) + '" y1="' + n1(c[1]) + '" x2="' + n1(c[2]) + '" y2="' + n1(c[3]) + '" stroke="' + o.cor + '" stroke-width="' + n1(o.lw * 0.7) + '"/>'); });
+    var mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+    var cabe = len > f * txt.length * 0.62 + t * 2;
+    if (vert) {
+      var tx = mx - f * 0.35;
+      s.push('<text x="' + n1(tx) + '" y="' + n1(my) + '" font-size="' + n1(f) + '" fill="' + o.cor + '" text-anchor="middle" transform="rotate(-90 ' + n1(tx) + ' ' + n1(my) + ')">' + esc(txt) + '</text>');
+    } else {
+      var ty = cabe ? my - f * 0.35 : my - f * 0.35 - f;
+      s.push('<text x="' + n1(mx) + '" y="' + n1(ty) + '" font-size="' + n1(f) + '" fill="' + o.cor + '" text-anchor="middle">' + esc(txt) + '</text>');
+    }
+    return s.join('');
+  }
+
+  function escolherEscala(wMod, hMod, areaW, areaH, margemPapel) {
+    for (var i = 0; i < ESCALAS.length; i++) {
+      var e = ESCALAS[i];
+      if (wMod / e + 2 * margemPapel <= areaW && hMod / e + 2 * margemPapel <= areaH) return e;
+    }
+    return ESCALAS[ESCALAS.length - 1];
+  }
+
+  function frontalTecnico(M, o) {
+    o = o || {};
+    var d = M.dims, L = d.L, H = d.H, un = o.unidade || 'mm';
+    var cor = o.corCota || '#c0392b';
+    var pedra = M.pecas.filter(function (p) { return p.grupo === 'pedra'; })[0];
+    var topoZ = pedra ? pedra.z + pedra.dz : H;
+    var mPapel = 16; // mm de papel para cotas e textos em volta
+    var E = o.escala || escolherEscala(L, topoZ, o.areaW || 260, o.areaH || 150, mPapel);
+    var fs = 2.2 * E, lw = 0.18 * E, lwF = 0.35 * E, tq = 1.1 * E;
+    var mg = mPapel * E;
+    var xMin = pedra ? Math.min(0, pedra.x) : 0, xMax = pedra ? Math.max(L, pedra.x + pedra.dx) : L;
+    var W = xMax - xMin + 2 * mg, Ht = topoZ + 2 * mg;
+    var ox = mg - xMin, oy = mg + topoZ;
+    function X(x) { return n1(ox + x); }
+    function Y(z) { return n1(oy - z); }
+    var linha = '#2b2b2b', fina = '#5a5a5a';
+    var s = [];
+    function ret(x, z, w, h, sw, extra) { return '<rect x="' + X(x) + '" y="' + Y(z + h) + '" width="' + n1(w) + '" height="' + n1(h) + '" fill="' + ((extra && extra.fill) || 'none') + '" stroke="' + ((extra && extra.cor) || linha) + '" stroke-width="' + n1(sw) + '"' + ((extra && extra.dash) ? ' stroke-dasharray="' + extra.dash + '"' : '') + '/>'; }
+    var op = { cor: cor, lw: lw, fs: fs, tique: tq };
+    // piso
+    if (d.z0 > 0 || M.spec.base.tipo !== 'suspenso') s.push('<line x1="' + n1(ox - mg * 0.4) + '" y1="' + Y(0) + '" x2="' + n1(ox + L + mg * 0.4) + '" y2="' + Y(0) + '" stroke="' + linha + '" stroke-width="' + n1(lwF * 1.4) + '"/>');
+    // corpo, rodapé e roda-teto
+    s.push(ret(0, d.z0, L, d.zTop - d.z0, lw));
+    M.pecas.forEach(function (p) {
+      if (p.grupo === 'rodape' && (/^Rodapé frontal|^Saia|^Roda-teto/).test(p.nome)) s.push(ret(p.x, p.z, p.dx, p.dz, lw));
+    });
+    // interiores aparentes
+    (M.vaos || []).forEach(function (vm) {
+      vm.secoes.forEach(function (sm) {
+        var t = sm.cfg.tipo;
+        if (t === 'nicho' || t === 'arco' || t === 'espelho' || t === 'painel' || t === 'forno' || t === 'micro') {
+          s.push(ret(vm.il, sm.ib, vm.largInt, sm.altInt, lw, { fill: '#f3f3f3' }));
+          if (t === 'forno' || t === 'micro') {
+            var ew = Math.min(vm.largInt - 20, 595), eh = Math.min(sm.altInt - 20, t === 'forno' ? 595 : 380);
+            var ex = vm.il + (vm.largInt - ew) / 2, ez = sm.ib + (sm.altInt - eh) / 2;
+            s.push(ret(ex, ez, ew, eh, lw, { dash: n1(2 * E) + ' ' + n1(1.2 * E) }));
+            s.push('<text x="' + X(ex + ew / 2) + '" y="' + Y(ez + eh / 2) + '" font-size="' + n1(fs) + '" text-anchor="middle" fill="' + fina + '">' + (t === 'forno' ? 'forno' : 'micro-ondas') + '</text>');
+          }
+        }
+      });
+    });
+    M.pecas.forEach(function (p) {
+      if (p.nome === 'Prateleira' || p.nome === 'Prateleira fixa') s.push(ret(p.x, p.z, p.dx, p.dz, lw * 0.8));
+      if (p.forma && p.forma.plano === 'xz') s.push('<polygon points="' + p.forma.pts.map(function (q) { return X(p.x + q[0]) + ',' + Y(p.z + q[1]); }).join(' ') + '" fill="' + (p.mat === 'espelho' ? '#e6eef1' : '#fff') + '" stroke="' + linha + '" stroke-width="' + n1(lw) + '"/>');
+    });
+    // frentes
+    M.pecas.forEach(function (p) {
+      if (p.grupo !== 'frente' || p.nome === 'Painel') return;
+      s.push(ret(p.x, p.z, p.dx, p.dz, lwF, { fill: '#fff' }));
+      var m = p.meta || {};
+      var tr = 'stroke="' + fina + '" stroke-width="' + n1(lw) + '" stroke-dasharray="' + n1(2.4 * E) + ' ' + n1(1.4 * E) + '" fill="none"';
+      if (m.tipo === 'porta') {
+        var hx = m.dobradica === 'esq' ? p.x : p.x + p.dx, ox2 = m.dobradica === 'esq' ? p.x + p.dx : p.x;
+        s.push('<path d="M' + X(hx) + ' ' + Y(p.z + p.dz) + ' L' + X(ox2) + ' ' + Y(p.z + p.dz / 2) + ' L' + X(hx) + ' ' + Y(p.z) + '" ' + tr + '/>');
+      } else if (m.tipo === 'basculante') {
+        s.push('<path d="M' + X(p.x) + ' ' + Y(p.z + p.dz) + ' L' + X(p.x + p.dx / 2) + ' ' + Y(p.z) + ' L' + X(p.x + p.dx) + ' ' + Y(p.z + p.dz) + '" ' + tr + '/>');
+      }
+      if (p.forma && p.forma.cava) {
+        var cz = p.forma.cava === 'base' ? p.z + 12 : p.z + p.dz - 12;
+        s.push('<line x1="' + X(p.x) + '" y1="' + Y(cz) + '" x2="' + X(p.x + p.dx) + '" y2="' + Y(cz) + '" stroke="' + fina + '" stroke-width="' + n1(lw * 0.8) + '"/>');
+      }
+      var rot = { temperos: 'porta-temperos', lixeira: 'lixeira', fruteira: 'fruteira' }[m.tipo] || (m.item === 'interna' ? 'c/ gaveta interna' : '');
+      if (rot) {
+        var vertical = p.dz > p.dx * 1.4;
+        var cx = p.x + p.dx / 2, cz2 = p.z + p.dz / 2;
+        s.push('<text x="' + X(cx) + '" y="' + Y(cz2) + '" font-size="' + n1(fs * 0.85) + '" fill="' + fina + '" text-anchor="middle"' + (vertical ? ' transform="rotate(-90 ' + X(cx) + ' ' + Y(cz2) + ')"' : '') + '>' + rot + '</text>');
+      }
+    });
+    M.pecas.forEach(function (p) {
+      if (p.nome === 'Puxador alça' || p.nome === 'Perfil puxador') s.push(ret(p.x, p.z, p.dx, p.dz, lw, { fill: '#d9d9d9' }));
+    });
+    if (pedra) s.push(ret(pedra.x, pedra.z, pedra.dx, pedra.dz, lw, { fill: '#ececec' }));
+    // cuba (projeção) e eixo hidráulico
+    if (M.cuba) {
+      var ch = Math.min(220, d.Hc * 0.35);
+      s.push(ret(M.cuba.x0, d.zTop - ch, M.cuba.x1 - M.cuba.x0, ch, lw, { cor: '#4d6f99', dash: n1(2 * E) + ' ' + n1(1.2 * E) }));
+      s.push('<text x="' + X(M.cuba.x0 + 8 * E / 4) + '" y="' + Y(d.zTop - fs * 1.4) + '" font-size="' + n1(fs * 0.85) + '" fill="#4d6f99">cuba</text>');
+      s.push('<line x1="' + X(M.cuba.centro) + '" y1="' + Y(topoZ + mg * 0.75) + '" x2="' + X(M.cuba.centro) + '" y2="' + Y(d.zTop - ch - 5 * E) + '" stroke="' + cor + '" stroke-width="' + n1(lw) + '" stroke-dasharray="' + n1(4 * E) + ' ' + n1(1 * E) + ' ' + n1(0.6 * E) + ' ' + n1(1 * E) + '"/>');
+      s.push('<text x="' + n1(ox + M.cuba.centro + fs * 0.4) + '" y="' + Y(topoZ + mg * 0.78) + '" font-size="' + n1(fs * 0.85) + '" fill="' + cor + '">eixo hidráulico</text>');
+      s.push(cotaT(ox, Y(topoZ) - mg * 0.32, ox + M.cuba.centro, Y(topoZ) - mg * 0.32, fmtUn(M.cuba.centro, un), Object.assign({}, op, { chamada: [[ox, Y(topoZ) - mg * 0.36, ox, Y(topoZ)]] })));
+    }
+    // cotas: colunas, total, alturas
+    var yc = Y(0) + mg * 0.3;
+    (M.colunas || []).forEach(function (c) {
+      s.push(cotaT(ox + c.x0, yc, ox + c.x1, yc, fmtUn(c.larg, un), Object.assign({}, op, { chamada: [[ox + c.x0, Y(0) + 1.2 * E, ox + c.x0, yc + tq], [ox + c.x1, Y(0) + 1.2 * E, ox + c.x1, yc + tq]] })));
+    });
+    var yt = Y(0) + mg * 0.62;
+    s.push(cotaT(ox, yt, ox + L, yt, fmtUn(L, un), Object.assign({}, op, { chamada: [[ox, yc, ox, yt + tq], [ox + L, yc, ox + L, yt + tq]] })));
+    var xh = ox - mg * 0.45;
+    s.push(cotaT(xh, Y(H), xh, Y(0), fmtUn(H, un), Object.assign({}, op, { chamada: [[ox - 1.2 * E, Y(H), xh - tq, Y(H)], [ox - 1.2 * E, Y(0), xh - tq, Y(0)]] })));
+    var xd = ox + L + mg * 0.3;
+    var cm = (M.colunas || []).filter(function (c) { return c.secoes.length > 1; })[0];
+    if (cm) cm.secoes.forEach(function (sm) { s.push(cotaT(xd, Y(sm.z1), xd, Y(sm.z0), fmtUn(sm.alt, un), op)); });
+    if (d.z0 > 0) s.push(cotaT(xd + mg * 0.3, Y(d.z0), xd + mg * 0.3, Y(0), fmtUn(d.z0, un), op));
+    var svg = '<svg class="tecnico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + n1(W) + ' ' + n1(Ht) + '" width="' + n1(W / E) + 'mm" height="' + n1(Ht / E) + 'mm" font-family="Poppins, Segoe UI, sans-serif">' + s.join('') + '</svg>';
+    return { svg: svg, escala: E, w: W / E, h: Ht / E };
+  }
+
+  function plantaTecnica(M, o) {
+    o = o || {};
+    var d = M.dims, L = d.L, D = d.D, un = o.unidade || 'mm';
+    var cor = o.corCota || '#c0392b';
+    var maxPorta = 0;
+    M.pecas.forEach(function (p) { if (p.meta && p.meta.tipo === 'porta') maxPorta = Math.max(maxPorta, p.dx); });
+    var frente = Math.max(maxPorta, 150) + 20;
+    var pedra = M.pecas.filter(function (p) { return p.grupo === 'pedra'; })[0];
+    var yMin = Math.min(d.frenteY0, pedra ? pedra.y : 0) - frente;
+    var mPapel = 16;
+    var E = o.escala || escolherEscala(L, D - yMin, o.areaW || 260, o.areaH || 120, mPapel);
+    var fs = 2.2 * E, lw = 0.18 * E, lwF = 0.35 * E, tq = 1.1 * E, mg = mPapel * E;
+    var W = L + 2 * mg, Ht = (D - yMin) + 2 * mg;
+    var ox = mg, oy = mg + D;
+    function X(x) { return n1(ox + x); }
+    function Y(y) { return n1(oy - y); }
+    var linha = '#2b2b2b', fina = '#5a5a5a', s = [];
+    var op = { cor: cor, lw: lw, fs: fs, tique: tq };
+    function ret(x, y, w, h, sw, ex) { return '<rect x="' + X(x) + '" y="' + Y(y + h) + '" width="' + n1(w) + '" height="' + n1(h) + '" fill="' + ((ex && ex.fill) || 'none') + '" stroke="' + ((ex && ex.cor) || linha) + '" stroke-width="' + n1(sw) + '"' + ((ex && ex.dash) ? ' stroke-dasharray="' + ex.dash + '"' : '') + '/>'; }
+    var tr = n1(2.4 * E) + ' ' + n1(1.4 * E);
+    s.push('<line x1="' + n1(ox - mg * 0.3) + '" y1="' + Y(D) + '" x2="' + n1(ox + L + mg * 0.3) + '" y2="' + Y(D) + '" stroke="' + linha + '" stroke-width="' + n1(lwF * 2) + '"/>');
+    s.push(ret(0, 0, L, D, lwF));
+    M.pecas.forEach(function (p) {
+      if (p.grupo === 'caixa' && /^Lateral|^Divisória/.test(p.nome)) s.push(ret(p.x, p.y, p.dx, p.dy, lw, { fill: '#e9e9e9' }));
+      if (p.grupo === 'frente' && p.y < 1) {
+        s.push(ret(p.x, p.y, p.dx, p.dy, lw, { fill: '#fff' }));
+        var m = p.meta || {};
+        if (m.tipo === 'porta') {
+          var r = p.dx, px = m.dobradica === 'esq' ? p.x : p.x + p.dx, sx = m.dobradica === 'esq' ? 1 : -1;
+          s.push('<line x1="' + X(px) + '" y1="' + Y(p.y) + '" x2="' + X(px) + '" y2="' + Y(p.y - r) + '" stroke="' + fina + '" stroke-width="' + n1(lw) + '"/>');
+          s.push('<path d="M' + X(px + sx * r) + ' ' + Y(p.y) + ' A ' + n1(r) + ' ' + n1(r) + ' 0 0 ' + (sx > 0 ? 1 : 0) + ' ' + X(px) + ' ' + Y(p.y - r) + '" fill="none" stroke="' + fina + '" stroke-width="' + n1(lw) + '" stroke-dasharray="' + tr + '"/>');
+        }
+      }
+    });
+    if (pedra) s.push(ret(pedra.x, pedra.y, pedra.dx, pedra.dy, lw, { dash: n1(5 * E) + ' ' + n1(1.5 * E) }));
+    if (M.cuba) {
+      var cp = Math.min(M.cuba.prof, D - 120), cy0 = (D - cp) / 2 + 20;
+      s.push(ret(M.cuba.x0, cy0, M.cuba.x1 - M.cuba.x0, cp, lw, { cor: '#4d6f99', dash: tr }));
+      var cx = M.cuba.centro, cyc = cy0 + cp / 2;
+      s.push('<circle cx="' + X(cx) + '" cy="' + Y(cyc) + '" r="' + n1(2.2 * E) + '" fill="none" stroke="' + cor + '" stroke-width="' + n1(lw * 1.4) + '"/>');
+      s.push('<line x1="' + X(cx) + '" y1="' + Y(D + mg * 0.7) + '" x2="' + X(cx) + '" y2="' + Y(cyc - 4 * E) + '" stroke="' + cor + '" stroke-width="' + n1(lw) + '" stroke-dasharray="' + n1(4 * E) + ' ' + n1(1 * E) + ' ' + n1(0.6 * E) + ' ' + n1(1 * E) + '"/>');
+      s.push('<text x="' + n1(ox + cx + fs * 0.4) + '" y="' + Y(D + mg * 0.72) + '" font-size="' + n1(fs * 0.85) + '" fill="' + cor + '">eixo hidráulico</text>');
+      s.push('<text x="' + X(M.cuba.x0 + 2 * E) + '" y="' + Y(cy0 + cp - fs * 1.2) + '" font-size="' + n1(fs * 0.85) + '" fill="#4d6f99">cuba</text>');
+      s.push(cotaT(ox, Y(D) - mg * 0.35, ox + cx, Y(D) - mg * 0.35, fmtUn(cx, un), Object.assign({}, op, { chamada: [[ox, Y(D) - mg * 0.4, ox, Y(D)]] })));
+    }
+    var yb = Y(yMin) + mg * 0.3;
+    s.push(cotaT(ox, yb, ox + L, yb, fmtUn(L, un), Object.assign({}, op, { chamada: [[ox, Y(0), ox, yb + tq], [ox + L, Y(0), ox + L, yb + tq]] })));
+    var xl = ox - mg * 0.45;
+    s.push(cotaT(xl, Y(D), xl, Y(0), fmtUn(D, un), Object.assign({}, op, { chamada: [[ox, Y(D), xl - tq, Y(D)], [ox, Y(0), xl - tq, Y(0)]] })));
+    s.push('<text x="' + n1(ox + L / 2) + '" y="' + n1(yb + fs * 2.6) + '" font-size="' + n1(fs) + '" text-anchor="middle" fill="' + fina + '">FRENTE</text>');
+    var svg = '<svg class="tecnico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + n1(W) + ' ' + n1(Ht) + '" width="' + n1(W / E) + 'mm" height="' + n1(Ht / E) + 'mm" font-family="Poppins, Segoe UI, sans-serif">' + s.join('') + '</svg>';
+    return { svg: svg, escala: E, w: W / E, h: Ht / E };
+  }
+
   // ================================================================
   // Plano de corte (uma chapa)
   // ================================================================
@@ -415,5 +609,5 @@
     return '<svg class="desenho chapa" xmlns="http://www.w3.org/2000/svg" viewBox="-4 -4 ' + (g.w + 8) + ' ' + (g.h + 8) + '">' + s.join('') + '</svg>';
   }
 
-  return { frontal: frontal, planta: planta, perspectiva: perspectiva, chapaSvg: chapaSvg, cor: { shade: shade, lighten: lighten, lum: lum }, esc: esc, cotaH: cotaH, cotaV: cotaV };
+  return { frontalTecnico: frontalTecnico, plantaTecnica: plantaTecnica, escolherEscala: escolherEscala, fmtUn: fmtUn, cotaT: cotaT, frontal: frontal, planta: planta, perspectiva: perspectiva, chapaSvg: chapaSvg, cor: { shade: shade, lighten: lighten, lum: lum }, esc: esc, cotaH: cotaH, cotaV: cotaV };
 });

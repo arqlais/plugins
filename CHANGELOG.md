@@ -1,5 +1,13 @@
 # Novidades do marcê
 
+## 1.3.2
+- Depois de um Ctrl+Z, "Gerar" volta a criar o móvel no volume (antes ia para a origem)
+- O móvel é sempre criado no nível do modelo, mesmo com um grupo aberto em edição
+- Detectar cuba usa a altura real do móvel (aéreos e torres)
+- O atualizador confere se a versão nova foi mesmo instalada e não trava o SketchUp sem internet
+- Animação de abrir/fechar nunca fica presa; falhas não deixam componentes soltos no arquivo
+- Lista de peças do projeto exporta mesmo se um móvel estiver com dados corrompidos
+
 ## 1.3.1
 - Abrir/fechar portas e gavetas: o destaque não some nem é cortado ao dar zoom e fica no lugar certo
 - Fim do "pisca-pisca" no zoom: caneco da dobradiça e cestos aramados sem faces sobrepostas

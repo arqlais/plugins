@@ -14,7 +14,7 @@ module ArqLais
       RAMOS = ['main', 'claude/elegant-archimedes-k2hbjw'].freeze
       CHAVE = 'ArqLais_Marce'.freeze
       ARQUIVOS = %w[util materiais volume construtor abrir_fechar exportar atualizar aviso dialogo main].freeze
-      @pedidos = []
+      @pedidos ||= []
 
       module_function
 
@@ -40,15 +40,17 @@ module ArqLais
               corpo = resp.body
               corpo = corpo.dup.force_encoding(Encoding::BINARY) if binario
               bloco.call(corpo, nil)
+            elsif binario
+              baixar_net(endereco, binario, &bloco) # só o pacote tenta o 2º caminho (evita travar sem internet)
             else
-              baixar_net(endereco, binario, &bloco)
+              bloco.call(nil, "HTTP #{resp ? resp.status_code : 'sem resposta'}")
             end
           end
         else
           baixar_net(endereco, binario, &bloco)
         end
-      rescue StandardError
-        baixar_net(endereco, binario, &bloco)
+      rescue StandardError => e
+        binario ? baixar_net(endereco, binario, &bloco) : bloco.call(nil, e.message)
       end
 
       def baixar_net(endereco, binario, &bloco)
@@ -57,7 +59,7 @@ module ArqLais
         uri = URI(endereco)
         resp = nil
         3.times do
-          resp = Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: 10, read_timeout: 60) { |h| h.get(uri.request_uri) }
+          resp = Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: 8, read_timeout: 30) { |h| h.get(uri.request_uri) }
           break unless resp.is_a?(Net::HTTPRedirection)
           uri = URI(resp['location'])
         end
@@ -125,9 +127,13 @@ module ArqLais
           arq = File.join(Sketchup.temp_dir, "marce-#{info['versao']}.rbz")
           File.open(arq, 'wb') { |f| f.write(corpo) }
           begin
-            Sketchup.install_from_archive(arq, false)
+            instalou = Sketchup.install_from_archive(arq)
             recarregar
-            bloco.call(true, "marcê atualizado para a versão #{VERSAO}.")
+            if instalou != false && VERSAO == info['versao'].to_s
+              bloco.call(true, "marcê atualizado para a versão #{VERSAO}.")
+            else
+              bloco.call(false, "A instalação não terminou (continua a versão #{VERSAO}). Feche e abra o SketchUp e tente de novo.")
+            end
           rescue Interrupt
             bloco.call(false, 'Instalação cancelada.')
           rescue StandardError => e

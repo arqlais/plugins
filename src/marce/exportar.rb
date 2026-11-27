@@ -59,9 +59,9 @@ module ArqLais
         linhas = []
         moveis.each do |m|
           nome_movel = m.name.to_s.empty? ? 'Móvel' : m.name.to_s
-          (Util.ler_json(m.get_attribute(DICT, 'lista')) || []).each do |l|
-            linhas << l.merge('movel' => nome_movel)
-          end
+          lista = Util.ler_json(m.get_attribute(DICT, 'lista'))
+          next unless lista.is_a?(Array)
+          lista.each { |l| linhas << l.merge('movel' => nome_movel) if l.is_a?(Hash) }
         end
         sep = ';'
         esc = lambda do |v|

@@ -19,7 +19,9 @@ module ArqLais
         conjuntos = dados.dig('modelo', 'conjuntos') || []
         raise 'Nenhuma peça para gerar.' if pecas.empty?
 
+        iniciou = false
         model.start_operation('marcê: gerar móvel', true)
+        iniciou = true
         grupo = alvo[:grupo]
         defs_antigas = []
         if grupo && grupo.valid?
@@ -31,7 +33,7 @@ module ArqLais
           if alvo[:ancora].nil? && spec['base'] && spec['base']['tipo'] == 'suspenso'
             t = Geom::Transformation.translation([0, 0, Util.mm(spec['elevacao'])])
           end
-          grupo = model.active_entities.add_group
+          grupo = model.entities.add_group
           grupo.transformation = t
           esconder_volume(model, alvo[:volume], grupo) if alvo[:volume]
         end
@@ -88,7 +90,7 @@ module ArqLais
         model.commit_operation
         [grupo, erros]
       rescue StandardError => e
-        model.abort_operation
+        model.abort_operation if iniciou
         raise e
       end
 
@@ -143,7 +145,12 @@ module ArqLais
         defi = cache_def[k]
         unless defi
           defi = model.definitions.add(nome_def(p))
-          desenhar(defi.entities, p, dx, dy, dz)
+          begin
+            desenhar(defi.entities, p, dx, dy, dz)
+          rescue StandardError
+            model.definitions.remove(defi) if model.definitions.respond_to?(:remove)
+            raise
+          end
           if p['corte']
             defi.set_attribute(DICT, 'corte', [p['corte']['c'], p['corte']['l'], p['corte']['e']])
           end

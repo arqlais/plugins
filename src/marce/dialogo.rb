@@ -65,6 +65,12 @@ module ArqLais
           dados = Util.ler_json(j)
           model = Sketchup.active_model
           begin
+            # fecha edições de grupo abertas: o móvel é sempre gerado no nível do modelo
+            guarda = 0
+            while model.active_path && !model.active_path.empty? && guarda < 20
+              model.close_active
+              guarda += 1
+            end
             alvo = if @ctx[:modo] == 'editar' && @ctx[:grupo] && @ctx[:grupo].valid?
                      { grupo: @ctx[:grupo] }
                    else
@@ -72,7 +78,7 @@ module ArqLais
                      vol && vol[:entidade] && !vol[:entidade].valid? ? { ancora: vol } : { ancora: vol, volume: vol && vol[:entidade] }
                    end
             grupo, erros = Construtor.gerar(model, dados, alvo)
-            @ctx = { modo: 'editar', grupo: grupo }
+            @ctx = { modo: 'editar', grupo: grupo, volume: @ctx[:volume] }
             model.selection.clear
             model.selection.add(grupo)
             imagens = dados['relatorio'] ? Exportar.capturar_imagens(model, grupo) : nil
@@ -157,7 +163,7 @@ module ArqLais
           end
         end
 
-        d.set_on_closed { @dlg = nil }
+        d.set_on_closed { @dlg = nil if @dlg.equal?(d) }
         d
       end
 

@@ -60,15 +60,21 @@ module ArqLais
         passo = 0
         id = nil
         id = UI.start_timer(0.016, true) do
-          passo += 1
-          fim = passo >= PASSOS || !g.valid?
-          if g.valid?
-            aplicar(g, fim ? para : de + (para - de) * suavizar(passo.to_f / PASSOS))
-            (view || Sketchup.active_model.active_view).invalidate
-          end
-          if fim
-            UI.stop_timer(id)
-            @animando.delete(eid)
+          fim = false
+          begin
+            passo += 1
+            fim = passo >= PASSOS || !g.valid?
+            if g.valid?
+              aplicar(g, fim ? para : de + (para - de) * suavizar(passo.to_f / PASSOS))
+              (view || Sketchup.active_model.active_view).invalidate
+            end
+          rescue StandardError
+            fim = true
+          ensure
+            if fim
+              UI.stop_timer(id)
+              @animando.delete(eid)
+            end
           end
         end
         id

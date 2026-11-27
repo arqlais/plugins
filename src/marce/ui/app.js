@@ -14,7 +14,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: true, relatorioJunto: true,
-    padroes: null, versao: '1.3.1', gerando: false, atualizacao: null, atualizando: false
+    padroes: null, versao: '1.3.2', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -576,7 +576,7 @@
         toast('Padrões de fábrica restaurados');
         break;
       }
-      case 'detectarCuba': enviar('detectarCuba', { L: s.L, D: s.D }); toast('Procurando cuba no modelo…'); return;
+      case 'detectarCuba': enviar('detectarCuba', { L: s.L, D: s.D, H: s.H }); toast('Procurando cuba no modelo…'); return;
       case 'relatorio': abrirRelatorio(null); return;
       case 'csv': exportarCsv(); return;
       case 'gerar': gerar(); return;

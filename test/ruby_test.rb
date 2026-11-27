@@ -14,7 +14,7 @@ module ArqLais
     DICT = 'marce'.freeze
   end
 end
-%w[util materiais volume construtor abrir_fechar].each { |f| require File.join(RAIZ, 'src', 'marce', f) }
+%w[util materiais volume construtor abrir_fechar exportar].each { |f| require File.join(RAIZ, 'src', 'marce', f) }
 
 def dados_do_motor(cenario)
   js = <<~JS
@@ -156,8 +156,8 @@ class TesteMarce < Minitest::Test
   def test_volume_dentro_de_grupo_em_edicao
     inst = volume_girado
     # simula: o volume está dentro de um grupo aberto, deslocado 5 m em x
-    @model.active_path = [Object.new]
-    @model.edit_transform_teste = Geom::Transformation.translation([5000.mm, 0, 0])
+    grupo_aberto = Struct.new(:transformation).new(Geom::Transformation.translation([5000.mm, 0, 0]))
+    @model.active_path = [grupo_aberto]
     v = M::Volume.ler(@model)
     assert_nil @model.active_path, 'fecha a edição do grupo antes de gerar'
     assert_in_delta(-2087 + 5000, v[:origem].x.to_mm, 0.5)
@@ -170,6 +170,31 @@ class TesteMarce < Minitest::Test
     @model.active_path = [Object.new]
     assert M::Volume.provavel?(@model)
     refute_nil @model.active_path, 'só confere, sem fechar a edição'
+  end
+
+  def test_animacao_com_erro_nao_trava
+    inst = volume_girado
+    v = M::Volume.ler(@model)
+    grupo, = M::Construtor.gerar(@model, dados_do_motor('balcao'), { ancora: v, volume: inst })
+    porta = grupo.entities.find { |e| e.is_a?(Sketchup::Group) && e.get_attribute('marce', 'mov_tipo') == 'giro' }
+    def porta.move!(_t); raise 'modelo fechado'; end
+    M::AbrirFechar.alternar(porta)
+    assert_empty M::AbrirFechar.instance_variable_get(:@animando), 'libera a porta mesmo com erro'
+  end
+
+  def test_falha_antes_de_comecar_nao_desfaz_outra_operacao
+    assert_raises(RuntimeError) { M::Construtor.gerar(@model, { 'spec' => {}, 'modelo' => { 'pecas' => [] } }, {}) }
+    refute @model.ops.include?([:abort]), 'não chama abort sem start'
+  end
+
+  def test_lista_do_projeto_com_atributo_corrompido
+    g = @model.entities.add_group
+    g.set_attribute('marce', 'spec', '{}')
+    g.set_attribute('marce', 'lista', '{"quebrado": 1}')
+    salvo = nil
+    M::Exportar.singleton_class.send(:define_method, :salvar_csv) { |csv, _n| salvo = csv; '/tmp/x.csv' }
+    M::Exportar.lista_do_projeto(@model)
+    refute_nil salvo, 'exporta mesmo com um móvel corrompido'
   end
 
   def test_editar_nao_deixa_componentes_velhos

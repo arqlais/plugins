@@ -28,8 +28,20 @@ class TesteAtualizar < Minitest::Test
 
   def setup
     @recarregou = 0
+    @versao_nova = nil
     t = self
-    A.singleton_class.send(:define_method, :recarregar) { t.instance_variable_set(:@recarregou, t.instance_variable_get(:@recarregou) + 1) }
+    A.singleton_class.send(:define_method, :recarregar) do
+      t.instance_variable_set(:@recarregou, t.instance_variable_get(:@recarregou) + 1)
+      nova = t.instance_variable_get(:@versao_nova)
+      if nova
+        ArqLais::Marce.send(:remove_const, :VERSAO)
+        ArqLais::Marce.const_set(:VERSAO, nova)
+      end
+    end
+  end
+
+  def teardown
+    load File.join(RAIZ_A, 'src', 'marce', 'versao.rb')
   end
 
   def test_compara_versoes
@@ -53,6 +65,7 @@ class TesteAtualizar < Minitest::Test
     A.verificar { |info, _e| achado = info }
     assert achado['nova']
     assert_equal 'claude/elegant-archimedes-k2hbjw', achado['ramo']
+    @versao_nova = '9.0.0' # a recarga traz a versão nova
     res = nil
     A.instalar(achado) { |ok, msg| res = [ok, msg] }
     assert res[0], res[1]
@@ -61,7 +74,20 @@ class TesteAtualizar < Minitest::Test
     assert_equal 1, @recarregou
   end
 
+  def test_avisa_quando_a_instalacao_nao_troca_a_versao
+    manifesto = JSON.parse(File.read(File.join(RAIZ_A, 'versao.json')))
+    manifesto['versao'] = '9.0.0'
+    servidor(JSON.generate(manifesto))
+    achado = nil
+    A.verificar { |info, _e| achado = info }
+    res = nil
+    A.instalar(achado) { |ok, msg| res = [ok, msg] } # recarga não muda a versão
+    refute res[0], 'não diz "atualizado" se a versão continuou a mesma'
+    assert_match(/não terminou/, res[1])
+  end
+
   def test_recusa_arquivo_corrompido
+    A.singleton_class.send(:define_method, :baixar_net) { |_u, _b, &bl| bl.call('lixo', nil) }
     manifesto = JSON.parse(File.read(File.join(RAIZ_A, 'versao.json')))
     manifesto['versao'] = '9.0.0'
     manifesto['sha256'] = '0' * 64

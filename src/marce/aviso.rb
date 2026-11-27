@@ -118,7 +118,7 @@ module ArqLais
             end
           end
         end
-        d.set_on_closed { @janela = nil }
+        d.set_on_closed { @janela = nil if @janela.equal?(d) }
         d.center
         d.show
         @janela = d
