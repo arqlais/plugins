@@ -279,3 +279,21 @@ table.tab tr.sep td { background: #fbf8f6; font-weight: 600; color: var(--rose-i
 .pilula-atualizar.nova { background: var(--rose); border-color: var(--rose); color: #fff; box-shadow: 0 6px 14px -8px rgba(168,138,128,.9); animation: pulsar 2s ease-in-out infinite; }
 .pilula-atualizar.ocupado { background: var(--acento-claro); color: var(--rose-ink); }
 @keyframes pulsar { 50% { box-shadow: 0 0 0 5px rgba(214,179,171,.25); } }
+
+/* novidades (depois de atualizar) */
+.modal-fundo { position: fixed; inset: 0; background: rgba(62, 75, 87, .28); display: grid; place-items: center; z-index: 50; animation: aparecer .2s ease; padding: 16px; }
+.modal { width: min(440px, 100%); max-height: 80vh; display: flex; flex-direction: column; background: var(--fundo); border-radius: 22px; padding: 22px 24px 18px; box-shadow: 0 30px 80px -20px rgba(62,75,87,.5); }
+.modal h2 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -.02em; }
+.modal h2 em { font-family: var(--fonte-titulo); font-style: italic; font-weight: 400; color: var(--rose-ink); font-size: 1.12em; }
+.eyebrow-m { display: flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 600; letter-spacing: .12em; color: var(--rose-ink); margin: 0 0 6px; }
+.eyebrow-m::before { content: ""; width: 26px; height: 1.5px; background: var(--rose-ink); }
+.sub-m { color: var(--texto-3); margin: 4px 0 12px; }
+.lista-m { overflow: auto; background: #fff; border: 1px solid var(--linha); border-radius: 16px; padding: 4px 16px; }
+.lista-m .ver { padding: 10px 0; border-top: 1px solid #f1e9e5; }
+.lista-m .ver:first-child { border-top: 0; }
+.lista-m .tag { display: inline-block; font-size: 11px; font-weight: 600; color: var(--rose-ink); background: var(--acento-claro); border-radius: 99px; padding: 1px 10px; }
+.lista-m ul { margin: 8px 0 0; padding-left: 18px; }
+.lista-m li { margin: 3px 0; }
+.lista-m li::marker { color: var(--rose); }
+.botoes-m { display: flex; justify-content: flex-end; margin-top: 14px; }
+@keyframes aparecer { from { opacity: 0; } }

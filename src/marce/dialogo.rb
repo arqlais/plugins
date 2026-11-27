@@ -31,6 +31,11 @@ module ArqLais
       end
 
       def mostrar(ctx, msg)
+        novidades = Aviso.nao_vistas
+        unless novidades.empty?
+          msg = msg.merge('novidades' => novidades)
+          Aviso.marcar_vista
+        end
         @ctx = ctx
         @msg_init = msg
         if @dlg && @dlg.visible?

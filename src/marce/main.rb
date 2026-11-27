@@ -15,6 +15,7 @@ module ArqLais
     require File.join(PASTA, 'abrir_fechar')
     require File.join(PASTA, 'exportar')
     require File.join(PASTA, 'atualizar')
+    require File.join(PASTA, 'aviso')
     require File.join(PASTA, 'dialogo')
 
     # ------------------------------------------------------------ comandos
@@ -117,7 +118,10 @@ module ArqLais
       tb.restore
 
       # procura atualização alguns segundos depois de abrir o SketchUp (1x por dia)
-      UI.start_timer(8, false) { Atualizar.checagem_automatica rescue nil }
+      UI.start_timer(8, false) do
+        mostrou = (Aviso.novidades_se_houver rescue false)
+        Atualizar.checagem_automatica unless mostrou
+      end
 
       UI.add_context_menu_handler do |ctx|
         model = Sketchup.active_model

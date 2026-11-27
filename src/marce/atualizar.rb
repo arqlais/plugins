@@ -13,7 +13,7 @@ module ArqLais
       REPO = 'arqlais/plugins'.freeze
       RAMOS = ['main', 'claude/elegant-archimedes-k2hbjw'].freeze
       CHAVE = 'ArqLais_Marce'.freeze
-      ARQUIVOS = %w[util materiais volume construtor abrir_fechar exportar atualizar dialogo main].freeze
+      ARQUIVOS = %w[util materiais volume construtor abrir_fechar exportar atualizar aviso dialogo main].freeze
       @pedidos = []
 
       module_function
@@ -154,12 +154,7 @@ module ArqLais
           elsif !info['nova']
             UI.messagebox("O marcê já está na versão mais nova (#{VERSAO}).")
           else
-            notas = Array(info['notas']).map { |n| "• #{n}" }.join("\n")
-            r = UI.messagebox("Nova versão do marcê: #{info['versao']} (você tem #{VERSAO}).\n\n#{notas}\n\nAtualizar agora?", MB_YESNO)
-            if r == IDYES
-              Sketchup.status_text = 'marcê: baixando atualização…'
-              instalar(info) { |_ok, msg| UI.messagebox(msg) }
-            end
+            Aviso.disponivel(info)
           end
         end
       end
@@ -171,13 +166,7 @@ module ArqLais
         verificar do |info, _erro|
           next unless info && info['nova']
           next if Sketchup.read_default(CHAVE, 'ignorar_versao', '') == info['versao']
-          notas = Array(info['notas']).map { |n| "• #{n}" }.join("\n")
-          r = UI.messagebox("Tem versão nova do marcê: #{info['versao']} (você tem #{VERSAO}).\n\n#{notas}\n\nAtualizar agora?", MB_YESNO)
-          if r == IDYES
-            instalar(info) { |_ok, msg| UI.messagebox(msg) }
-          else
-            Sketchup.write_default(CHAVE, 'ignorar_versao', info['versao'])
-          end
+          Aviso.disponivel(info)
         end
       end
     end

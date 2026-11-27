@@ -14,7 +14,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: true, relatorioJunto: true,
-    padroes: null, versao: '1.1.0', gerando: false, atualizacao: null, atualizando: false
+    padroes: null, versao: '1.2.0', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -682,6 +682,18 @@
   }
 
   // ---------------------------------------------------------------- Ruby -> JS
+  function mostrarNovidades(versoes, versao) {
+    if (!versoes || !versoes.length) return;
+    var fundo = document.createElement('div');
+    fundo.className = 'modal-fundo';
+    var lista = versoes.map(function (v) {
+      return '<div class="ver"><span class="tag">versão ' + esc(v.versao) + '</span><ul>' + (v.notas || []).map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul></div>';
+    }).join('');
+    fundo.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><p class="eyebrow-m">novidades</p><h2>marcê <em>atualizado</em></h2><p class="sub-m">você está na versão ' + esc(versao || st.versao) + ' · veja o que mudou</p><div class="lista-m">' + lista + '</div><div class="botoes-m"><button class="botao primario" data-fechar-modal>entendi</button></div></div>';
+    document.body.appendChild(fundo);
+    fundo.addEventListener('click', function (ev) { if (ev.target === fundo || ev.target.hasAttribute('data-fechar-modal')) fundo.remove(); });
+  }
+
   function aplicarPadroes(spec, padroes) {
     if (padroes && padroes.spec) {
       Object.keys(padroes.spec).forEach(function (k) { spec[k] = E.util.deepMerge(spec[k], padroes.spec[k]); });
@@ -717,7 +729,8 @@
           atualizar();
           if (msg.cuba && !msg.spec) toast('Cuba detectada no modelo');
           st.atualizando = false;
-          if (msg.avisoAtualizado) { st.atualizacao = { verificado: true, nova: false }; renderRodape(); toast(msg.avisoAtualizado); }
+          if (msg.novidades && msg.novidades.length) mostrarNovidades(msg.novidades, msg.versao);
+          if (msg.avisoAtualizado) { st.atualizacao = { verificado: true, nova: false }; renderRodape(); if (!(msg.novidades && msg.novidades.length)) toast(msg.avisoAtualizado); }
           else if (emSketchUp && !st.atualizacao) setTimeout(function () { enviar('verificarAtualizacao', {}); }, 1200);
           if (msg.acao === 'relatorio') { st.aba = 'relatorio'; renderPainel(); abrirRelatorio(msg.imagens || null); }
           break;

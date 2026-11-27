@@ -68,6 +68,13 @@ const assert = require('assert');
   await p.evaluate(() => window.App.receber({ tipo: 'aviso', msg: 'Falha ao instalar: teste' }));
   assert.ok(await p.isVisible('.pilula-atualizar.nova'), 'volta ao botão se falhar');
 
+  // novidades depois de atualizar
+  await p.evaluate(() => window.App.receber({ tipo: 'init', modo: 'novo', versao: '1.2.0', avisoAtualizado: 'ok', novidades: [{ versao: '1.2.0', notas: ['Aviso bonito'] }] }));
+  assert.ok(await p.isVisible('.modal'), 'mostra "marcê atualizado"');
+  assert.ok((await p.textContent('.modal')).includes('Aviso bonito'));
+  await p.click('[data-fechar-modal]');
+  assert.ok(!(await p.$('.modal')), 'fecha no "entendi"');
+
   assert.deepStrictEqual(erros, []);
   console.log('ponte JS <-> Ruby: ok');
   await b.close();

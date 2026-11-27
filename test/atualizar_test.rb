@@ -83,3 +83,30 @@ class TesteAtualizar < Minitest::Test
     refute achado['nova']
   end
 end
+
+require File.join(RAIZ_A, 'src', 'marce', 'util')
+require File.join(RAIZ_A, 'src', 'marce', 'aviso')
+class TesteAviso < Minitest::Test
+  AV = ArqLais::Marce::Aviso
+
+  def test_novidades_por_versao_vista
+    Sketchup.write_default('ArqLais_Marce', 'versao_vista', '')
+    assert_equal [ArqLais::Marce::VERSAO], AV.nao_vistas.map { |v| v['versao'] }, 'primeira instalação mostra só a atual'
+    Sketchup.write_default('ArqLais_Marce', 'versao_vista', '1.0.0')
+    vistas = AV.nao_vistas.map { |v| v['versao'] }
+    assert_includes vistas, ArqLais::Marce::VERSAO
+    refute_includes vistas, '1.0.0'
+    AV.marcar_vista
+    assert_empty AV.nao_vistas, 'depois de ver, não mostra de novo'
+  end
+
+  def test_html_dos_dois_avisos
+    disp = AV.html(:disponivel, 'versao' => '9.0.0', 'atual' => '1.2.0', 'versoes' => [{ 'versao' => '9.0.0', 'notas' => ['Coisa nova <b>'] }])
+    assert_includes disp, 'atualizar agora'
+    assert_includes disp, 'Coisa nova &lt;b&gt;'
+    feito = AV.html(:atualizado, 'versao' => '1.2.0', 'versoes' => AV.todas_novidades.first(2))
+    assert_includes feito, 'entendi'
+    File.write(File.join(Dir.tmpdir, 'aviso_disp.html'), disp)
+    File.write(File.join(Dir.tmpdir, 'aviso_feito.html'), feito)
+  end
+end
