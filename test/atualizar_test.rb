@@ -66,10 +66,11 @@ class TesteAtualizar < Minitest::Test
     assert achado['nova']
     assert_equal 'claude/elegant-archimedes-k2hbjw', achado['ramo']
     @versao_nova = '9.0.0' # a recarga traz a versão nova
+    antes = Sketchup.instalados.length
     res = nil
     A.instalar(achado) { |ok, msg| res = [ok, msg] }
     assert res[0], res[1]
-    assert_equal 1, Sketchup.instalados.length
+    assert_equal antes + 1, Sketchup.instalados.length
     assert_equal File.size(File.join(RAIZ_A, 'dist', 'marce.rbz')), Sketchup.instalados.last[1]
     assert_equal 1, @recarregou
   end
