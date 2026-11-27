@@ -1,5 +1,14 @@
 # Novidades do marcê
 
+## 1.7.0
+- Prancha nova "vistas frontais": vista frontal colorida e vista frontal interna (sem as frentes), na mesma escala
+- A vista interna mostra prateleiras, caixas de gaveta, dobradiças, corrediças e cestos, com os vãos livres cotados por dentro
+- Prancha "vistas laterais": vista lateral externa e as vistas laterais internas (cortes) de cada tipo de coluna, com a simbologia
+- Cotas em centímetros com uma casa (80,0 · 56,7), como nos detalhamentos executivos; dá para voltar para metros ou mm
+- Código do móvel (M01, M02...) no selo da isométrica e no topo das pranchas (aba Relatório)
+- Detalhe de iluminação com linhas de chamada: driver dentro do armário, fiação, fita no perfil e afastamento da parede
+- Títulos das vistas no padrão dos detalhamentos: nome sublinhado e escala em itálico
+
 ## 1.6.0
 - Nova prancha 01 de detalhamento, no formato dos detalhamentos de escritório: isométrica fechada e aberta, vista frontal colorida com cotas e corte da coluna principal
 - Títulos das vistas numerados (01, 02...) com a escala de cada desenho

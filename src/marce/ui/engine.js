@@ -190,7 +190,8 @@
       chapa: { comprimento: 2750, largura: 1850, refilo: 10, serra: 4 },
       emendaAuto: false,
       caixaInternaBranca: false,
-      prancha: { folha: 'A4', visual: 'marce', unidade: 'm', corCota: '#c0392b' },
+      codigo: 'M01',
+      prancha: { folha: 'A4', visual: 'marce', unidade: 'cm', corCota: '#c0392b' },
       materiais: clone(MATERIAIS_PADRAO),
       colunas: []
     };

@@ -95,6 +95,37 @@
     }
   };
 
+  // Detalhe com linhas de chamada (moldura tracejada): parede, fundo do armário, driver, fiação e perfil de LED
+  function caixaLed(o) {
+    var id = 'dl' + (++n), emb = o.montagem !== 'sobreposto', temp = o.temperatura || 4000;
+    var pos = o.posicao || 'fundo';
+    var s = '<defs><pattern id="' + id + 'c" patternUnits="userSpaceOnUse" width="6" height="6"><circle cx="1.5" cy="1.5" r=".5" fill="#9a9a9a"/><path d="M4 4l1.4 -1.4" stroke="#9a9a9a" stroke-width=".4"/></pattern>' + hach(id + 'h') + '</defs>';
+    s += '<rect x="2" y="2" width="116" height="86" fill="none" stroke="#a8433a" stroke-width=".7" stroke-dasharray="4 2.5"/>';
+    // parede (à esquerda), caixa do armário à direita da parede
+    s += '<rect x="54" y="6" width="14" height="80" fill="url(#' + id + 'c)" stroke="' + T + '" stroke-width=".7"/>';
+    var bx = 68, by = 50, bw = 48, bh = 5;
+    s += '<path d="M' + bx + ' 12H' + (bx + bw) + 'V' + (by + bh) + 'H' + bx + '" fill="none" stroke="#7a5230" stroke-width="1.6"/>';
+    s += '<path d="M' + bx + ' 30H' + (bx + bw) + '" stroke="#7a5230" stroke-width="1.2"/>';
+    var lx = pos === 'fundo' ? bx + 3 : (pos === 'frente' ? bx + bw - 12 : bx + bw / 2 - 4);
+    if (emb) s += '<rect x="' + lx + '" y="' + (by + 1) + '" width="7" height="' + (bh - 1) + '" fill="' + METAL + '" stroke="#6b6b6b" stroke-width=".5"/>';
+    else s += '<rect x="' + lx + '" y="' + (by + bh) + '" width="7" height="3" fill="' + METAL + '" stroke="#6b6b6b" stroke-width=".5"/>';
+    var ly = by + bh + (emb ? 0 : 3);
+    s += '<rect x="' + lx + '" y="' + (ly - 1) + '" width="7" height="1.2" fill="' + LED + '"/>';
+    s += '<path d="M' + (lx + 3.5) + ' ' + ly + 'L' + (lx - 6) + ' 84H' + (lx + 18) + 'Z" fill="' + LED + '" opacity=".35"/>';
+    // driver dentro do armário e fiação até o perfil
+    s += '<rect x="' + (bx + 2) + '" y="' + (by - 8) + '" width="8" height="8" fill="#b9bec3" stroke="#6b6b6b" stroke-width=".5"/>';
+    s += '<path d="M' + (bx + 6) + ' ' + by + 'C' + (bx + 6) + ' ' + (by + 3) + ' ' + (lx + 3) + ' ' + (by + 1) + ' ' + (lx + 3.5) + ' ' + (by + 2) + '" fill="none" stroke="#555" stroke-width=".5"/>';
+    function cham(px, py, ty, t1, t2) {
+      return '<circle cx="' + px + '" cy="' + py + '" r=".9" fill="#a8433a"/><path d="M' + px + ' ' + py + 'L50 ' + ty + 'H6" fill="none" stroke="#a8433a" stroke-width=".45"/>' +
+        '<text x="6" y="' + (ty - 1.6) + '" font-size="4.3" fill="#333" font-family="Poppins,sans-serif">' + t1 + '</text>' + (t2 ? '<text x="6" y="' + (ty + 4.4) + '" font-size="4.3" fill="#333" font-family="Poppins,sans-serif">' + t2 + '</text>' : '');
+    }
+    s += cham(bx + 6, by - 4, 32, 'Driver da fita de LED', 'dentro do armário');
+    s += cham(bx + 8, by + 1.5, 50, 'Fiação', '');
+    s += cham(lx + 3.5, ly, 66, 'Fita de LED ' + temp + 'K', 'em perfil ' + (emb ? 'embutido' : 'sobreposto'));
+    if (pos === 'fundo') s += '<path d="M' + bx + ' 59H' + lx + 'M' + bx + ' 57v4M' + lx + ' 57v4" stroke="' + COTA + '" stroke-width=".5"/><path d="M' + (lx + 1) + ' 46H' + (bx + 26) + '" stroke="' + COTA + '" stroke-width=".35"/><text x="' + (bx + 27) + '" y="47.5" font-size="4.3" fill="' + COTA + '" font-family="Poppins,sans-serif">2 cm</text>';
+    return '<svg viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg" class="det-caixa">' + s + '</svg>';
+  }
+
   var TITULOS = {
     cava: 'puxador cava 45°', perfil: 'puxador perfil', passante: 'porta passante', alca: 'puxador alça', barra: 'puxador barra',
     botao: 'puxador botão', testeira: 'perfil 45° (testeira)', toque: 'abertura por toque',
@@ -109,11 +140,11 @@
     if (DES[pux]) out.push({ chave: pux, titulo: TITULOS[pux], svg: circulo(DES[pux]({}), cor) });
     var est = (spec.frentes && spec.frentes.estilo) || 'lisa';
     if (est !== 'lisa' && DES[est]) out.push({ chave: est, titulo: TITULOS[est], svg: circulo(DES[est]({ ripa: spec.frentes.ripa }), cor) });
-    if (spec.led && spec.led.ativo && M.pecas.some(function (p) { return p.grupo === 'led'; })) out.push({ chave: 'led', titulo: TITULOS.led, svg: circulo(DES.led({ montagem: spec.led.tipo, temperatura: spec.led.temperatura }), cor) });
+    if (spec.led && spec.led.ativo && M.pecas.some(function (p) { return p.grupo === 'led'; })) out.push({ chave: 'led', titulo: 'iluminação', caixa: true, svg: caixaLed({ montagem: spec.led.tipo, temperatura: spec.led.temperatura, posicao: spec.led.posicao }) });
     var b = spec.base && spec.base.tipo;
     if (DES[b]) out.push({ chave: b, titulo: TITULOS[b], svg: circulo(DES[b]({ recuo: spec.base.recuo }), cor) });
     return out.slice(0, 3);
   }
 
-  return { doMovel: doMovel, circulo: circulo, DES: DES, TITULOS: TITULOS };
+  return { doMovel: doMovel, circulo: circulo, caixaLed: caixaLed, DES: DES, TITULOS: TITULOS };
 });

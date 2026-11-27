@@ -26,7 +26,7 @@ function embutir(html) {
   s.colunas[5].secoes = [E.novaSecao('lixeira')];
   if (process.argv[5] === 'detalhes') { s.frentes.estilo = 'ripada'; s.puxador.tipo = 'toque'; s.led.ativo = true; s.led.local = 'base'; s.led.posicao = 'fundo'; }
   const html = embutir(REL.gerar(E.calcular(s), {
-    versao: 'teste', prancha: { folha, visual, unidade: 'm', corCota: '#c0392b' },
+    versao: 'teste', prancha: { folha, visual, unidade: 'cm', corCota: '#c0392b' },
     projeto: { cliente: 'Laura e Pedro', obra: 'Apto 1203 · Integrada', etapa: 'Detalhamento de marcenaria', revisao: 'R00' },
     escritorio: { nome: 'Estúdio Exemplo', responsavel: 'Arq. Fulana', registro: 'CAU A000000', email: 'contato@exemplo.com', contato: '@estudio' }
   }));

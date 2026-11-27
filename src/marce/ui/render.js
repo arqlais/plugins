@@ -441,7 +441,7 @@
 
   function fmtUn(mm, un) {
     if (un === 'm') return (mm / 1000).toFixed(Math.round(mm) % 10 === 0 ? 2 : 3).replace('.', ',');
-    if (un === 'cm') { var c = Math.round(mm) / 10; return String(c % 1 === 0 ? c : c.toFixed(1)).replace('.', ','); }
+    if (un === 'cm') return (Math.round(mm) / 10).toFixed(1).replace('.', ',');
     return String(Math.round(mm));
   }
 
@@ -529,6 +529,104 @@
     if (d.z0 > 0) s.push(cotaT(xr + (c.secoes.length > 1 ? mg * 0.3 : 0), Y(d.z0), xr + (c.secoes.length > 1 ? mg * 0.3 : 0), Y(0), fmtUn(d.z0, un), op));
     s.push('<text x="' + n1(ox + yMin) + '" y="' + n1(Y(zMax) - fs * 0.9) + '" font-size="' + n1(fs * 0.85) + '" fill="#8b939a">frente</text>');
     s.push('<text x="' + n1(ox + d.D) + '" y="' + n1(Y(zMax) - fs * 0.9) + '" font-size="' + n1(fs * 0.85) + '" text-anchor="end" fill="#8b939a">parede</text>');
+    var svg = '<svg class="tecnico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + n1(W) + ' ' + n1(Ht) + '" width="' + n1(W / E) + 'mm" height="' + n1(Ht / E) + 'mm" font-family="Poppins, Segoe UI, sans-serif">' + s.join('') + '</svg>';
+    return { svg: svg, escala: E, w: W / E, h: Ht / E };
+  }
+
+  // Vista frontal interna: o móvel sem as frentes, com prateleiras, caixas de gaveta,
+  // ferragens (dobradiças, corrediças, cestos) e os vãos livres cotados por dentro.
+  function frontalInterna(M, o) {
+    o = o || {};
+    var d = M.dims, L = d.L, un = o.unidade || 'mm', cor = o.corCota || '#c0392b', spec = M.spec;
+    var pedra = M.pecas.filter(function (p) { return p.grupo === 'pedra'; })[0];
+    var topoZ = pedra ? pedra.z + pedra.dz : d.H;
+    var mPapel = 15;
+    var E = o.escala || escolherEscala(L, topoZ, o.areaW || 260, o.areaH || 150, mPapel);
+    var fs = 2.1 * E, lw = 0.16 * E, tq = 1.1 * E, mg = mPapel * E;
+    var xMin = pedra ? Math.min(0, pedra.x) : 0, xMax = pedra ? Math.max(L, pedra.x + pedra.dx) : L;
+    var W = xMax - xMin + 2 * mg, Ht = topoZ + 2 * mg;
+    var ox = mg - xMin, oy = mg + topoZ;
+    function X(x) { return n1(ox + x); }
+    function Y(z) { return n1(oy - z); }
+    var cCx = corMat(spec, 'caixa'), cIn = corMat(spec, spec.caixaInternaBranca ? 'caixaInterna' : 'caixa');
+    var s = [];
+    if (d.z0 > 0 || spec.base.tipo !== 'suspenso') s.push('<line x1="' + n1(ox - mg * 0.4) + '" y1="' + Y(0) + '" x2="' + n1(ox + L + mg * 0.4) + '" y2="' + Y(0) + '" stroke="#2b2b2b" stroke-width="' + n1(lw * 2.2) + '"/>');
+    var vis = M.pecas.filter(function (p) {
+      if (p.grupo === 'frente' || p.grupo === 'led') return false;
+      if (p.grupo === 'ferragem') return /^Dobradiça|^Corrediça|^Cesto|^Quadro aramado|^Montante|^Grade|^Tubo|^Espelho/.test(p.nome);
+      return p.dx > 0.4 && p.dz > 0.4;
+    });
+    // de trás para a frente: o que está mais ao fundo é pintado primeiro
+    vis.sort(function (a, b) { return (b.y + b.dy) - (a.y + a.dy) || b.y - a.y; });
+    vis.forEach(function (p) {
+      var fill, st = '#3a3a3a', sw = lw;
+      if (p.grupo === 'fundo') fill = shade(cIn, 0.9);
+      else if (p.grupo === 'gaveta') fill = p.mat && spec.materiais[p.mat] ? lighten(corMat(spec, p.mat), 0.25) : '#eeeeee';
+      else if (p.grupo === 'ferragem') { fill = p.mat === 'espelho' ? '#dfeaee' : '#b9bec3'; st = '#6b6b6b'; sw = lw * 0.8; }
+      else if (p.grupo === 'pedra') fill = '#e6e6e6';
+      else if (p.grupo === 'rodape') fill = shade(cCx, 0.8);
+      else fill = /^Lateral|^Divisória|^Base|^Chapéu|^Travessa/.test(p.nome) ? cCx : cIn;
+      if (p.forma && p.forma.plano === 'xz') s.push('<polygon points="' + p.forma.pts.map(function (q) { return X(p.x + q[0]) + ',' + Y(p.z + q[1]); }).join(' ') + '" fill="' + fill + '" stroke="' + st + '" stroke-width="' + n1(sw) + '"/>');
+      else s.push('<rect x="' + X(p.x) + '" y="' + Y(p.z + p.dz) + '" width="' + n1(p.dx) + '" height="' + n1(p.dz) + '" fill="' + fill + '" stroke="' + st + '" stroke-width="' + n1(sw) + '"/>');
+    });
+    var op = { cor: cor, lw: lw, fs: fs, tique: tq };
+    // vãos livres: largura interna embaixo de cada vão e alturas livres entre prateleiras
+    var yc = Y(0) + mg * 0.32;
+    (M.vaos || []).forEach(function (vm) {
+      s.push(cotaT(ox + vm.il, yc, ox + vm.ir, yc, fmtUn(vm.largInt, un), Object.assign({}, op, { chamada: [[ox + vm.il, Y(d.z0) + 1 * E, ox + vm.il, yc + tq], [ox + vm.ir, Y(d.z0) + 1 * E, ox + vm.ir, yc + tq]] })));
+      vm.secoes.forEach(function (sm) {
+        var t = sm.cfg && sm.cfg.tipo;
+        if (t === 'gavetas' || t === 'lixeira' || t === 'temperos' || t === 'fruteira') return;
+        var nivs = [sm.ib];
+        M.pecas.forEach(function (p) {
+          if (!/^Prateleira/.test(p.nome)) return;
+          if (p.x < vm.il - 1 || p.x + p.dx > vm.ir + 1 || p.z < sm.ib - 1 || p.z > sm.it + 1) return;
+          nivs.push(p.z, p.z + p.dz);
+        });
+        nivs.push(sm.it);
+        nivs.sort(function (a, b) { return a - b; });
+        var xv = ox + vm.il + Math.min(vm.largInt * 0.22, 60 * E / 10 + fs * 2);
+        for (var i = 0; i + 1 < nivs.length; i += 2) {
+          var z0 = nivs[i], z1 = nivs[i + 1];
+          if (z1 - z0 > fs * 2.2) s.push(cotaT(xv, Y(z1), xv, Y(z0), fmtUn(z1 - z0, un), op));
+        }
+      });
+    });
+    var yt = Y(0) + mg * 0.64;
+    s.push(cotaT(ox, yt, ox + L, yt, fmtUn(L, un), Object.assign({}, op, { chamada: [[ox, Y(d.z0) + 1 * E, ox, yt + tq], [ox + L, Y(d.z0) + 1 * E, ox + L, yt + tq]] })));
+    var xh = ox - mg * 0.45;
+    s.push(cotaT(xh, Y(d.H), xh, Y(0), fmtUn(d.H, un), Object.assign({}, op, { chamada: [[ox - 1.2 * E, Y(d.H), xh - tq, Y(d.H)], [ox - 1.2 * E, Y(0), xh - tq, Y(0)]] })));
+    var svg = '<svg class="tecnico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + n1(W) + ' ' + n1(Ht) + '" width="' + n1(W / E) + 'mm" height="' + n1(Ht / E) + 'mm" font-family="Poppins, Segoe UI, sans-serif">' + s.join('') + '</svg>';
+    return { svg: svg, escala: E, w: W / E, h: Ht / E };
+  }
+
+  // Vista lateral externa (lado direito): silhueta com tampo, base e frentes
+  function lateralExterna(M, o) {
+    o = o || {};
+    var d = M.dims, un = o.unidade || 'mm', cor = o.corCota || '#c0392b', spec = M.spec;
+    var yMin = 0, yMax = d.D, zMax = d.H;
+    M.pecas.forEach(function (p) { yMin = Math.min(yMin, p.y); if (p.grupo === 'pedra') { yMax = Math.max(yMax, p.y + p.dy); zMax = Math.max(zMax, p.z + p.dz); } });
+    var mPapel = 9.5;
+    var E = o.escala || escolherEscala(yMax - yMin, zMax, o.areaW || 70, o.areaH || 60, mPapel);
+    var fs = 2.0 * E, lw = 0.16 * E, tq = 1 * E, mg = mPapel * E;
+    var W = yMax - yMin + 2 * mg, Ht = zMax + 2 * mg;
+    var ox = mg - yMin, oy = mg + zMax;
+    function X(y) { return n1(ox + y); }
+    function Y(z) { return n1(oy - z); }
+    var s = [];
+    if (d.z0 > 0 || spec.base.tipo !== 'suspenso') s.push('<line x1="' + n1(ox + yMin - mg * 0.3) + '" y1="' + Y(0) + '" x2="' + n1(ox + yMax + mg * 0.3) + '" y2="' + Y(0) + '" stroke="#2b2b2b" stroke-width="' + n1(lw * 2.2) + '"/>');
+    // o que aparece olhando o lado direito: a peça mais à direita de cada "fatia"
+    var vis = M.pecas.filter(function (p) { return p.x + p.dx > d.L - 25 && p.dy > 0.4 && p.dz > 0.4 && p.grupo !== 'led'; });
+    vis.sort(function (a, b) { return (a.x + a.dx) - (b.x + b.dx); });
+    vis.forEach(function (p) {
+      var fill = p.grupo === 'frente' ? shade(corMat(spec, p.mat), 0.9) : (p.grupo === 'pedra' ? '#e6e6e6' : (p.grupo === 'ferragem' ? '#b9bec3' : corMat(spec, p.mat)));
+      s.push('<rect x="' + X(p.y) + '" y="' + Y(p.z + p.dz) + '" width="' + n1(p.dy) + '" height="' + n1(p.dz) + '" fill="' + fill + '" stroke="#3a3a3a" stroke-width="' + n1(lw) + '"/>');
+    });
+    var op = { cor: cor, lw: lw, fs: fs, tique: tq };
+    var yb = Y(0) + mg * 0.45;
+    s.push(cotaT(ox + yMin, yb, ox + yMax, yb, fmtUn(yMax - yMin, un), Object.assign({}, op, { chamada: [[ox + yMin, Y(0) + 1 * E, ox + yMin, yb + tq], [ox + yMax, Y(0) + 1 * E, ox + yMax, yb + tq]] })));
+    var xr = ox + yMax + mg * 0.4;
+    s.push(cotaT(xr, Y(zMax), xr, Y(0), fmtUn(zMax, un), Object.assign({}, op, { chamada: [[ox + yMax + 1 * E, Y(zMax), xr + tq, Y(zMax)], [ox + yMax + 1 * E, Y(0), xr + tq, Y(0)]] })));
     var svg = '<svg class="tecnico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + n1(W) + ' ' + n1(Ht) + '" width="' + n1(W / E) + 'mm" height="' + n1(Ht / E) + 'mm" font-family="Poppins, Segoe UI, sans-serif">' + s.join('') + '</svg>';
     return { svg: svg, escala: E, w: W / E, h: Ht / E };
   }
@@ -739,5 +837,5 @@
     return '<svg class="desenho chapa" xmlns="http://www.w3.org/2000/svg" viewBox="-4 -4 ' + (g.w + 8) + ' ' + (g.h + 8) + '">' + s.join('') + '</svg>';
   }
 
-  return { corMat: corMat, frontalTecnico: frontalTecnico, plantaTecnica: plantaTecnica, corteTecnico: corteTecnico, colunasTipicas: colunasTipicas, balao: balao, COR_LED: COR_LED, escolherEscala: escolherEscala, fmtUn: fmtUn, cotaT: cotaT, frontal: frontal, planta: planta, perspectiva: perspectiva, chapaSvg: chapaSvg, cor: { shade: shade, lighten: lighten, lum: lum }, esc: esc, cotaH: cotaH, cotaV: cotaV };
+  return { corMat: corMat, frontalInterna: frontalInterna, lateralExterna: lateralExterna, frontalTecnico: frontalTecnico, plantaTecnica: plantaTecnica, corteTecnico: corteTecnico, colunasTipicas: colunasTipicas, balao: balao, COR_LED: COR_LED, escolherEscala: escolherEscala, fmtUn: fmtUn, cotaT: cotaT, frontal: frontal, planta: planta, perspectiva: perspectiva, chapaSvg: chapaSvg, cor: { shade: shade, lighten: lighten, lum: lum }, esc: esc, cotaH: cotaH, cotaV: cotaV };
 });

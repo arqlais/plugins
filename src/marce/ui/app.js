@@ -15,7 +15,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: true, relatorioJunto: true,
-    padroes: null, projeto: {}, versao: '1.6.0', gerando: false, atualizacao: null, atualizando: false
+    padroes: null, projeto: {}, versao: '1.7.0', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -512,7 +512,8 @@
     h += '<div class="linha-botoes"><button class="botao" data-act="relatorio">Abrir relatório agora</button><button class="botao" data-act="csv">Exportar lista de peças (CSV)</button></div></div>';
     h += '<div class="grupo"><h4>Prancha' + aj('prancha') + '</h4><div class="campo"><label>Tamanho da folha (deitada)</label></div>' + pilulas('prancha.folha', [['A4', 'A4'], ['A3', 'A3'], ['A2', 'A2'], ['A1', 'A1'], ['A0', 'A0']], true);
     h += '<div class="campo"><label>Visual</label></div>' + pilulas('prancha.visual', [['marce', 'Identidade marcê'], ['neutro', 'Neutro']], true);
-    h += '<div class="campo"><label>Unidade das cotas</label></div>' + pilulas('prancha.unidade', [['m', 'Metros'], ['cm', 'cm'], ['mm', 'mm']], true);
+    h += '<div class="campo"><label>Código do móvel</label><input type="text" data-path="codigo" value="' + esc(st.spec.codigo || 'M01') + '" placeholder="M01" maxlength="8" style="max-width:90px"></div><p class="ajuda">O código aparece no selo da isométrica e no topo de cada prancha (M01, M02...), como na planta de marcenaria do projeto.</p>';
+    h += '<div class="campo"><label>Unidade das cotas</label></div>' + pilulas('prancha.unidade', [['cm', 'cm (80,0)'], ['m', 'Metros'], ['mm', 'mm']], true);
     h += '<div class="campo"><label>Cor da cota</label><input type="color" data-path="prancha.corCota" value="' + esc(pr.corCota || '#c0392b') + '" style="width:44px;height:28px;border:0;background:none"></div>';
     h += '<p class="ajuda">Dá para trocar tudo isso também na barra do relatório aberto.</p></div>';
     h += '<div class="grupo"><h4>Dados do projeto' + aj('projeto') + '</h4>' +
