@@ -16,6 +16,7 @@ const ICONES = {
   novo: base(`<g transform="translate(6 10) scale(.72)">${linha(LACO, 10)}</g><circle cx="76" cy="26" r="15" fill="${ROSE}"/>${linha('M76 18v16M68 26h16', 6, FUNDO)}`),
   editar: base(`<g transform="translate(4 14) scale(.62)">${linha(LACO, 11)}</g>${linha('M58 76l6-18 22-22a6 6 0 0 1 9 9L73 67z', 6, ROSE)}`),
   abrir: base(`${linha('M26 22h36v58H26z', 6)}${linha('M62 22l18 8v58l-18-8', 6, ROSE)}${linha('M54 50v6', 6)}`),
+  atualizar: base(`${linha('M72 38a24 24 0 1 0 4 22', 7)}${linha('M74 22v17H57', 7, ROSE)}`),
   relatorio: base(`${linha('M30 18h28l14 14v50H30z', 6)}${linha('M58 18v14h14', 6)}${linha('M39 50h24M39 61h24M39 72h14', 6, ROSE)}`)
 };
 
@@ -31,7 +32,7 @@ const ICONES = {
     }
   }
   // folha de visualização
-  await p.setViewportSize({ width: 420, height: 120 });
+  await p.setViewportSize({ width: 520, height: 120 });
   await p.setContent(`<html><body style="margin:0;padding:20px;background:#f5f1ee;display:flex;gap:20px">${Object.values(ICONES).map((s) => s.replace('<svg ', '<svg width="80" height="80" ')).join('')}</body></html>`);
   await p.screenshot({ path: path.join(__dirname, 'icones-preview.png') });
   await b.close();

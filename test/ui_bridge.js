@@ -11,7 +11,7 @@ const assert = require('assert');
   await p.addInitScript(() => {
     window.__chamadas = [];
     const reg = (n) => (j) => window.__chamadas.push([n, JSON.parse(j)]);
-    window.sketchup = { pronto: reg('pronto'), gerar: reg('gerar'), cancelar: reg('cancelar'), detectarCuba: reg('detectarCuba'), salvarRelatorio: reg('salvarRelatorio'), salvarCsv: reg('salvarCsv'), salvarPadroes: reg('salvarPadroes') };
+    window.sketchup = { verificarAtualizacao: reg('verificarAtualizacao'), atualizar: reg('atualizar'), pronto: reg('pronto'), gerar: reg('gerar'), cancelar: reg('cancelar'), detectarCuba: reg('detectarCuba'), salvarRelatorio: reg('salvarRelatorio'), salvarCsv: reg('salvarCsv'), salvarPadroes: reg('salvarPadroes') };
   });
   await p.goto('file://' + path.join(__dirname, '..', 'src', 'marce', 'ui', 'index.html'));
   await p.waitForTimeout(300);
@@ -55,6 +55,18 @@ const assert = require('assert');
   ch = await p.evaluate(() => window.__chamadas);
   const csv = ch.find((c) => c[0] === 'salvarCsv');
   assert.ok(csv && csv[1].csv.startsWith('﻿Nº;Peça;Qtd'), 'CSV com BOM e cabeçalho');
+
+  // botão de atualização
+  await p.evaluate(() => window.App.receber({ tipo: 'atualizacao', atual: '1.1.0', versao: '1.2.0', nova: true, notas: ['teste'] }));
+  assert.ok(await p.isVisible('.pilula-atualizar.nova'), 'mostra "nova versão"');
+  assert.ok((await p.textContent('.pilula-atualizar.nova')).includes('1.2.0'));
+  await p.click('.pilula-atualizar.nova');
+  ch = await p.evaluate(() => window.__chamadas);
+  const at = ch.find((c) => c[0] === 'atualizar');
+  assert.ok(at && at[1].spec && at[1].spec.nome === 'Roupeiro casal', 'envia o móvel atual para reabrir depois');
+  assert.ok(await p.isVisible('.pilula-atualizar.ocupado'));
+  await p.evaluate(() => window.App.receber({ tipo: 'aviso', msg: 'Falha ao instalar: teste' }));
+  assert.ok(await p.isVisible('.pilula-atualizar.nova'), 'volta ao botão se falhar');
 
   assert.deepStrictEqual(erros, []);
   console.log('ponte JS <-> Ruby: ok');

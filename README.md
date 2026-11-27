@@ -12,6 +12,12 @@ Identidade visual da família **planê** (areia, grafite e rosé · Poppins + Th
 2. No SketchUp: **Extensões → Gerenciador de Extensões → Instalar extensão** e escolha o `marce.rbz`.
 3. Aparece a barra **marcê** e o menu **Extensões → marcê**.
 
+## Atualizar (sem reinstalar)
+
+Instale o `.rbz` **uma vez**. Depois, quando sair versão nova, é só apertar **Atualizar marcê** — na barra de ferramentas, em **Extensões → marcê**, ou no rodapé da janela (aparece "nova versão · atualizar" em rosé quando tem novidade). O marcê baixa do GitHub, confere a assinatura do arquivo, instala por cima e recarrega na hora, sem reiniciar o SketchUp. Ao abrir o SketchUp ele também avisa sozinho (uma vez por dia).
+
+Para lançar uma versão: troque `VERSAO` em `src/marce/versao.rb`, escreva as novidades no topo do `CHANGELOG.md`, rode `./tools/empacotar.sh` (gera `dist/marce.rbz` e `versao.json`), faça commit e push.
+
 ## Usar
 
 1. Modele uma **caixa (volume)** onde o móvel vai ficar e selecione (grupo, componente ou faces).
@@ -65,6 +71,6 @@ tools/                  empacotar .rbz, gerar ícones
 
 - Prévia sem SketchUp: abra `src/marce/ui/index.html` no navegador (modo demonstração).
 - Testes: `npm test` (motor + Ruby simulado) e `npm run test:ui` (janela no Chromium).
-- Pacote: `./tools/empacotar.sh` → `dist/marce.rbz`.
+- Pacote: `./tools/empacotar.sh` → `dist/marce.rbz` + `versao.json`.
 
 As cores do catálogo são aproximadas — confira sempre o mostruário do fornecedor. A fonte The Seasons é de uso licenciado da Laís; Poppins é livre (OFL).

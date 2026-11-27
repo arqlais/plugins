@@ -1,0 +1,10 @@
+{
+  "versao": "1.1.0",
+  "rbz": "dist/marce.rbz",
+  "sha256": "5e00b949f82f8b979c7fe37befeda62dba9962245d05e84f030723a8cd5b4fc9",
+  "notas": [
+    "Botão \"Atualizar marcê\" (barra, menu e rodapé da janela): baixa a versão nova e instala sem reinstalar",
+    "Aviso automático de versão nova ao abrir o SketchUp (uma vez por dia)",
+    "A janela reabre já na versão nova, sem perder o que estava na tela"
+  ]
+}

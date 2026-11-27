@@ -4,9 +4,9 @@ require 'json'
 
 module ArqLais
   module Marce
-    PASTA_UI = File.join(PASTA, 'ui').freeze
-    PASTA_ICONES = File.join(PASTA, 'icons').freeze
-    DICT = 'marce'.freeze
+    PASTA_UI = File.join(PASTA, 'ui').freeze unless const_defined?(:PASTA_UI, false)
+    PASTA_ICONES = File.join(PASTA, 'icons').freeze unless const_defined?(:PASTA_ICONES, false)
+    DICT = 'marce'.freeze unless const_defined?(:DICT, false)
 
     require File.join(PASTA, 'util')
     require File.join(PASTA, 'materiais')
@@ -14,6 +14,7 @@ module ArqLais
     require File.join(PASTA, 'construtor')
     require File.join(PASTA, 'abrir_fechar')
     require File.join(PASTA, 'exportar')
+    require File.join(PASTA, 'atualizar')
     require File.join(PASTA, 'dialogo')
 
     # ------------------------------------------------------------ comandos
@@ -61,7 +62,8 @@ module ArqLais
                     "1. Modele um volume (caixa) onde vai o móvel e selecione.\n" \
                     "2. Extensões → marcê → Novo móvel.\n" \
                     "3. Configure e clique em Gerar armário.\n\n" \
-                    'Selecione o móvel e use Editar para alterar depois.')
+                    "Selecione o móvel e use Editar para alterar depois.\n\n" \
+                    'Para atualizar: botão "Atualizar marcê" (barra ou menu).')
     end
 
     def self.icone(nome)
@@ -88,6 +90,7 @@ module ArqLais
       c_rel = comando('Relatório executivo', 'Gera o relatório executivo do móvel selecionado', 'relatorio') { cmd_relatorio }
       c_abrir_tudo = comando('Abrir tudo', 'Abre todas as portas e gavetas do móvel selecionado', nil) { cmd_tudo(true) }
       c_fechar_tudo = comando('Fechar tudo', 'Fecha todas as portas e gavetas do móvel selecionado', nil) { cmd_tudo(false) }
+      c_atualizar = comando('Atualizar marcê', 'Procura a versão nova no GitHub e instala sem reinstalar', 'atualizar') { Atualizar.botao }
       c_lista = comando('Lista de peças do projeto (CSV)', 'Soma as peças de todos os móveis do marcê no modelo', nil) { cmd_lista_projeto }
 
       menu = UI.menu('Extensions').add_submenu('marcê')
@@ -101,6 +104,7 @@ module ArqLais
       menu.add_item(c_rel)
       menu.add_item(c_lista)
       menu.add_separator
+      menu.add_item(c_atualizar)
       menu.add_item('Sobre o marcê') { cmd_sobre }
 
       tb = UI::Toolbar.new('marcê')
@@ -108,7 +112,12 @@ module ArqLais
       tb.add_item(c_editar)
       tb.add_item(c_abrir)
       tb.add_item(c_rel)
+      tb.add_separator
+      tb.add_item(c_atualizar)
       tb.restore
+
+      # procura atualização alguns segundos depois de abrir o SketchUp (1x por dia)
+      UI.start_timer(8, false) { Atualizar.checagem_automatica rescue nil }
 
       UI.add_context_menu_handler do |ctx|
         model = Sketchup.active_model

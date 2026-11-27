@@ -5,9 +5,9 @@ require 'extensions.rb'
 
 module ArqLais
   module Marce
-    VERSAO = '1.0.0'.freeze
-    NOME = 'marcê'.freeze
-    PASTA = File.join(File.dirname(__FILE__), 'marce').freeze
+    NOME = 'marcê'.freeze unless const_defined?(:NOME, false)
+    PASTA = File.join(File.dirname(__FILE__), 'marce').freeze unless const_defined?(:PASTA, false)
+    load File.join(PASTA, 'versao.rb')
 
     unless file_loaded?(__FILE__)
       ext = SketchupExtension.new('marcê · marcenaria paramétrica', File.join(PASTA, 'main'))
@@ -16,7 +16,7 @@ module ArqLais
       ext.copyright = '© 2026 Laís · uso pessoal'
       ext.description = 'Gera marcenaria completa a partir de um volume: caixaria, portas, ' \
                         'gavetas, aramados, lixeira, nichos, ferragens, conferência técnica, ' \
-                        'lista de peças e relatório executivo.'
+                        'lista de peças e relatório executivo. Atualiza sozinho pelo botão "atualizar".'
       Sketchup.register_extension(ext, true)
       file_loaded(__FILE__)
     end

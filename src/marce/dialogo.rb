@@ -2,8 +2,8 @@
 module ArqLais
   module Marce
     module Dialogo
-      @dlg = nil
-      @ctx = {}
+      @dlg = nil unless instance_variable_defined?(:@dlg)
+      @ctx = {} unless instance_variable_defined?(:@ctx)
 
       module_function
 
@@ -116,6 +116,40 @@ module ArqLais
         d.add_action_callback('salvarPadroes') do |_c, j|
           dados = Util.ler_json(j)
           Exportar.salvar_padroes(dados['padroes'])
+        end
+
+        d.add_action_callback('verificarAtualizacao') do |_c, _j|
+          Atualizar.verificar do |info, erro|
+            if info
+              enviar('tipo' => 'atualizacao', 'atual' => VERSAO, 'versao' => info['versao'], 'nova' => info['nova'], 'notas' => info['notas'] || [])
+            else
+              enviar('tipo' => 'atualizacao', 'atual' => VERSAO, 'erro' => erro.to_s)
+            end
+          end
+        end
+
+        d.add_action_callback('atualizar') do |_c, j|
+          dados = Util.ler_json(j)
+          Atualizar.verificar do |info, erro|
+            if info.nil? || !info['nova']
+              enviar('tipo' => 'aviso', 'msg' => info ? "Você já está na versão mais nova (#{VERSAO})." : "Não foi possível verificar: #{erro}")
+              next
+            end
+            enviar('tipo' => 'aviso', 'msg' => "Baixando a versão #{info['versao']}…")
+            Atualizar.instalar(info) do |ok, msg|
+              if ok
+                # reabre a janela com a versão nova mantendo o que estava na tela
+                ctx = @ctx
+                init = (@msg_init || {}).merge('spec' => dados['spec'], 'modo' => ctx[:modo] || 'novo', 'versao' => VERSAO, 'avisoAtualizado' => msg)
+                init.delete('acao')
+                @dlg.close if @dlg
+                @dlg = nil
+                UI.start_timer(0.3, false) { Dialogo.mostrar(ctx, init) }
+              else
+                enviar('tipo' => 'aviso', 'msg' => msg)
+              end
+            end
+          end
         end
 
         d.set_on_closed { @dlg = nil }

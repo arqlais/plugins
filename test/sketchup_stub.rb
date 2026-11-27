@@ -240,8 +240,16 @@ module Sketchup
   @model = Model.new
   def self.active_model; @model; end
   def self.reset!; @model = Model.new; end
-  def self.temp_dir; '/tmp'; end
+  def self.temp_dir; Dir.tmpdir; end
+  @defaults = {}
+  def self.write_default(s, k, v); @defaults[[s, k]] = v; end
+  def self.read_default(s, k, d = nil); @defaults.fetch([s, k], d); end
+  @instalados = []
+  def self.instalados; @instalados; end
+  def self.install_from_archive(arq, _d = false); @instalados << [arq, File.size(arq)]; true; end
+  def self.status_text=(t); end
 end
+require 'tmpdir'
 
 module UI
   def self.start_timer(_s, _r, &b)

@@ -14,7 +14,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: true, relatorioJunto: true,
-    padroes: null, versao: '1.0.0', gerando: false
+    padroes: null, versao: '1.1.0', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -197,7 +197,12 @@
     var r = st.modelo.resumo;
     var txt = st.modo === 'editar' ? 'Atualizar móvel' : 'Gerar armário';
     if (st.relatorioJunto) txt += st.modo === 'editar' ? ' e relatório' : ' + relatório';
-    $('#rodape').innerHTML = '<div class="resumo-conf">' +
+    var at = st.atualizacao;
+    var htmlVersao = '<span class="versao">marc<i>ê</i> ' + esc(st.versao) + '</span>';
+    if (st.atualizando) htmlVersao += '<span class="pilula-atualizar ocupado">atualizando…</span>';
+    else if (at && at.nova) htmlVersao += '<button class="pilula-atualizar nova" data-act="atualizar" title="' + esc((at.notas || []).join(' · ')) + '">nova versão ' + esc(at.versao) + ' · atualizar</button>';
+    else htmlVersao += '<button class="pilula-atualizar" data-act="verificarAtualizacao">' + (at && at.verificado ? (at.erro ? 'sem conexão · tentar de novo' : 'está atualizado ✓') : 'verificar atualização') + '</button>';
+    $('#rodape').innerHTML = '<div class="bloco-versao">' + htmlVersao + '</div><div class="resumo-conf">' +
       (r.erros ? '<span class="contador erro">' + r.erros + ' erro' + (r.erros > 1 ? 's' : '') + '</span>' : '') +
       '<span class="contador aviso">' + r.avisos + ' aviso' + (r.avisos === 1 ? '' : 's') + '</span>' +
       '<span class="contador ok">' + r.dicas + ' dica' + (r.dicas === 1 ? '' : 's') + '</span></div>' +
@@ -568,6 +573,12 @@
       case 'csv': exportarCsv(); return;
       case 'gerar': gerar(); return;
       case 'cancelar': if (!enviar('cancelar', {})) toast('Fora do SketchUp: nada para cancelar'); return;
+      case 'verificarAtualizacao':
+        if (!enviar('verificarAtualizacao', {})) { toast('A atualização funciona dentro do SketchUp'); return; }
+        toast('Procurando versão nova…'); return;
+      case 'atualizar':
+        if (!enviar('atualizar', { spec: st.spec })) { toast('A atualização funciona dentro do SketchUp'); return; }
+        st.atualizando = true; renderRodape(); return;
       default: return;
     }
     atualizar();
@@ -705,6 +716,9 @@
           st.sel = { col: 0, secao: 0 };
           atualizar();
           if (msg.cuba && !msg.spec) toast('Cuba detectada no modelo');
+          st.atualizando = false;
+          if (msg.avisoAtualizado) { st.atualizacao = { verificado: true, nova: false }; renderRodape(); toast(msg.avisoAtualizado); }
+          else if (emSketchUp && !st.atualizacao) setTimeout(function () { enviar('verificarAtualizacao', {}); }, 1200);
           if (msg.acao === 'relatorio') { st.aba = 'relatorio'; renderPainel(); abrirRelatorio(msg.imagens || null); }
           break;
         }
@@ -721,8 +735,15 @@
             if (msg.relatorio) abrirRelatorio(msg.imagens || null);
           } else { renderRodape(); toast(msg.msg || 'Não foi possível gerar'); }
           break;
+        case 'atualizacao':
+          st.atualizacao = { verificado: true, nova: !!msg.nova, versao: msg.versao, notas: msg.notas || [], erro: msg.erro || null };
+          renderRodape();
+          if (msg.nova) toast('Tem versão nova do marcê: ' + msg.versao);
+          break;
         case 'salvo': toast(msg.msg || 'Arquivo salvo'); break;
-        case 'aviso': toast(msg.msg); break;
+        case 'aviso':
+          if (st.atualizando && !/Baixando/.test(msg.msg || '')) { st.atualizando = false; renderRodape(); }
+          toast(msg.msg); break;
       }
     }
   };
