@@ -1,0 +1,58 @@
+/*
+ * marcê — textos de ajuda (botões "?" ao lado das opções e guia "como usar")
+ * Cada item: titulo, texto (o que é / como usar) e dica (regra de marcenaria).
+ */
+(function (root) {
+  'use strict';
+  var A = {
+    tipo: { titulo: 'Tipo de móvel', texto: 'Escolha o que você está desenhando. Cada tipo já vem com medidas, base, topo e montagem típicas (ex.: balcão com travessas sob o tampo e rodapé; aéreo suspenso com chapa em cima; guarda-roupa com cabideiro e maleiro).', dica: 'Trocar o tipo refaz as colunas. Escolha o tipo primeiro e depois ajuste coluna por coluna.' },
+    ambiente: { titulo: 'Ambiente', texto: 'Define o material recomendado no relatório e as verificações do checklist (cozinha, banheiro, lavanderia ou área seca).', dica: 'Em cozinha, banheiro e lavanderia use MDF RU (resistente à umidade) e fita de borda selada perto da água.' },
+    composicao: { titulo: 'Composição', texto: 'Modelos prontos para o tipo Personalizado: estante + balcão, portas + nichos, rack + painel, balcão + aéreo, molduras, nichos em arco e espelho em arco. Depois de escolher, edite cada coluna livremente.', dica: 'As composições são lidas de cima para baixo, como no croqui.' },
+    medidas: { titulo: 'Medidas principais', texto: 'Largura (L), profundidade (P) e altura (A) do móvel em milímetros. Se você selecionou um volume no SketchUp antes de abrir, elas vêm dele e ficam travadas.', dica: 'A altura é do móvel sem o tampo. Balcão de cozinha: 78–88 cm + tampo, para a bancada final ficar entre 85 e 95 cm.' },
+    base: { titulo: 'Base · rodapé', texto: 'Rodapé recuado: caixa sobre um rodapé de MDF recuado. Suspenso: móvel preso na parede, sem base. Pés: pés reguláveis com saia de rodapé clipada. Sem base: quando o sóculo já existe na obra.', dica: 'Cozinha: sóculo de ~10 × 10 cm (altura × recuo) evita chute na porta e facilita a limpeza.' },
+    rodaTeto: { titulo: 'Roda-teto', texto: 'Faixa que fecha o espaço entre o topo do móvel e o teto/forro. A altura do roda-teto é descontada da caixaria.', dica: 'Deixe 5 cm ou mais: o marceneiro recorta no local para acompanhar o desnível do forro.' },
+    estrutura: { titulo: 'Estrutura', texto: 'Topo em travessas: duas réguas (frente e fundo) amarram a caixa e apoiam o tampo de pedra. Chapa inteira: para aéreos, torres e móveis sem tampo. Fundo sobreposto (pregado atrás) ou encaixado (em rasgo).', dica: 'Use travessas sob pedra: economiza chapa e deixa espaço para cuba e cooktop.' },
+    espessuras: { titulo: 'Espessuras', texto: 'Espessura das chapas em mm. O padrão é caixaria e frentes em 18 mm, fundo em 6 mm (HDF) e gavetas em 15 mm.', dica: 'Prateleira de 18 mm aguenta até ~80 cm de vão livre. Acima disso, use 25 mm ou divida o vão.' },
+    cuba: { titulo: 'Cuba e tampo', texto: 'Informe onde fica a cuba (centro a partir da esquerda). O marcê tira o fundo e a prateleira do módulo da pia e avisa os recortes. "Detectar cuba no modelo" procura um componente com "cuba" ou "pia" no nome sobre o volume.', dica: 'Desenhe o tampo de pedra só se ele ainda não estiver no projeto.' },
+    chapa: { titulo: 'Chapa', texto: 'Tamanho da chapa de MDF usada no plano de corte e nos avisos de emenda. Refilo é o que se perde nas bordas; serra é a espessura do corte.', dica: 'Chapa comum: 2,75 × 1,85 m. Com refilo de 1 cm, sobram 2,73 m úteis — peças maiores precisam de emenda.' },
+    emenda: { titulo: 'Emendar peças longas', texto: 'Ligado: base, topo, travessas e rodapé maiores que a chapa são divididos e a emenda fica sobre uma divisória. Desligado: o marcê só avisa na conferência.', dica: 'Emenda sobre divisória fica escondida e tem apoio.' },
+    larguraMax: { titulo: 'Largura máxima de porta', texto: 'Define quantas colunas o móvel terá: o comprimento é dividido para nenhuma porta passar dessa largura. Depois clique em "Redistribuir colunas".', dica: 'Porta acima de 60 cm pesa nas dobradiças e tende a cair com o tempo.' },
+    divisorias: { titulo: 'Divisórias internas', texto: 'Cada porta: uma divisória entre todas as colunas. Cada par: duas portas dividem o mesmo vão (abrem para lados opostos). Nenhuma: um vão só.', dica: 'Sem divisória, portas do meio não têm onde fixar a dobradiça — o marcê avisa como erro.' },
+    prateleiras: { titulo: 'Prateleiras por vão', texto: 'Quantidade de prateleiras móveis em todas as colunas de porta. Para mudar só uma coluna, clique nela.', dica: 'Prateleiras ficam recuadas 2 cm da frente e apoiadas em 4 pinos.' },
+    colunas: { titulo: 'Montagem das colunas', texto: 'Cada número é uma coluna (da esquerda para a direita). Clique num número, ou direto na frente na vista frontal, para editar. + adiciona e − remove a coluna selecionada.', dica: 'A coluna com borda tracejada fica sob a cuba.' },
+    largura: { titulo: 'Largura da coluna', texto: 'Auto divide o espaço igualmente. Escolha uma medida pronta (0,15 a 0,60 m) ou digite a largura exata em mm; as colunas automáticas absorvem o resto.', dica: 'Porta-temperos: 15–30 cm. Lixeira: 30–45 cm. Gaveteiro: 40–60 cm.' },
+    faixas: { titulo: 'Faixas', texto: 'Divide a coluna na altura (ex.: gavetas embaixo, forno no meio, porta em cima). Cada faixa tem altura própria; vazia = automática. Entre as faixas entra uma prateleira fixa.', dica: 'Torre quente: gavetas ~52 cm, forno ~62 cm, micro ~45 cm e porta no restante.' },
+    tipoFaixa: { titulo: 'Esta faixa é', texto: 'O que vai na frente desta faixa: porta, gavetas, basculante, porta-temperos, lixeira, fruteira, nicho aberto, nicho em arco, espelho em arco, painel, forno ou micro-ondas.', dica: 'Aramados e lixeira saem com corrediça e cestos modelados — dá para abrir no SketchUp.' },
+    portas: { titulo: 'Portas e dobradiça', texto: 'Auto: uma porta por coluna (duas se passar da largura máxima). Escolha o lado da dobradiça quando a porta é única.', dica: 'Dobradiça reta quando a porta cobre a lateral externa; curva quando divide a divisória com outra porta.' },
+    interior: { titulo: 'Interior', texto: 'Prateleiras móveis, cabideiro (tubo oblongo) ou vazio.', dica: 'Cabideiro pede 55–60 cm de profundidade e ~100 cm livres para camisas (150 cm para vestidos longos).' },
+    gavetas: { titulo: 'Gavetas', texto: 'Quantidade e tipo de cada gaveta (a 1 é a de cima). Gavetão é mais alto. "Gavetão c/ interna" cria uma gaveta oculta de 80 mm dentro, para talheres. Altura vazia = automática.', dica: 'Frente de gaveta com menos de 10 cm fica difícil de usar. Talheres: 12–20 cm.' },
+    aramados: { titulo: 'Porta-temperos e fruteira', texto: 'Aramado cromado de correr com cestos. Escolha quantos cestos.', dica: 'Porta-temperos fica bom ao lado do cooktop, em coluna de 15 a 30 cm.' },
+    lixeira: { titulo: 'Lixeira', texto: 'Lixeira de extração com 1 cesto ou 2 (coleta seletiva). O marcê calcula os litros pelo espaço da coluna.', dica: 'Evite colocar sob a cuba sem conferir sifão e registros.' },
+    nicho: { titulo: 'Nicho', texto: 'Vão aberto com prateleiras. A moldura frontal coloca um quadro no material das frentes em volta do nicho.', dica: 'Em estantes de livros, mantenha o vão livre de até 80 cm.' },
+    puxador: { titulo: 'Puxador', texto: 'Cava 45° usinada no topo da frente, perfil de alumínio, perfil passante, alça (barra), toque (sem puxador, abre pressionando) ou sem puxador.', dica: 'Cava 45° pede frentes de 18 mm; o marcê inclui a travessa da cava atrás.' },
+    posicao: { titulo: 'Posição do puxador', texto: 'Auto: topo nas peças baixas (balcão), base nos aéreos e lateral nos altos. Ou escolha.', dica: 'Em aéreo, puxador embaixo fica na altura da mão.' },
+    montagem: { titulo: 'Montagem das frentes', texto: 'Sobreposta: a porta fica na frente da caixa (mais comum). Embutida: a porta fica dentro da caixa, alinhada com a frente.', dica: 'Embutida usa dobradiça super curva e pede mais precisão do marceneiro.' },
+    folgas: { titulo: 'Folgas', texto: 'Espaço entre portas/gavetas vizinhas e entre a frente e o tampo.', dica: 'Padrão: 3 mm entre frentes; 2 a 3 mm sob o tampo de pedra.' },
+    veio: { titulo: 'Veio das frentes', texto: 'Direção dos desenhos da madeira nas frentes. Muda a textura no SketchUp e o sentido das peças no plano de corte.', dica: 'Peças com veio não giram no plano de corte — gastam um pouco mais de chapa.' },
+    corredica: { titulo: 'Corrediças', texto: 'Telescópica: aparente na lateral, 12,5 mm de cada lado. Oculta com amortecedor: fica sob a gaveta, 5 mm de cada lado. O comprimento é escolhido pela profundidade útil.', dica: 'Oculta dá gaveta mais larga e fechamento suave, mas custa mais.' },
+    materiais: { titulo: 'Materiais', texto: 'Clique na amostra para escolher o padrão das frentes e da caixaria, filtrando por marca ou buscando pelo nome.', dica: 'As cores são aproximadas: confira no mostruário. No SketchUp, troque a textura do material "marcê · …" e todas as peças mudam.' },
+    internaBranca: { titulo: 'MDF interno branco', texto: 'Divisórias, prateleiras, base e travessas internas saem em branco; só as laterais aparentes ficam no padrão escolhido.', dica: 'Economiza bastante quando o padrão das frentes é caro.' },
+    textura: { titulo: 'Tamanho real da textura', texto: 'Escala da textura de veio no SketchUp: a largura real que uma imagem da textura representa.', dica: 'Se o veio parecer muito fino ou grosso no render, ajuste aqui.' },
+    padrao: { titulo: 'Meus padrões', texto: 'Guarda materiais, puxador, espessuras, folgas e chapa para todos os próximos móveis.', dica: 'Bom para manter o padrão do seu escritório em todos os projetos.' },
+    relatorio: { titulo: 'Relatório executivo', texto: 'Documento para cliente e marceneiro: perspectivas, elevação e planta cotadas, detalhamento, memorial, ferragens, conferência, lista de peças, estimativa de chapas e checklist. Abre no navegador; imprima ou salve em PDF.', dica: 'Com o móvel gerado, as perspectivas saem do próprio modelo do SketchUp.' },
+    conferencia: { titulo: 'Conferência técnica', texto: 'Revisão automática do móvel com as regras de marcenaria. Vermelho: erro (não gera). Rosé: aviso para conferir. Azul: informação. Verde: dica. Clique num item para ir até a coluna.', dica: 'Resolva os erros antes de gerar; os avisos vão para o relatório do marceneiro.' },
+    vistas: { titulo: 'Vistas', texto: 'Vista frontal (clique numa frente para editar), planta (giro das portas e cuba), 3D (fechado ou aberto) e peças (lista, chapas e plano de corte).', dica: 'No 3D "aberto" dá para ver gavetas internas e aramados.' }
+  };
+
+  var GUIA = [
+    ['Modele o volume', 'No SketchUp, desenhe uma caixa onde o móvel vai ficar e selecione. A frente é o lado comprido virado para a câmera.'],
+    ['Abra o marcê', 'Clique em "Novo móvel" na barra. As medidas vêm do volume e a cuba do modelo é detectada.'],
+    ['Escolha tipo e ambiente', 'Na aba Móvel: balcão, aéreo, torre… e o ambiente. Ajuste base, roda-teto, estrutura e cuba.'],
+    ['Monte as colunas', 'Clique numa frente na vista frontal e diga o que ela é: porta, gavetas, lixeira, porta-temperos, nicho… Use faixas para empilhar.'],
+    ['Acabamento', 'Puxador na aba Frentes; padrões de MDF na aba Acabamento.'],
+    ['Confira e gere', 'Leia a conferência técnica e clique em "Gerar armário". Para mudar depois, selecione o móvel e clique em "Editar móvel".'],
+    ['Abra portas e gere o relatório', 'Use a ferramenta Abrir/fechar para ver o interior e o botão Relatório para o documento do marceneiro.']
+  ];
+
+  root.MarceAjuda = { itens: A, guia: GUIA };
+})(typeof self !== 'undefined' ? self : this);

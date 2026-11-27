@@ -297,3 +297,29 @@ table.tab tr.sep td { background: #fbf8f6; font-weight: 600; color: var(--rose-i
 .lista-m li::marker { color: var(--rose); }
 .botoes-m { display: flex; justify-content: flex-end; margin-top: 14px; }
 @keyframes aparecer { from { opacity: 0; } }
+
+/* ajuda "?" */
+.ajuda-btn { width: 17px; height: 17px; border-radius: 50%; border: 1px solid var(--rose); background: #fff; color: var(--rose-ink); font: 600 10.5px/1 var(--fonte); display: inline-grid; place-items: center; padding: 0; margin-left: 6px; cursor: pointer; flex: none; letter-spacing: 0; text-transform: none; vertical-align: middle; transition: background .15s, color .15s; }
+.ajuda-btn:hover, .ajuda-btn:focus-visible { background: var(--rose); color: #fff; outline: none; }
+.ajuda-btn.falso { cursor: default; margin: 0 2px; }
+.campo > label .ajuda-btn, .deslizante .rot .ajuda-btn { margin-left: 5px; }
+.linha-interruptor { display: flex; align-items: center; }
+.linha-interruptor .interruptor { flex: 1; }
+.conferencia .topo-conf .ajuda-btn { margin-left: -2px; margin-right: auto; }
+.conferencia .topo-conf h3 { flex: none; }
+.pop-ajuda { position: fixed; z-index: 60; width: 290px; background: var(--acento); color: #fff; border-radius: 16px; padding: 12px 14px 12px; box-shadow: 0 20px 50px -14px rgba(62,75,87,.6); font-size: 12px; line-height: 1.5; animation: aparecer .15s ease; }
+.pop-ajuda .pop-topo { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.pop-ajuda b { font-weight: 600; font-size: 12.5px; text-transform: lowercase; }
+.pop-ajuda p { margin: 0; color: #e8edf1; }
+.pop-ajuda .pop-dica { margin-top: 8px; background: rgba(255,255,255,.08); border-radius: 10px; padding: 7px 9px; color: #fff; }
+.pop-ajuda .pop-dica span { display: block; font-size: 10px; font-weight: 600; letter-spacing: .1em; color: var(--rose); margin-bottom: 2px; }
+.pop-x { border: 0; background: none; color: #fff; opacity: .7; font-size: 17px; line-height: 1; padding: 0 2px; cursor: pointer; }
+.btn-guia { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--linha); background: #fff; color: var(--rose-ink); font: 600 15px var(--fonte); cursor: pointer; flex: none; box-shadow: var(--sombra); }
+.btn-guia:hover { background: var(--rose); color: #fff; border-color: var(--rose); }
+.modal.guia { width: min(500px, 100%); }
+.passos { margin: 0; padding: 0; list-style: none; counter-reset: p; background: #fff; border: 1px solid var(--linha); border-radius: 16px; overflow: auto; }
+.passos li { counter-increment: p; display: grid; grid-template-columns: 26px 1fr; column-gap: 10px; padding: 10px 14px; border-top: 1px solid #f1e9e5; }
+.passos li:first-child { border-top: 0; }
+.passos li::before { content: counter(p); grid-row: span 2; width: 22px; height: 22px; border-radius: 50%; background: var(--acento-claro); color: var(--rose-ink); font-weight: 600; font-size: 11px; display: grid; place-items: center; }
+.passos b { font-weight: 600; font-size: 12.5px; }
+.passos span { color: var(--texto-2); font-size: 12px; }

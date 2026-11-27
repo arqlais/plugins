@@ -1,10 +1,10 @@
 {
-  "versao": "1.2.0",
+  "versao": "1.3.0",
   "rbz": "dist/marce.rbz",
-  "sha256": "c89c26523fcb4aae95d51ba8282655b53593c01448e85775590aab40e3f51eb8",
+  "sha256": "e2e812cb24ba3a8eff192fb9007a9f665353b52540b13d8074d4d1d5b6a1a6f9",
   "notas": [
-    "Aviso bonito quando tem versão nova, com \"atualizar agora\" ou \"depois\"",
-    "Depois de atualizar, aparece \"marcê atualizado\" com a lista do que mudou",
-    "O aviso de novidades aparece uma vez por versão (também na janela principal)"
+    "Botão \"?\" ao lado de cada opção: explica para que serve, como usar e dá uma dica de marcenaria",
+    "Botão \"?\" no topo da janela com o passo a passo \"como usar o marcê\"",
+    "O passo a passo abre sozinho na primeira vez que você usa o marcê"
   ]
 }

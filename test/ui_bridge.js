@@ -21,6 +21,8 @@ const assert = require('assert');
   // Ruby manda o volume selecionado e a cuba detectada
   await p.evaluate(() => window.App.receber({ tipo: 'init', modo: 'novo', versao: '1.0.0', volume: { L: 3087, D: 580, H: 776, elevacao: 0, tipoSugerido: 'balcao' }, cuba: { centro: 900, largura: 500, profundidade: 400 } }));
   await p.waitForTimeout(150);
+  assert.ok(await p.isVisible('.modal.guia'), 'passo a passo abre sozinho no primeiro uso');
+  await p.click('.modal.guia [data-fechar-modal]');
   const sub = await p.textContent('#subtitulo');
   assert.ok(sub.includes('3,087') && sub.includes('volume do modelo'), 'medidas do volume: ' + sub);
   assert.ok(await p.$('.cuba-linha'), 'a cuba aparece na vista frontal');

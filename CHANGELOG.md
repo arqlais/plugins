@@ -1,5 +1,10 @@
 # Novidades do marcê
 
+## 1.3.0
+- Botão "?" ao lado de cada opção: explica para que serve, como usar e dá uma dica de marcenaria
+- Botão "?" no topo da janela com o passo a passo "como usar o marcê"
+- O passo a passo abre sozinho na primeira vez que você usa o marcê
+
 ## 1.2.0
 - Aviso bonito quando tem versão nova, com "atualizar agora" ou "depois"
 - Depois de atualizar, aparece "marcê atualizado" com a lista do que mudou

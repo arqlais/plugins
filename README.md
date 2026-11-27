@@ -24,7 +24,7 @@ Para lançar uma versão: troque `VERSAO` em `src/marce/versao.rb`, escreva as n
    - A **frente** é o lado comprido voltado para a câmera.
    - Se houver uma **cuba/pia** no modelo sobre o volume (componente com "cuba" ou "pia" no nome), ela é detectada.
 2. Clique em **Novo móvel** (ou botão direito → marcê → Criar móvel neste volume).
-3. Configure na janela:
+3. Configure na janela (clique em qualquer **?** para ver como usar a opção, ou no **?** do topo para o passo a passo):
    - **Móvel** — tipo (balcão, aéreo, torre, gaveteiro, guarda-roupa, estante, gabinete, personalizado), ambiente (seco, cozinha, banheiro, lavanderia), base (rodapé recuado, suspenso, pés), roda-teto, topo (travessas ou chapa), fundo, espessuras, cuba e tampo, chapa.
    - **Montagem** — largura máxima de porta, divisórias (cada porta / cada par / nenhuma), prateleiras por vão. **Clique numa frente** na vista frontal para transformar a coluna em porta, gavetas (com gavetão e gaveta interna oculta), basculante, porta-temperos, lixeira, fruteira, nicho, nicho em arco, espelho em arco, painel, forno ou micro-ondas. Dá para empilhar faixas (ex.: gavetas embaixo, forno, micro, porta em cima).
    - **Frentes** — puxador (cava 45° usinada, perfil, passante, alça, toque, sem), posição, sobreposta/embutida, folgas, veio, corrediça telescópica/oculta.
