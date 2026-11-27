@@ -84,8 +84,12 @@ module ArqLais
       end
 
       def abrir_no_navegador(caminho)
-        url = 'file:///' + caminho.tr('\\', '/').sub(%r{\A/+}, '')
-        UI.openURL(url)
+        partes = caminho.to_s.tr('\\', '/').sub(%r{\A/+}, '').split('/')
+        seguras = partes.each_with_index.map do |p, i|
+          next p if i.zero? && p =~ /\A[A-Za-z]:\z/ # letra do disco no Windows
+          p.bytes.map { |b| (b.chr =~ /[A-Za-z0-9._~\-]/) ? b.chr : format('%%%02X', b) }.join
+        end
+        UI.openURL('file:///' + seguras.join('/'))
       end
     end
   end

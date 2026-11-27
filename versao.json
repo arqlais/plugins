@@ -1,10 +1,15 @@
 {
-  "versao": "1.3.0",
+  "versao": "1.3.1",
   "rbz": "dist/marce.rbz",
-  "sha256": "e2e812cb24ba3a8eff192fb9007a9f665353b52540b13d8074d4d1d5b6a1a6f9",
+  "sha256": "13cc64390bce422d3cd177e7d6e28301256f04a393479fef65db1171934854fb",
   "notas": [
-    "Botão \"?\" ao lado de cada opção: explica para que serve, como usar e dá uma dica de marcenaria",
-    "Botão \"?\" no topo da janela com o passo a passo \"como usar o marcê\"",
-    "O passo a passo abre sozinho na primeira vez que você usa o marcê"
+    "Abrir/fechar portas e gavetas: o destaque não some nem é cortado ao dar zoom e fica no lugar certo",
+    "Fim do \"pisca-pisca\" no zoom: caneco da dobradiça e cestos aramados sem faces sobrepostas",
+    "Gavetas com puxador cava não batem mais na travessa da cava nem nas travessas entre gavetas",
+    "Corrediça oculta desenhada embaixo da gaveta; prateleira fixa para no fundo encaixado",
+    "O Ctrl+Z não desalinha mais portas abertas",
+    "Editar o móvel não acumula componentes velhos no arquivo",
+    "Volume dentro de grupo aberto: o móvel sai na posição certa; botão direito não mexe na seleção",
+    "Relatório abre certo mesmo com acentos e espaços no caminho da pasta"
   ]
 }

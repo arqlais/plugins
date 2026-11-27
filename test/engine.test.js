@@ -17,6 +17,18 @@ function cenarios() {
   lista.push(['video', v]);
   const emb = E.specPadrao('aereo'); emb.frentes.montagem = 'embutida'; emb.puxador.tipo = 'alca'; lista.push(['embutida', emb]);
   const rt = E.specPadrao('roupeiro'); rt.rodaTeto.ativo = true; rt.base.tipo = 'pes'; rt.fundo.tipo = 'encaixado'; lista.push(['roda-teto', rt]);
+  // móvel com todos os tipos de faixa, em todas as combinações de puxador/montagem/corrediça/fundo
+  const tipos = Object.keys(E.TIPOS_SECAO);
+  for (const pux of Object.keys(E.PUXADORES)) for (const mont of ['sobreposta', 'embutida']) for (const corr of ['telescopica', 'oculta']) for (const fundo of ['sobreposto', 'encaixado']) {
+    const t = E.specPadrao('balcao');
+    t.L = 4800; t.H = 2300; t.D = 600; t.topo = 'travessas'; t.puxador.tipo = pux; t.frentes.montagem = mont; t.gavetas.corredica = corr; t.fundo.tipo = fundo;
+    t.colunas = [];
+    for (let k = 0; k < tipos.length; k += 2) {
+      t.colunas.push(E.novaColuna(400, [E.novaSecao(tipos[k], { altura: 900, itens: [{ tipo: 'interna' }, { tipo: 'gaveta' }] }), E.novaSecao(tipos[k + 1] || 'nicho', { itens: [{ tipo: 'gavetao' }, { tipo: 'gaveta' }, { tipo: 'gaveta' }] })]));
+    }
+    t.colunas.push(E.novaColuna(null, [E.novaSecao('gavetas', { itens: [{ tipo: 'interna' }, { tipo: 'gaveta' }, { tipo: 'gaveta' }] })]));
+    lista.push(['tudo:' + pux + ':' + mont + ':' + corr + ':' + fundo, t]);
+  }
   return lista;
 }
 
@@ -104,4 +116,59 @@ test('CSV com cabeçalho e números com vírgula', () => {
   const csv = E.csvLista(E.listaDePecas(E.calcular(s).pecas, s.materiais));
   assert.ok(csv.startsWith('Nº;Peça;Qtd;Comprimento (mm)'));
   assert.ok(csv.split('\r\n').length > 10);
+});
+
+// ---------------------------------------------------------------- colisões
+// Peças que atravessam outras piscam no SketchUp (faces coincidentes) e gavetas
+// que batem em peças fixas não abrem. Exceções intencionais: encaixes em rasgo.
+function sobrepoe(a, b, tol) {
+  return a.x < b.x + b.dx - tol && b.x < a.x + a.dx - tol &&
+         a.y < b.y + b.dy - tol && b.y < a.y + a.dy - tol &&
+         a.z < b.z + b.dz - tol && b.z < a.z + a.dz - tol;
+}
+function permitido(a, b) {
+  const n = [a.nome, b.nome].sort().join(' | ');
+  const um = (re) => re.test(a.nome) || re.test(b.nome);
+  if (um(/^Fundo gaveta/) && um(/gaveta|Contrafrente/i)) return true; // fundo da gaveta em rasgo
+  if (um(/^Fundo$/) && a.grupo !== b.grupo && (um(/^Lateral|^Divisória|^Base|^Topo|^Travessa superior/))) return true; // fundo encaixado em rasgo
+  if (um(/^Travessa da cava/) && um(/^Divisória/)) return true; // divisória entalhada para a travessa da cava
+  if (um(/^Dobradiça \(caneco\)/) && um(/^Porta/)) return true; // caneco embutido no furo de 35 mm da porta
+  if (um(/^Pedra/)) return false;
+  return false && n;
+}
+function caixas(m, abertos) {
+  const cj = {};
+  m.conjuntos.forEach((c) => { cj[c.id] = c; });
+  const desloc = (p) => {
+    let dy = 0, id = p.conj;
+    while (id) { const c = cj[id]; if (c.tipo === 'corre') dy -= c.curso; id = c.pai; }
+    return dy;
+  };
+  return m.pecas.map((p) => {
+    const giro = (() => { let id = p.conj; while (id) { if (cj[id].tipo === 'giro') return true; id = cj[id].pai; } return false; })();
+    return Object.assign({}, p, { y: abertos ? p.y + desloc(p) : p.y, giro });
+  });
+}
+
+test('nenhuma peça atravessa outra (fechado)', () => {
+  for (const [nome, s] of cenarios()) {
+    const ps = caixas(E.calcular(s), false);
+    for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) {
+      const a = ps[i], b = ps[j];
+      if (sobrepoe(a, b, 0.6) && !permitido(a, b)) assert.fail(nome + ': ' + a.nome + ' (' + a.id + ') atravessa ' + b.nome + ' (' + b.id + ')');
+    }
+  }
+});
+
+test('gavetas e aramados abertos não batem em peças fixas', () => {
+  for (const [nome, s] of cenarios()) {
+    const m = E.calcular(s);
+    const ab = caixas(m, true);
+    const moveis = ab.filter((p) => p.conj && !p.giro);
+    const fixas = ab.filter((p) => !p.conj);
+    for (const a of moveis) for (const b of fixas) {
+      if (b.grupo === 'pedra') continue; // tampo fica acima das frentes
+      if (sobrepoe(a, b, 0.6) && !permitido(a, b)) assert.fail(nome + ': ' + a.nome + ' aberto bate em ' + b.nome);
+    }
+  }
 });

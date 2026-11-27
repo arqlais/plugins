@@ -25,7 +25,7 @@ module ArqLais
         if model.path.to_s.empty?
           dir = File.join(Util.pasta_usuario, 'relatorios')
         else
-          dir = File.join(File.dirname(model.path), 'marcê - relatórios')
+          dir = File.join(File.dirname(model.path), 'marce-relatorios')
         end
         Dir.mkdir(dir) unless File.directory?(dir)
         dir
@@ -79,6 +79,9 @@ module ArqLais
 
       # Imagens do móvel isolado para o relatório (perspectiva e vista superior sem frentes)
       def capturar_imagens(model, movel)
+        # só no nível do modelo (dentro de outro grupo a câmera e o isolamento sairiam errados;
+        # nesse caso o relatório usa a perspectiva desenhada pelo próprio marcê)
+        return {} unless movel && movel.valid? && model.entities.include?(movel)
         view = model.active_view
         cam = view.camera
         salva = { eye: cam.eye, target: cam.target, up: cam.up, persp: cam.perspective?, fov: (cam.perspective? ? cam.fov : nil), height: (cam.perspective? ? nil : cam.height) }
@@ -123,6 +126,7 @@ module ArqLais
       end
 
       def capturar(view, nome)
+        view.refresh if view.respond_to?(:refresh)
         arq = File.join(Sketchup.temp_dir, "marce_#{nome}_#{Time.now.to_i}.png")
         ok = view.write_image(filename: arq, width: 1400, height: 900, antialias: true, transparent: false)
         return nil unless ok && File.exist?(arq)

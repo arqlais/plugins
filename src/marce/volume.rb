@@ -11,9 +11,30 @@ module ArqLais
 
       module_function
 
-      # Retorna hash { L:, D:, H:, origem:, xaxis:, yaxis:, entidade:, elevacao: } (mm) ou nil
+      # Só confere se a seleção parece um volume (não mexe em nada; usado no botão direito)
+      def provavel?(model)
+        sel = model.selection.to_a
+        return false if sel.empty?
+        return false if sel.any? { |e| e.respond_to?(:get_attribute) && e.get_attribute(DICT, 'spec') }
+        sel.any? { |e| e.is_a?(Sketchup::Group) || e.is_a?(Sketchup::ComponentInstance) || e.is_a?(Sketchup::Face) }
+      end
+
+      # Retorna hash { L:, D:, H:, origem:, xaxis:, yaxis:, entidade:, elevacao: } (mm) ou nil.
+      # Se o volume estiver dentro de um grupo aberto em edição, fecha a edição antes
+      # (o móvel é criado no nível do modelo, com a posição real no mundo).
       def ler(model)
-        sel = model.selection
+        sel = model.selection.to_a
+        return nil if sel.empty?
+        cadeia = Geom::Transformation.new
+        if model.active_path && !model.active_path.empty?
+          cadeia = model.edit_transform
+          guarda = 0
+          while model.active_path && !model.active_path.empty? && guarda < 20
+            model.close_active
+            guarda += 1
+          end
+        end
+        sel = sel.select { |e| e.valid? }
         return nil if sel.empty?
         # um único grupo/componente que não seja um móvel do marcê
         if sel.length == 1 && (sel[0].is_a?(Sketchup::Group) || sel[0].is_a?(Sketchup::ComponentInstance))
@@ -21,7 +42,7 @@ module ArqLais
           return nil if e.get_attribute(DICT, 'spec')
           bb = Util.definicao_de(e).bounds
           return nil if bb.empty?
-          t = e.transformation
+          t = cadeia * e.transformation
           o = bb.min.transform(t)
           px = Geom::Point3d.new(bb.max.x, bb.min.y, bb.min.z).transform(t)
           py = Geom::Point3d.new(bb.min.x, bb.max.y, bb.min.z).transform(t)
@@ -33,14 +54,15 @@ module ArqLais
             return montar(model, o, a, b, c, e)
           end
         end
-        # geometria solta (faces/arestas): caixa alinhada aos eixos do modelo
+        # geometria solta (faces/arestas): caixa alinhada aos eixos do contexto
+        return nil if sel.any? { |x| x.respond_to?(:get_attribute) && x.get_attribute(DICT, 'spec') }
         bb = Geom::BoundingBox.new
         sel.each { |x| bb.add(x.bounds) if x.respond_to?(:bounds) }
         return nil if bb.empty? || bb.width < 1.mm || bb.height < 1.mm || bb.depth < 1.mm
-        o = bb.min
-        a = Geom::Vector3d.new(bb.width, 0, 0)
-        b = Geom::Vector3d.new(0, bb.height, 0)
-        c = Geom::Vector3d.new(0, 0, bb.depth)
+        o = bb.min.transform(cadeia)
+        a = Geom::Vector3d.new(bb.width, 0, 0).transform(cadeia)
+        b = Geom::Vector3d.new(0, bb.height, 0).transform(cadeia)
+        c = Geom::Vector3d.new(0, 0, bb.depth).transform(cadeia)
         montar(model, o, a, b, c, nil)
       end
 

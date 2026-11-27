@@ -132,7 +132,7 @@ module ArqLais
           sub.add_item(c_abrir_tudo)
           sub.add_item(c_fechar_tudo)
           sub.add_item(c_rel)
-        elsif Volume.ler(model)
+        elsif Volume.provavel?(model)
           ctx.add_submenu('marcê').add_item('Criar móvel neste volume') { cmd_novo }
         end
       end

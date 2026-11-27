@@ -622,6 +622,9 @@
     // ================================================================
     var vaosLargosPrat = [];
     var seqGav = 0;
+    // com puxador cava em balcão, a travessa da cava ocupa os 76 mm de cima atrás das frentes
+    var temTravCava = pux.tipo === 'cava' && (tipo === 'balcao' || tipo === 'gabinete') && topoTravessas;
+    var topoTravCava = zTop - T - 76;
     var puxPos = pux.posicao === 'auto' ? (aereoLike ? 'base' : (tipo === 'balcao' || tipo === 'gabinete' || tipo === 'gaveteiro' ? 'topo' : 'lateral')) : pux.posicao;
 
     function puxadorConta() { if (pux.tipo !== 'toque' && pux.tipo !== 'nenhum') cont.puxadores++; }
@@ -678,7 +681,7 @@
         var zz = nd === 1 ? pz + ph / 2 : pz + 90 + (ph - 180) * k / (nd - 1);
         var xc = lado === 'esq' ? px + 22 : px + pw - 22 - 35;
         var yBack = embutida ? Tf : 0;
-        fab.objeto({ nome: 'Dobradiça (caneco)', grupo: 'ferragem', mat: 'metal', x: xc, y: yBack - 12, z: zz - 17.5, dx: 35, dy: 12, dz: 35, conj: conj, vao: refs.vao, col: refs.col, secao: refs.secao });
+        fab.objeto({ nome: 'Dobradiça (caneco)', grupo: 'ferragem', mat: 'metal', x: xc, y: yBack - 11, z: zz - 17.5, dx: 35, dy: 12.5, dz: 35, conj: conj, vao: refs.vao, col: refs.col, secao: refs.secao });
       }
     }
 
@@ -704,11 +707,12 @@
 
         if (j < nS - 1) {
           fab.chapa({ nome: 'Prateleira fixa', grupo: 'caixa', mat: matInt, eixoEsp: 'z',
-            x: vm.il, y: yInt, z: sm.z1 - T / 2, dx: vm.largInt, dy: Dc - yInt, dz: T, veio: 'x', fitas: ['x'], vao: vi, col: colIdx0, secao: j, obs: 'Estrutural' });
+            x: vm.il, y: yInt, z: sm.z1 - T / 2, dx: vm.largInt, dy: profUtil - yInt, dz: T, veio: 'x', fitas: ['x'], vao: vi, col: colIdx0, secao: j, obs: 'Estrutural' });
           cont.prateleirasFixas++;
         }
 
         var extEsq = vi === 0, extDir = vi === nV - 1, extBaixo = j === 0, extTopo = j === nS - 1;
+        var itCorre = (temTravCava && extTopo) ? Math.min(sm.it, topoTravCava - 6) : sm.it; // topo livre para o que corre
         // região de cobertura de toda a faixa
         var reg;
         if (embutida) {
@@ -853,8 +857,9 @@
             }
             if (!lenC) continue;
             cont.corredicas[lenC] = (cont.corredicas[lenC] || 0) + 1;
-            var zBox = Math.max(f0 + 20, sm.ib + 12);
-            var lim = k3 === nG - 1 ? sm.it - 15 : fz[k3 + 1][0] + 8;
+            var cavaTrav = pux.tipo === 'cava';
+            var zBox = Math.max(f0 + (cavaTrav && k3 > 0 ? (oculta ? 38 : 30) : 20), sm.ib + 12);
+            var lim = k3 === nG - 1 ? itCorre - 15 : fz[k3 + 1][0] - (cavaTrav ? 32 : -8);
             var hb = Math.min(fh - 40, lim - zBox);
             if (hb < 60) { aviso(rot + ': ' + nomeG.toLowerCase() + ' com caixa de só ' + fmtMm(hb) + ' de altura.', ref); hb = Math.max(hb, 40); }
             var obsG = nomeG + (vm.cuba ? ' · recorte p/ sifão' : '');
@@ -863,7 +868,11 @@
             fab.chapa({ nome: 'Contrafrente', grupo: 'gaveta', mat: 'gaveta', eixoEsp: 'y', x: bx0 + Tg, y: yBox, z: zBox, dx: bW - 2 * Tg, dy: Tg, dz: hb, veio: 'x', fitas: ['x'], vao: vi, col: colIdx0, secao: j, conj: cjG, obs: obsG });
             fab.chapa({ nome: 'Traseira gaveta', grupo: 'gaveta', mat: 'gaveta', eixoEsp: 'y', x: bx0 + Tg, y: yBox + lenC - Tg, z: zBox, dx: bW - 2 * Tg, dy: Tg, dz: hb, veio: 'x', fitas: ['x'], vao: vi, col: colIdx0, secao: j, conj: cjG, obs: obsG });
             fab.chapa({ nome: 'Fundo gaveta', grupo: 'gaveta', mat: 'fundoGaveta', eixoEsp: 'z', x: bx0 + Tg - 8, y: yBox + Tg - 8, z: zBox + 10, dx: bW - 2 * Tg + 16, dy: lenC - 2 * Tg + 16, dz: Fg, fitas: [], vao: vi, col: colIdx0, secao: j, conj: cjG, obs: nomeG + ' · rasgo 8 mm' });
-            corredicasVisuais(vm.il, vm.ir, zBox + 10, yBox, lenC, cjG, refs);
+            if (oculta) {
+              // corrediça oculta fica sob a caixa da gaveta, alinhada às laterais
+              fab.objeto({ nome: 'Corrediça oculta', grupo: 'ferragem', mat: 'metal', x: bx0, y: yBox, z: zBox - 11, dx: Tg, dy: lenC, dz: 10, conj: cjG, vao: vi, col: colIdx0, secao: j });
+              fab.objeto({ nome: 'Corrediça oculta', grupo: 'ferragem', mat: 'metal', x: bx1 - Tg, y: yBox, z: zBox - 11, dx: Tg, dy: lenC, dz: 10, conj: cjG, vao: vi, col: colIdx0, secao: j });
+            } else corredicasVisuais(vm.il, vm.ir, zBox + 10, yBox, lenC, cjG, refs);
 
             if (it3.tipo === 'interna') {
               // gaveta interna oculta: 80 mm, recuada 15 mm, corrediças próprias
@@ -907,7 +916,7 @@
             corredicasVisuais(vm.il, vm.ir, sm.ib + 15, yInt, lenA, cjA, refs);
             if (cfg.tipo === 'lixeira') {
               var nb = Math.max(1, Math.min(2, cfg.baldes || 1));
-              var hBalde = Math.min(sm.altInt - 80, 420);
+              var hBalde = Math.min(itCorre - sm.ib - 80, 420);
               var bwid = (aW - 30 - (nb - 1) * 10) / nb;
               var bdep = Math.min(lenA - 40, 330);
               var litrosTot = 0;
@@ -925,13 +934,13 @@
             } else {
               var nc = Math.max(1, Math.min(6, cfg.cestos || 3));
               var hCesto = cfg.tipo === 'fruteira' ? 140 : 90;
-              var vaoLiv = sm.altInt - 60;
-              fab.objeto({ nome: 'Montante aramado', grupo: 'ferragem', mat: 'aramado', x: ax0, y: yInt + 10, z: sm.ib + 20, dx: aW, dy: 10, dz: sm.altInt - 40, conj: cjA, vao: vi, col: colIdx0, secao: j });
+              var vaoLiv = itCorre - sm.ib - 60;
+              fab.objeto({ nome: 'Montante aramado', grupo: 'ferragem', mat: 'aramado', x: ax0, y: yInt + 10, z: sm.ib + 20, dx: aW, dy: 10, dz: itCorre - sm.ib - 40, conj: cjA, vao: vi, col: colIdx0, secao: j });
               for (var cc2 = 0; cc2 < nc; cc2++) {
                 var zc2 = sm.ib + 30 + (vaoLiv - hCesto) * (nc === 1 ? 0 : cc2 / (nc - 1));
                 fab.objeto({ nome: 'Cesto aramado', grupo: 'ferragem', mat: 'aramado', x: ax0 + 5, y: yInt + 25, z: zc2, dx: aW - 10, dy: lenA - 40, dz: 4, conj: cjA, vao: vi, col: colIdx0, secao: j });
-                fab.objeto({ nome: 'Grade cesto', grupo: 'ferragem', mat: 'aramado', x: ax0 + 5, y: yInt + 25, z: zc2, dx: aW - 10, dy: 4, dz: hCesto * 0.6, conj: cjA, vao: vi, col: colIdx0, secao: j });
-                fab.objeto({ nome: 'Grade cesto', grupo: 'ferragem', mat: 'aramado', x: ax0 + 5, y: yInt + lenA - 19, z: zc2, dx: aW - 10, dy: 4, dz: hCesto * 0.6, conj: cjA, vao: vi, col: colIdx0, secao: j });
+                fab.objeto({ nome: 'Grade cesto', grupo: 'ferragem', mat: 'aramado', x: ax0 + 5, y: yInt + 20.5, z: zc2 + 4.5, dx: aW - 10, dy: 4, dz: hCesto * 0.6, conj: cjA, vao: vi, col: colIdx0, secao: j });
+                fab.objeto({ nome: 'Grade cesto', grupo: 'ferragem', mat: 'aramado', x: ax0 + 5, y: yInt + lenA - 15, z: zc2 + 4.5, dx: aW - 10, dy: 4, dz: hCesto * 0.6, conj: cjA, vao: vi, col: colIdx0, secao: j });
               }
               if (cfg.tipo === 'temperos') { cont.temperos++; if (vm.largInt > 350) dica(rot + ': porta-temperos costuma ter 15–30 cm de largura.', ref); if (vm.largInt < 120) aviso(rot + ': porta-temperos com ' + fmtCm(vm.largInt) + ' interno é estreito demais.', ref); }
               else cont.fruteiras++;
@@ -1003,10 +1012,22 @@
       var uq = vaosLargosPrat.filter(function (v, k, a) { return a.indexOf(v) === k; });
       aviso('Prateleira com vão livre acima de 80 cm (coluna ' + uq.map(function (v) { return v + 1; }).join(', ') + '): MDF 18 mm tende a flexionar — adicione divisória ou use 25 mm.');
     }
-    if (pux.tipo === 'cava' && (tipo === 'balcao' || tipo === 'gabinete') && topoTravessas) {
-      var tc = dividirSobreApoios(T, L - T, divs, maxEmenda);
-      tc.pedacos.forEach(function (pc) {
-        fab.chapa({ nome: 'Travessa da cava', grupo: 'caixa', mat: matInt, eixoEsp: 'y', x: pc[0], y: yInt + 2, z: zTop - T - 76, dx: pc[1] - pc[0], dy: T, dz: 76, veio: 'x', fitas: ['x'], obs: (pc[1] - pc[0]) > usavelC ? 'Peça de chapa emendada' : 'Fecha o vão da cava' });
+    if (temTravCava) {
+      // só atrás das colunas que têm frente na faixa de cima (porta, gaveta, aramado...)
+      var comFrente = { portas: 1, gavetas: 1, basculante: 1, temperos: 1, lixeira: 1, fruteira: 1 };
+      var trechos = [], tr0 = null;
+      vaosM.forEach(function (vm) {
+        var top = vm.secoes[vm.secoes.length - 1];
+        if (comFrente[top.cfg.tipo]) {
+          var a0 = Math.max(T, vm.x0), a1 = Math.min(L - T, vm.x1);
+          if (tr0 && Math.abs(tr0[1] - a0) < 0.01) tr0[1] = a1; else { tr0 = [a0, a1]; trechos.push(tr0); }
+        } else tr0 = null;
+      });
+      trechos.forEach(function (tq) {
+        var tc = dividirSobreApoios(tq[0], tq[1], divs, maxEmenda);
+        tc.pedacos.forEach(function (pc) {
+          fab.chapa({ nome: 'Travessa da cava', grupo: 'caixa', mat: matInt, eixoEsp: 'y', x: pc[0], y: yInt + 2, z: topoTravCava, dx: pc[1] - pc[0], dy: T, dz: 76, veio: 'x', fitas: ['x'], obs: (pc[1] - pc[0]) > usavelC ? 'Peça de chapa emendada' : 'Fecha o vão da cava' });
+        });
       });
     }
 

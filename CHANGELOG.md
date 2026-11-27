@@ -1,5 +1,15 @@
 # Novidades do marcê
 
+## 1.3.1
+- Abrir/fechar portas e gavetas: o destaque não some nem é cortado ao dar zoom e fica no lugar certo
+- Fim do "pisca-pisca" no zoom: caneco da dobradiça e cestos aramados sem faces sobrepostas
+- Gavetas com puxador cava não batem mais na travessa da cava nem nas travessas entre gavetas
+- Corrediça oculta desenhada embaixo da gaveta; prateleira fixa para no fundo encaixado
+- O Ctrl+Z não desalinha mais portas abertas
+- Editar o móvel não acumula componentes velhos no arquivo
+- Volume dentro de grupo aberto: o móvel sai na posição certa; botão direito não mexe na seleção
+- Relatório abre certo mesmo com acentos e espaços no caminho da pasta
+
 ## 1.3.0
 - Botão "?" ao lado de cada opção: explica para que serve, como usar e dá uma dica de marcenaria
 - Botão "?" no topo da janela com o passo a passo "como usar o marcê"

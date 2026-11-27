@@ -112,8 +112,15 @@ module ArqLais
             next
           end
           if info['sha256'] && Digest::SHA256.hexdigest(corpo) != info['sha256']
-            bloco.call(false, 'O arquivo baixado veio incompleto (assinatura não confere). Tente de novo.')
-            next
+            # tenta de novo por outro caminho antes de desistir
+            corpo2 = nil
+            baixar_net(url(info['ramo'], info['rbz'] || 'dist/marce.rbz'), true) { |c2, _e2| corpo2 = c2 }
+            if corpo2 && Digest::SHA256.hexdigest(corpo2) == info['sha256']
+              corpo = corpo2
+            else
+              bloco.call(false, 'O arquivo baixado veio incompleto (assinatura não confere). Tente de novo em alguns minutos.')
+              next
+            end
           end
           arq = File.join(Sketchup.temp_dir, "marce-#{info['versao']}.rbz")
           File.open(arq, 'wb') { |f| f.write(corpo) }

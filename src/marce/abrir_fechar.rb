@@ -1,19 +1,32 @@
 # marcê — abrir/fechar portas, basculantes, gavetas e aramados (com animação)
+#
+# O estado aberto/fechado é lido da própria posição do conjunto (comparada com
+# a posição fechada gravada na geração), então nada é escrito no modelo durante
+# a animação: o Ctrl+Z do SketchUp não fica com passos soltos e o estado nunca
+# "dessincroniza". A ferramenta informa a área do contorno (getExtents) para o
+# desenho não sumir nem ser cortado ao dar zoom.
 module ArqLais
   module Marce
     module AbrirFechar
       PASSOS = 14
+      EPS = 1e-6
+      @animando = {} unless instance_variable_defined?(:@animando)
 
       module_function
 
       def movel?(e)
-        e.is_a?(Sketchup::Group) && e.get_attribute(DICT, 'mov_tipo')
+        (e.is_a?(Sketchup::Group) || e.is_a?(Sketchup::ComponentInstance)) && e.get_attribute(DICT, 'mov_tipo') ? true : false
+      end
+
+      # posição fechada (gravada na geração; identidade se não houver)
+      def base(g)
+        arr = g.get_attribute(DICT, 'base')
+        arr.is_a?(Array) && arr.length == 16 ? Geom::Transformation.new(arr) : Geom::Transformation.new
       end
 
       # transformação de abertura (fração 0..1) no sistema do pai
       def movimento(g, fracao)
-        tipo = g.get_attribute(DICT, 'mov_tipo')
-        if tipo == 'giro'
+        if g.get_attribute(DICT, 'mov_tipo') == 'giro'
           pv = g.get_attribute(DICT, 'mov_pivot') || [0, 0, 0]
           eixo = g.get_attribute(DICT, 'mov_eixo') == 'x' ? Geom::Vector3d.new(1, 0, 0) : Geom::Vector3d.new(0, 0, 1)
           ang = g.get_attribute(DICT, 'mov_angulo').to_f * fracao
@@ -24,12 +37,12 @@ module ArqLais
         end
       end
 
-      def base(g)
-        arr = g.get_attribute(DICT, 'base')
-        return Geom::Transformation.new(arr) if arr.is_a?(Array) && arr.length == 16
-        b = g.transformation # gravada na primeira vez, com o conjunto fechado
-        g.set_attribute(DICT, 'base', b.to_a)
-        b
+      def mesma?(t1, t2)
+        t1.to_a.zip(t2.to_a).all? { |a, b| (a - b).abs < EPS * 1000 }
+      end
+
+      def aberto?(g)
+        !mesma?(g.transformation, base(g))
       end
 
       def aplicar(g, fracao)
@@ -37,24 +50,28 @@ module ArqLais
       end
 
       def alternar(g, view = nil)
-        aberto = g.get_attribute(DICT, 'aberto') ? true : false
-        base(g)
-        de = aberto ? 1.0 : 0.0
-        para = aberto ? 0.0 : 1.0
+        return unless g && g.valid?
+        return if @animando[g.entityID]
+        abrir = !aberto?(g)
+        de = abrir ? 0.0 : 1.0
+        para = abrir ? 1.0 : 0.0
+        eid = g.entityID
+        @animando[eid] = true
         passo = 0
         id = nil
         id = UI.start_timer(0.016, true) do
           passo += 1
-          f = de + (para - de) * suavizar(passo.to_f / PASSOS)
+          fim = passo >= PASSOS || !g.valid?
           if g.valid?
-            aplicar(g, f)
+            aplicar(g, fim ? para : de + (para - de) * suavizar(passo.to_f / PASSOS))
             (view || Sketchup.active_model.active_view).invalidate
           end
-          if passo >= PASSOS || !g.valid?
+          if fim
             UI.stop_timer(id)
-            g.set_attribute(DICT, 'aberto', !aberto) if g.valid?
+            @animando.delete(eid)
           end
         end
+        id
       end
 
       def suavizar(t)
@@ -62,32 +79,40 @@ module ArqLais
         t * t * (3 - 2 * t)
       end
 
-      # abre/fecha todos os conjuntos de um móvel (sem animação)
-      def todos(movel, abrir)
+      def conjuntos(movel)
         lista = []
         visitar = lambda do |ents|
           ents.each do |e|
-            next unless e.is_a?(Sketchup::Group)
+            next unless e.is_a?(Sketchup::Group) || e.is_a?(Sketchup::ComponentInstance)
             lista << e if movel?(e)
-            visitar.call(e.entities)
+            visitar.call(Util.entidades_de(e))
           end
         end
         visitar.call(Util.entidades_de(movel))
-        lista.each do |g|
-          base(g)
-          aplicar(g, abrir ? 1.0 : 0.0)
-          g.set_attribute(DICT, 'aberto', abrir)
-        end
+        lista
+      end
+
+      # abre/fecha todos os conjuntos de um móvel (sem animação)
+      def todos(movel, abrir)
+        conjuntos(movel).each { |g| aplicar(g, abrir ? 1.0 : 0.0) }
         Sketchup.active_model.active_view.invalidate
       end
 
       class Ferramenta
+        COR = Sketchup::Color.new(168, 138, 128)
+
         def activate
           Sketchup.status_text = 'marcê: clique numa porta, gaveta ou aramado para abrir/fechar. Esc para sair.'
           @alvo = nil
+          @tr = nil
         end
 
         def deactivate(view)
+          @alvo = nil
+          view.invalidate
+        end
+
+        def resume(view)
           view.invalidate
         end
 
@@ -95,52 +120,61 @@ module ArqLais
           Sketchup.active_model.select_tool(nil)
         end
 
+        # devolve [conjunto, transformação do pai até o mundo]
         def achar(view, x, y)
           ph = view.pick_helper
           ph.do_pick(x, y)
           ph.count.times do |i|
             caminho = ph.path_at(i) || []
-            achado = caminho.reverse.find { |e| AbrirFechar.movel?(e) }
-            return achado if achado
+            idx = caminho.rindex { |e| AbrirFechar.movel?(e) }
+            next unless idx
+            tr = Geom::Transformation.new
+            caminho[0...idx].each { |e| tr *= e.transformation if e.respond_to?(:transformation) }
+            return [caminho[idx], tr]
           end
-          nil
+          [nil, nil]
         end
 
         def onMouseMove(_flags, x, y, view)
-          novo = achar(view, x, y)
-          return if novo == @alvo
-          @alvo = novo
-          view.tooltip = @alvo ? @alvo.name.to_s : ''
+          alvo, tr = achar(view, x, y)
+          if alvo != @alvo
+            @alvo = alvo
+            @tr = tr
+            view.tooltip = @alvo ? "#{@alvo.name} · clique para #{AbrirFechar.aberto?(@alvo) ? 'fechar' : 'abrir'}" : ''
+          else
+            @tr = tr if tr
+          end
           view.invalidate
         end
 
         def onLButtonDown(_flags, x, y, view)
-          g = achar(view, x, y)
-          AbrirFechar.alternar(g, view) if g
+          alvo, = achar(view, x, y)
+          AbrirFechar.alternar(alvo, view) if alvo
+        end
+
+        def contorno
+          return [] unless @alvo && @alvo.valid? && @tr
+          bb = @alvo.bounds # no sistema do pai
+          return [] if bb.empty?
+          cantos = (0..7).map { |i| bb.corner(i).transform(@tr) }
+          arestas = [[0, 1], [1, 3], [3, 2], [2, 0], [4, 5], [5, 7], [7, 6], [6, 4], [0, 4], [1, 5], [2, 6], [3, 7]]
+          arestas.flat_map { |a, b| [cantos[a], cantos[b]] }
         end
 
         def draw(view)
-          return unless @alvo && @alvo.valid?
-          bb = @alvo.bounds
-          return if bb.empty?
-          # contorno do conjunto sob o cursor (em coordenadas do pai)
-          tr = caminho_transformacao(view)
-          pts = [0, 1, 3, 2, 0, 4, 5, 7, 6, 4].map { |i| bb.corner(i).transform(tr) }
+          pts = contorno
+          return if pts.empty?
           view.line_width = 2
-          view.drawing_color = Sketchup::Color.new(168, 138, 128)
-          view.draw(GL_LINE_STRIP, pts)
+          view.line_stipple = ''
+          view.drawing_color = COR
+          view.draw(GL_LINES, pts)
         end
 
-        def caminho_transformacao(view)
-          ph = view.pick_helper
-          tr = Geom::Transformation.new
-          (ph.path_at(0) || []).each do |e|
-            break if e == @alvo
-            tr *= e.transformation if e.respond_to?(:transformation)
-          end
-          tr
-        rescue StandardError
-          Geom::Transformation.new
+        # área do desenho: sem isto o SketchUp corta o contorno ao dar zoom
+        def getExtents
+          bb = Geom::BoundingBox.new
+          contorno.each { |p| bb.add(p) }
+          bb
         end
       end
     end

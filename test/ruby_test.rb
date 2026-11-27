@@ -116,15 +116,69 @@ class TesteMarce < Minitest::Test
     grupo, = M::Construtor.gerar(@model, dados_do_motor('balcao'), { ancora: v, volume: inst })
     porta = grupo.entities.find { |e| e.is_a?(Sketchup::Group) && e.get_attribute('marce', 'mov_tipo') == 'giro' }
     refute_nil porta
+    refute M::AbrirFechar.aberto?(porta)
     M::AbrirFechar.alternar(porta)
-    assert porta.get_attribute('marce', 'aberto')
-    refute_equal Geom::Transformation.new.to_a, porta.transformation.to_a
+    assert M::AbrirFechar.aberto?(porta), 'abre'
     M::AbrirFechar.alternar(porta)
-    refute porta.get_attribute('marce', 'aberto')
+    refute M::AbrirFechar.aberto?(porta), 'fecha de volta exatamente na posição original'
     porta.transformation.to_a.zip(Geom::Transformation.new.to_a).each { |a, b| assert_in_delta b, a, 1e-9 }
+    # nada é gravado durante a animação (Ctrl+Z não fica com passos soltos)
+    assert_nil porta.get_attribute('marce', 'aberto')
     M::AbrirFechar.todos(grupo, true)
     gav = grupo.entities.find { |e| e.is_a?(Sketchup::Group) && e.get_attribute('marce', 'mov_tipo') == 'corre' }
     assert_operator gav.transformation.m[1][3], :<, 0, 'gaveta deve correr para a frente (-y)'
+    M::AbrirFechar.todos(grupo, false)
+    refute M::AbrirFechar.aberto?(gav)
+  end
+
+  def test_contorno_da_ferramenta_no_lugar_certo
+    inst = volume_girado
+    v = M::Volume.ler(@model)
+    grupo, = M::Construtor.gerar(@model, dados_do_motor('balcao'), { ancora: v, volume: inst })
+    porta = grupo.entities.find { |e| e.is_a?(Sketchup::Group) && e.get_attribute('marce', 'mov_tipo') == 'giro' }
+    def porta.bounds
+      bb = Geom::BoundingBox.new
+      entities.each { |e| bb.add(e.bounds) }
+      bb
+    end
+    f = M::AbrirFechar::Ferramenta.new
+    f.activate
+    f.instance_variable_set(:@alvo, porta)
+    f.instance_variable_set(:@tr, grupo.transformation)
+    ext = f.getExtents
+    refute ext.empty?, 'informa a área do desenho (não some no zoom)'
+    # o contorno fica sobre o móvel no mundo (perto do volume), não na origem
+    assert_operator ext.min.x.to_mm, :<, 1000 + 1
+    assert_operator ext.max.x.to_mm, :>, -2087 - 1
+    assert_operator ext.min.y.to_mm, :>, 1420 - 700
+  end
+
+  def test_volume_dentro_de_grupo_em_edicao
+    inst = volume_girado
+    # simula: o volume está dentro de um grupo aberto, deslocado 5 m em x
+    @model.active_path = [Object.new]
+    @model.edit_transform_teste = Geom::Transformation.translation([5000.mm, 0, 0])
+    v = M::Volume.ler(@model)
+    assert_nil @model.active_path, 'fecha a edição do grupo antes de gerar'
+    assert_in_delta(-2087 + 5000, v[:origem].x.to_mm, 0.5)
+    assert_in_delta 3087, v[:L], 0.5
+    refute inst.nil?
+  end
+
+  def test_botao_direito_nao_mexe_no_modelo
+    volume_girado
+    @model.active_path = [Object.new]
+    assert M::Volume.provavel?(@model)
+    refute_nil @model.active_path, 'só confere, sem fechar a edição'
+  end
+
+  def test_editar_nao_deixa_componentes_velhos
+    inst = volume_girado
+    v = M::Volume.ler(@model)
+    grupo, = M::Construtor.gerar(@model, dados_do_motor('balcao'), { ancora: v, volume: inst })
+    n1 = @model.definitions.length
+    3.times { M::Construtor.gerar(@model, dados_do_motor('balcao'), { grupo: grupo }) }
+    assert_equal n1, @model.definitions.length, 'regenerar 3x não acumula definições'
   end
 
   def test_edicao_regenera_no_mesmo_grupo

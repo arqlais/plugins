@@ -21,8 +21,10 @@ module ArqLais
 
         model.start_operation('marcê: gerar móvel', true)
         grupo = alvo[:grupo]
+        defs_antigas = []
         if grupo && grupo.valid?
           grupo.make_unique if grupo.is_a?(Sketchup::Group)
+          defs_antigas = definicoes_usadas(Util.entidades_de(grupo))
           Util.entidades_de(grupo).clear!
         else
           t = alvo[:ancora] ? Volume.transformacao(alvo[:ancora]) : Geom::Transformation.new
@@ -59,7 +61,7 @@ module ArqLais
             if c['pivot']
               g.set_attribute(DICT, 'mov_pivot', [c['pivot']['x'].to_f, c['pivot']['y'].to_f, c['pivot']['z'].to_f])
             end
-            g.set_attribute(DICT, 'aberto', false)
+            g.set_attribute(DICT, 'base', Geom::Transformation.new.to_a)
             g.layer = Materiais.tag(model, c['tipo'] == 'giro' ? 'frente' : 'gaveta', cache_tag)
             grupos_conj[c['id']] = g
             true
@@ -82,11 +84,35 @@ module ArqLais
         grupo.set_attribute(DICT, 'resumo', Util.json(dados.dig('modelo', 'resumo') || {}))
         grupo.set_attribute(DICT, 'lista', Util.json(dados['lista'] || []))
         grupo.set_attribute(DICT, 'gerado_em', Time.now.strftime('%d/%m/%Y %H:%M'))
+        limpar_definicoes(model, defs_antigas)
         model.commit_operation
         [grupo, erros]
       rescue StandardError => e
         model.abort_operation
         raise e
+      end
+
+      # definições de peças usadas dentro de um móvel (para limpar ao regenerar)
+      def definicoes_usadas(ents, acc = [])
+        ents.each do |e|
+          if e.is_a?(Sketchup::ComponentInstance)
+            acc << e.definition unless acc.include?(e.definition)
+          elsif e.is_a?(Sketchup::Group)
+            definicoes_usadas(e.entities, acc)
+          end
+        end
+        acc
+      end
+
+      # remove as definições antigas que ficaram sem uso (o arquivo não incha a cada edição)
+      def limpar_definicoes(model, defs)
+        defs.each do |d|
+          next unless d.valid? && d.instances.empty?
+          next unless d.get_attribute(DICT, 'corte') || d.name =~ /\A(Dobradiça|Corrediça|Puxador|Perfil|Pé|Tubo|Cesto|Grade|Quadro|Montante|Espelho|Pedra)/
+          model.definitions.remove(d) if model.definitions.respond_to?(:remove)
+        end
+      rescue StandardError => e
+        puts "marcê: não foi possível limpar definições antigas: #{e.message}"
       end
 
       def esconder_volume(model, volume, grupo)

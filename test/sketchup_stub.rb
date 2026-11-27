@@ -182,14 +182,23 @@ module Sketchup
     include Atributos
     attr_accessor :name
     attr_reader :entities
+    attr_accessor :removida
     def initialize(n); @name = n; @entities = Entities.new(self); end
     def bounds; @entities.bb; end
+    def valid?; !@removida; end
+    def instances
+      out = []
+      busca = lambda { |ents| ents.each { |e| out << e if e.is_a?(ComponentInstance) && e.definition == self; busca.call(e.entities) if e.is_a?(Group) } }
+      busca.call(Sketchup.active_model.entities)
+      out
+    end
   end
   class DefinitionList
     attr_reader :lista
     def initialize; @lista = []; end
     def add(n); d = ComponentDefinition.new(n); @lista << d; d; end
     def length; @lista.length; end
+    def remove(d); @lista.delete(d); d.removida = true; true; end
   end
 
   class Drawingelement
@@ -199,6 +208,7 @@ module Sketchup
     def valid?; true; end
     def move!(t); @transformation = t; end
     def persistent_id; object_id; end
+    def entityID; object_id; end
   end
   class Group < Drawingelement
     attr_reader :entities
@@ -230,7 +240,10 @@ module Sketchup
       @entities = Entities.new; @definitions = DefinitionList.new; @materials = Materials.new; @layers = Layers.new
       @selection = Selection.new; @active_view = View.new; @ops = []
     end
+    attr_accessor :active_path, :edit_transform_teste
     def active_entities; @entities; end
+    def edit_transform; @edit_transform_teste || Geom::Transformation.new; end
+    def close_active; @active_path = nil; true; end
     def start_operation(n, *_); @ops << [:start, n]; end
     def commit_operation; @ops << [:commit]; end
     def abort_operation; @ops << [:abort]; end
