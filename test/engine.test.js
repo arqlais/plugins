@@ -155,6 +155,9 @@ function permitido(a, b) {
   if (um(/^Travessa da cava/) && um(/^Divisória/)) return true; // divisória entalhada para a travessa da cava
   if (um(/^Dobradiça \(caneco\)/) && um(/^Porta/)) return true;
   if (um(/^Puxador concha|^Perfil puxador vertical|^Cava vertical/) && um(/^Folha de correr/)) return true; // puxador embutido na folha
+  if (um(/^Duto da coifa/) && um(/^Topo/)) return true; // duto passa pelo furo do topo
+  if (um(/^Coifa embutida/) && um(/^Base/)) return true; // coifa entra no recorte da base
+  if (a.nome === 'Divisória da gaveta' && b.nome === 'Divisória da gaveta') return true; // meia-madeira no cruzamento
   // gaveta interna atrás de porta de correr: no uso, a folha é corrida antes de abrir a gaveta
   const folhaC = (p) => /^Folha de correr|^Quadro de alumínio da folha|\(folha de correr\)$|^Puxador concha|^Perfil puxador vertical|^Cava vertical/.test(p.nome);
   if ((folhaC(a) && b.conj && !folhaC(b)) || (folhaC(b) && a.conj && !folhaC(a))) return true;
@@ -466,4 +469,63 @@ test('mesclar colunas com maleiro: as faixas iguais ficam, o vão vira um só e 
   assert.strictEqual(portas.length, 4, 'porta par embaixo e em cima');
   ['esq', 'dir'].forEach((l) => assert.strictEqual(portas.filter((p) => p.meta.dobradica === l).length, 2));
   assert.ok(!m.resumo.erros, 'sem erro técnico');
+});
+
+test('auditoria: folga da corrediça vem do modelo e dobradiças contam peso e largura', () => {
+  const s = E.specPadrao('balcao');
+  s.gavetas = { corredica: 'telescopica', bibTelescopica: { id: 'x', nome: 'FGV', medidas: [350, 45, 12.7], encaixe: 'esticar', folga: 12.7 } };
+  const m = E.calcular(s);
+  const lat = m.pecas.filter((p) => p.nome === 'Lateral gaveta').sort((a, b) => a.x - b.x);
+  const vm = m.vaos.find((v) => v.colunas.some((c) => c.idx === lat[0].col));
+  assert.ok(Math.abs(lat[0].x - (vm.il + 12.7)) < 0.2, 'caixa da gaveta a 12,7 mm da lateral (folga do modelo)');
+  const s2 = E.specPadrao('roupeiro'); s2.frentes.estilo = 'vidro';
+  const leve = E.calcular(E.specPadrao('roupeiro')).pecas.filter((p) => p.meta && p.meta.tipo === 'porta' && p.dz > 1800)[0];
+  assert.ok(leve.meta.nDobradicas >= 4, 'porta alta: 4 ou mais');
+  const s3 = E.specPadrao('balcao'); s3.colunas = [E.novaColuna(700, [E.novaSecao('portas', { portas: 1 })])]; s3.L = 700; s3.larguraMax = 800;
+  const larga = E.calcular(s3).pecas.filter((p) => p.meta && p.meta.tipo === 'porta')[0];
+  assert.strictEqual(larga.meta.nDobradicas, 3, 'porta de 70 cm x 78 cm: 3 dobradiças (largura)');
+});
+
+test('lote: frentes em duas cores, LED sob a bancada, cavas, organizador de gaveta e coifa', () => {
+  const s = E.specPadrao('balcao');
+  s.materiais.frente2 = { id: 'x', nome: 'Azul', marca: 'Genérico', cor: '#233a5e', veio: false };
+  s.colunas[0].secoes[0].frente2 = '1';
+  s.led.ativo = true; s.led.local = 'bancada';
+  s.puxador.tipo = 'cava'; s.puxador.cavaTipo = 'reta';
+  const ig = s.colunas.find((c) => c.secoes.some((x) => x.tipo === 'gavetas'));
+  ig.secoes.find((x) => x.tipo === 'gavetas').itens[0].org = 'grade';
+  const m = E.calcular(s);
+  assert.ok(m.pecas.some((p) => p.mat === 'frente2' && p.col === 0), 'segunda cor na faixa escolhida');
+  assert.ok(m.pecas.some((p) => p.mat === 'frente' && p.col !== 0 && p.grupo === 'frente'), 'outras faixas na cor principal');
+  assert.ok(m.pecas.some((p) => p.nome === 'Perfil LED' && p.y < 0), 'LED sob a bancada, no plano das frentes');
+  assert.ok(m.pecas.filter((p) => p.nome === 'Divisória da gaveta').length === 4, 'grade 3 × 3');
+  assert.ok(m.pecas.some((p) => p.forma && p.forma.cava && p.forma.pts.length === 6), 'cava reta (rasgo)');
+  const ps = caixas(m, false);
+  for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) if (sobrepoe(ps[i], ps[j], 0.6) && !permitido(ps[i], ps[j])) assert.fail(ps[i].nome + ' atravessa ' + ps[j].nome);
+  const a = E.specPadrao('aereo'); a.topo = 'chapa';
+  a.colunas = [E.novaColuna(900, [E.novaSecao('coifa')])]; a.L = 900;
+  const ma = E.calcular(a);
+  assert.ok(ma.pecas.some((p) => p.nome === 'Coifa embutida'));
+  assert.ok(ma.pecas.some((p) => /^Duto da coifa/.test(p.nome)));
+  assert.ok(ma.pecas.some((p) => /^Topo/.test(p.nome) && p.furo && p.furo.eixo === 'z'), 'furo no topo');
+  assert.ok(ma.pecas.filter((p) => p.meta && p.meta.tipo === 'porta').length === 2, 'duas portas');
+  const pa = caixas(ma, false);
+  for (let i = 0; i < pa.length; i++) for (let j = i + 1; j < pa.length; j++) if (sobrepoe(pa[i], pa[j], 0.6) && !permitido(pa[i], pa[j])) assert.fail('coifa: ' + pa[i].nome + ' atravessa ' + pa[j].nome);
+});
+
+test('canto cego em L: porta só na parte visível, dobradiça do lado oposto e espaçador', () => {
+  const s = E.specPadrao('balcao'); s.L = 2400;
+  s.colunas = E.autoColunas(s);
+  const ult = s.colunas.length - 1;
+  s.colunas[ult].largura = 950; s.colunas[ult].canto = 'dir';
+  s.colunas[ult].secoes = [E.novaSecao('portas', { prateleiras: 1 })];
+  const m = E.calcular(s);
+  const pc = m.pecas.filter((p) => p.meta && p.meta.tipo === 'porta' && p.col === ult);
+  assert.strictEqual(pc.length, 1, 'uma porta no canto');
+  assert.strictEqual(pc[0].meta.dobradica, 'esq', 'dobradiça longe do canto');
+  assert.ok(pc[0].x + pc[0].dx < s.L - 550, 'parte escondida sem porta');
+  assert.ok(m.pecas.some((p) => p.nome === 'Espaçador do canto'));
+  assert.ok(m.ferragens.some((f) => /165°/.test(f.item)));
+  const ps = caixas(m, false);
+  for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) if (sobrepoe(ps[i], ps[j], 0.6) && !permitido(ps[i], ps[j])) assert.fail(ps[i].nome + ' atravessa ' + ps[j].nome);
 });

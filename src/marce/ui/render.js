@@ -227,7 +227,7 @@
     var linhaFrente = shade(corMat(spec, 'frente'), lum(corMat(spec, 'frente')) > 0.5 ? 0.55 : 1.6);
     frentes.forEach(function (p) {
       var horiz = spec.frentes.veio === 'horizontal' || /Moldura horizontal/.test(p.nome);
-      var fill = p.mat === 'frente' ? preenchimento(spec, 'frente', defs, horiz) : (p.mat === 'vidro' ? 'url(#vidro-canelado)' : corMat(spec, p.mat));
+      var fill = (p.mat === 'frente' || p.mat === 'frente2') ? preenchimento(spec, p.mat, defs, horiz) : (p.mat === 'vidro' ? 'url(#vidro-canelado)' : corMat(spec, p.mat));
       if (p.mat === 'vidro' && !defs['vidro-canelado']) defs['vidro-canelado'] = '<pattern id="vidro-canelado" patternUnits="userSpaceOnUse" width="14" height="400"><rect width="14" height="400" fill="#d6e3e8"/><rect width="5" height="400" fill="#c2d3da"/><rect x="9" width="2" height="400" fill="#e9f1f4"/></pattern>';
       var x = p.x, z = p.z, w = p.dx, h = p.dz;
       s.push('<rect class="frente" x="' + X(x) + '" y="' + Y(z + h) + '" width="' + n1(w) + '" height="' + n1(h) + '" fill="' + fill + '" stroke="' + shade(corMat(spec, 'frente'), 0.55) + '" stroke-width="0.8" vector-effect="non-scaling-stroke"/>');
@@ -668,7 +668,7 @@
     if (d.z0 > 0 || spec.base.tipo !== 'suspenso') s.push('<line x1="' + n1(ox - mg * 0.4) + '" y1="' + Y(0) + '" x2="' + n1(ox + L + mg * 0.4) + '" y2="' + Y(0) + '" stroke="#2b2b2b" stroke-width="' + n1(lw * 2.2) + '"/>');
     var vis = M.pecas.filter(function (p) {
       if (p.grupo === 'frente' || p.grupo === 'led') return false;
-      if (p.grupo === 'ferragem') return /^Dobradiça|^Corrediça|^Cesto|^Aba do cesto|aramado|^Varão|^Borda|^Travessa do cesto|^Tubo|^Espelho/.test(p.nome);
+      if (p.grupo === 'ferragem') return /^Dobradiça|^Corrediça|^Cesto|^Aba do cesto|aramado|^Varão|^Borda|^Travessa do cesto|^Tubo|^Espelho|^Barra da sapateira|^Coifa|^Duto/.test(p.nome);
       return p.dx > 0.4 && p.dz > 0.4;
     });
     // de trás para a frente: o que está mais ao fundo é pintado primeiro
@@ -683,6 +683,18 @@
       else fill = /^Lateral|^Divisória|^Base|^Chapéu|^Travessa/.test(p.nome) ? cCx : cIn;
       if (p.forma && p.forma.plano === 'xz') s.push('<polygon points="' + p.forma.pts.map(function (q) { return X(p.x + q[0]) + ',' + Y(p.z + q[1]); }).join(' ') + '" fill="' + fill + '" stroke="' + st + '" stroke-width="' + n1(sw) + '"/>');
       else s.push('<rect x="' + X(p.x) + '" y="' + Y(p.z + p.dz) + '" width="' + n1(p.dx) + '" height="' + n1(p.dz) + '" fill="' + fill + '" stroke="' + st + '" stroke-width="' + n1(sw) + '"/>');
+    });
+    // nome de cada módulo do interior (como nas pranchas de marcenaria: GAVETA, PRATELEIRA, CABIDEIRO)
+    (M.elementos || []).forEach(function (el) {
+      if (el.tipo !== 'modulo') return;
+      var nomeM = el.nome.toUpperCase().replace('GAVETAS INTERNAS', '').trim();
+      if (!nomeM) return;
+      var fsM = Math.min(fs * 0.85, (el.x1 - el.x0) * 0.85 / Math.max(6, nomeM.length * 0.62));
+      s.push('<text x="' + X((el.x0 + el.x1) / 2) + '" y="' + Y(el.z1 - Math.min(160, (el.z1 - el.z0) * 0.25)) + '" font-size="' + n1(fsM) + '" text-anchor="middle" fill="#5a5a5a" letter-spacing="' + n1(fsM * 0.08) + '">' + esc(nomeM) + '</text>');
+    });
+    M.pecas.forEach(function (p) {
+      if (p.nome !== 'Frente gaveta interna' || p.dz < fs * 1.6) return;
+      s.push('<text x="' + X(p.x + p.dx / 2) + '" y="' + Y(p.z + p.dz / 2 - fs * 0.3) + '" font-size="' + n1(Math.min(fs * 0.8, p.dz * 0.45)) + '" text-anchor="middle" fill="#5a5a5a">GAVETA</text>');
     });
     var op = { cor: cor, corTxt: o.corCotaTexto || cor, lw: lw, fs: fs, tique: tq };
     // chamadas escritas numa coluna à direita do desenho: marcador no ponto, linha e texto

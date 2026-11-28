@@ -1,5 +1,16 @@
 # Novidades da planê.mob
 
+## 1.22.0
+- Frentes em duas cores: escolha a segunda cor em Acabamento e marque, faixa a faixa, quais frentes usam ela
+- Canto cego em L: na coluna da ponta, a parte escondida atrás do outro balcão fica sem porta; a porta vai na parte visível com dobradiça de 165° e espaçador de 70 mm
+- Aéreo de coifa: faixa com a coifa embutida (medidas editáveis), duto subindo pelo meio e furo no topo
+- LED sob a bancada: perfil logo abaixo do tampo, com as frentes 30 mm mais baixas para a faixa de luz
+- Tipos de cava: 45° usinada, rasgo reto ou perfil J de alumínio
+- Organizador dentro da gaveta: divisórias para talheres ou grade 3 × 3
+- Folga da corrediça conforme o modelo (FGV 12,7 mm, invisível 5 mm, editável na Minha biblioteca); a caixa da gaveta sai na medida certa para cada modelo
+- Dobradiças contadas também pelo peso e pela largura da porta (porta larga ganha mais uma; aviso para porta muito pesada)
+- Prancha da vista aberta com o nome de cada módulo do interior (gaveta, cabideiro, sapateira...)
+
 ## 1.21.1
 - Madeira com o veio de cada família: carvalho (fio reto), freijó e louro (catedral), nogueira e escuros (faixas largas) e lineares; antes todos os padrões usavam o mesmo desenho só mudando a cor
 - Veio contínuo nas frentes: cada porta e gaveta recebe o veio na posição real dela, como se fossem cortadas da mesma chapa, sem o desenho repetido em cada porta

@@ -287,7 +287,7 @@ module ArqLais
           next if ja.include?(m['arquivo']) || !File.exist?(arq)
           begin
             defi, existia = carregar(model, arq)
-            extra = { 'origem' => 'fabrica', 'fabrica_arquivo' => m['arquivo'], 'marca' => m['marca'], 'encaixe' => m['encaixe'], 'tipo' => m['tipo'] }
+            extra = { 'origem' => 'fabrica', 'fabrica_arquivo' => m['arquivo'], 'marca' => m['marca'], 'encaixe' => m['encaixe'], 'tipo' => m['tipo'], 'folga' => m['folga'] }
             if m['dividir']
               partes_de(defi).select { |e| parte_util?(e) }.each_with_index do |e, k|
                 nome = nome_parte(e, k, m['nome'])
@@ -321,6 +321,7 @@ module ArqLais
         it = lista.find { |i| i['id'] == dados['id'].to_s }
         return nil unless it
         %w[nome marca categoria encaixe notas].each { |k| it[k] = dados[k].to_s if dados.key?(k) }
+        it['folga'] = dados['folga'].to_f if dados.key?('folga') && dados['folga'].to_f.positive?
         it['virar'] = dados['virar'] ? true : false if dados.key?('virar')
         it['categoria'] = 'outro' unless CATEGORIAS.include?(it['categoria'])
         gravar(lista)

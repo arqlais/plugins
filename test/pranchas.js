@@ -40,7 +40,7 @@ function folhaDe(f, visual) {
   }
   if (process.argv[5] === 'correr') {
     const t2 = E.specPadrao('roupeiro'); t2.nome = 'Guarda-roupa de correr'; t2.L = 2700; t2.D = 600; t2.H = 2500;
-    t2.colunas = [0, 1, 2].map(() => E.novaColuna(null, [E.novaSecao('correr', { prateleiras: 3 })]));
+    t2.colunas = [{ tipo: 'gavetas', qtd: 3 }, { tipo: 'cabideiro', uso: 'medio' }, { tipo: 'prateleiras' }].map((m0, k) => E.novaColuna(null, [E.novaSecao(k === 1 ? 'portas' : 'correr', { prateleiras: 3, interno: k === 0 ? [m0, { tipo: 'cabideiro', uso: 'medio' }, { tipo: 'prateleiras' }] : (k === 1 ? [{ tipo: 'cabideiro', uso: 'baixo' }, { tipo: 'cabideiro', uso: 'medio' }] : [{ tipo: 'sapateira', qtd: 3 }, { tipo: 'cabideiro', uso: 'alto' }]) })]));
     Object.assign(s, t2);
   }
   if (process.argv[5] === 'detalhes') { s.frentes.estilo = 'ripada'; s.puxador.tipo = 'toque'; s.led.ativo = true; s.led.local = 'base'; s.led.posicao = 'fundo'; }

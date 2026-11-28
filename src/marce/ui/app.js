@@ -15,7 +15,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: false, relatorioJunto: false, bib: [], bibBusca: {}, bibFiltro: 'todos',
-    padroes: null, projeto: {}, versao: '1.21.1', gerando: false, atualizacao: null, atualizando: false
+    padroes: null, projeto: {}, versao: '1.22.0', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -87,6 +87,7 @@
     botao: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="4" width="14" height="24" rx="1"/><circle cx="18.5" cy="16" r="2.4" fill="currentColor"/></svg>',
     testeira: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="8" width="14" height="20" rx="1"/><path d="M8 8l4-4h16l-5 4z" fill="#d6b3ab" fill-opacity=".5"/></svg>',
     alca: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="4" width="14" height="24" rx="1"/><path d="M19 10v10" stroke-width="2.5"/></svg>',
+    coifa: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 4h6v8l7 6v3H6v-3l7-6z"/><path d="M8 25h16"/></svg>',
     correr: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="13" height="22"/><rect x="14" y="6" width="13" height="22" fill="#fff"/><path d="M17 17h7M17 17l2-2M17 17l2 2"/></svg>',
     livre: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 27V6h18v21"/><path d="M7 10h18"/><path d="M12 27v-8l4-3 4 3v8" stroke-dasharray="2 2"/></svg>',
     meu: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="4" width="14" height="24" rx="1"/><path d="M18 10h3v12h-3"/><path d="M4 26l4-4M4 22v4h4" stroke-width="1.3"/></svg>',
@@ -126,7 +127,7 @@
       spec[f[0]] = spec[f[0]] || {};
       if (spec[f[0]][f[1]] !== undefined) return;
       var it = (st.bib || []).filter(function (i) { return i.origem === 'fabrica' && i.fabrica_arquivo === f[2] && i.existe !== false; })[0];
-      if (it) spec[f[0]][f[1]] = { id: it.id, nome: it.nome, marca: it.marca || '', medidas: it.medidas, encaixe: it.encaixe || 'real', virar: false, deitar: false };
+      if (it) spec[f[0]][f[1]] = { id: it.id, nome: it.nome, marca: it.marca || '', medidas: it.medidas, encaixe: it.encaixe || 'real', folga: it.folga || null, virar: false, deitar: false };
     });
   }
 
@@ -511,6 +512,7 @@
           '<input data-bib-campo="nome" value="' + esc(i.nome) + '" aria-label="Nome"><input data-bib-campo="marca" value="' + esc(i.marca || '') + '" placeholder="marca" aria-label="Marca">' +
           '<select data-bib-campo="categoria" aria-label="Categoria">' + opCat(i.categoria) + '</select>' +
           '<select data-bib-campo="encaixe" aria-label="Tamanho"><option value="real"' + (i.encaixe !== 'esticar' ? ' selected' : '') + '>tamanho real</option><option value="esticar"' + (i.encaixe === 'esticar' ? ' selected' : '') + '>esticar no comprimento</option></select>' +
+          (i.categoria === 'corredica' ? '<label class="tex-larg">folga de cada lado (mm)<input data-bib-campo="folga" type="number" min="1" step="0.1" value="' + (i.folga || '') + '" placeholder="12,5"></label>' : '') +
           '<small>' + bibMedidas(i.medidas) + (i.existe === false ? ' · arquivo não encontrado' : '') + '</small></div>' +
           '<button class="bib-rem" data-bib-rem="' + esc(i.id) + '" aria-label="Remover" title="Remover">' + IC.lixo + '</button></div>';
       }).join('') : '<p class="ajuda">Nenhum item' + (busca ? ' para "' + esc(busca) + '"' : '') + '.</p>') + '</div>' +
@@ -649,6 +651,10 @@
     var larguras = [[null, 'Auto'], [150, '0,15'], [300, '0,30'], [400, '0,40'], [450, '0,45'], [600, '0,60']];
     larguras.forEach(function (l) { h += '<button class="pilula pequena' + ((c.largura || null) === l[0] ? ' ativo' : '') + '" data-act="larg:' + (l[0] || 'auto') + '">' + l[1] + '</button>'; });
     h += '</div><div class="campo"><label>Largura exata</label><input type="number" data-path="colunas.' + st.sel.col + '.largura" data-tipo="numnull" value="' + (c.largura || '') + '" placeholder="' + (mc.larg ? Math.round(mc.larg) : '') + '"><span class="un">mm</span></div>';
+    if (st.sel.col === 0 || st.sel.col === st.spec.colunas.length - 1) {
+      h += '<div class="campo"><label>Canto em L (canto cego)</label></div>' + pilulas('colunas.' + st.sel.col + '.canto', [['', 'Não'], [st.sel.col === 0 ? 'esq' : 'dir', st.sel.col === 0 ? 'Canto à esquerda' : 'Canto à direita']], true);
+      if (c.canto) h += campoNum('Parte escondida (atrás do outro balcão)', 'colunas.' + st.sel.col + '.cego', 'mm', ' placeholder="' + (st.spec.D + 20) + '"') + '<p class="ajuda">Sem porta na parte escondida; a porta fica na parte visível com dobradiça de 165° e um espaçador de 70 mm para não bater no puxador do outro balcão. Coluna de canto costuma ter 90 a 100 cm.</p>';
+    }
     if (st.sel.col < st.spec.colunas.length - 1) {
       h += '<div class="linha-botoes">' + (c.divisoria === 'unir' ? '<button class="botao pequeno" data-act="separarProx">' + IC_MOD.vazio + 'Separar da coluna ' + (st.sel.col + 2) + '</button>' : '<button class="botao pequeno" data-act="mesclarProx">' + IC.abaMontagem + 'Mesclar com a coluna ' + (st.sel.col + 2) + ' (porta par)</button>') + '</div>';
       h += '<div class="campo"><label>Divisória à direita' + aj('divisorias') + '</label></div>' + pilulas('colunas.' + st.sel.col + '.divisoria', [['auto', 'Automática'], ['unir', 'Tirar (mesclar o interno)'], ['manter', 'Manter']], true);
@@ -723,6 +729,15 @@
         }
       }
     }
+    if (['portas', 'gavetas', 'basculante', 'correr', 'temperos', 'lixeira', 'fruteira'].indexOf(sec.tipo) >= 0) {
+      h += '<div class="campo"><label>Cor das frentes desta faixa</label></div>' + pil('frente2', [['', 'Principal'], ['1', 'Segunda cor']]);
+      if (sec.frente2 && !st.spec.materiais.frente2) h += '<p class="ajuda">Escolha a segunda cor na etapa Acabamento (enquanto isso, fica igual à principal).</p>';
+    }
+    if (sec.tipo === 'coifa') {
+      var cfU = sec.coifa || {};
+      h += '<div class="tres-campos"><div><label>Largura da coifa</label><input type="number" data-path="' + base + 'coifa.largura" data-tipo="num" value="' + (cfU.largura || 520) + '"></div><div><label>Profundidade</label><input type="number" data-path="' + base + 'coifa.profundidade" data-tipo="num" value="' + (cfU.profundidade || 280) + '"></div><div><label>Duto Ø</label><input type="number" data-path="' + base + 'coifa.duto" data-tipo="num" value="' + (cfU.duto || 150) + '"></div></div>';
+      h += '<p class="ajuda">A coifa fica embaixo (a base leva o recorte dela) e o duto sobe pelo meio do vão, saindo por um furo no topo. Confira as medidas no manual do aparelho.</p>';
+    }
     if (sec.tipo === 'nicho') h += interruptor('Moldura frontal no nicho', base + 'moldura');
     if (sec.tipo === 'arco') h += '<div class="campo"><label>Prateleiras abaixo do arco</label>' + passo('prateleiras', 0, 8) + '</div>';
     if (sec.tipo === 'gavetas') {
@@ -737,6 +752,7 @@
         h += '<div class="gav-item' + (fora ? ' fora' : '') + '"><span class="ngv">' + (sec.itens.length - k) + '</span><div class="gav-meio"><div class="pilulas">' +
           Object.keys(E.TIPOS_ITEM_GAVETA).map(function (t) { return '<button class="mini-ilus' + (it.tipo === t ? ' ativo' : '') + '" data-act="gavTipo:' + k + ':' + t + '" title="' + E.TIPOS_ITEM_GAVETA[t] + '">' + (ILU['gav_' + t] || '') + '<span>' + E.TIPOS_ITEM_GAVETA[t] + '</span></button>'; }).join('') +
           '</div><small class="gav-rec">' + (real !== null ? 'frente com <b>' + real + ' mm</b>' + (it.altura ? '' : ' (automática)') + ' · ' : '') + 'recomendado ' + rec[0] + ' a ' + rec[1] + ' mm' + (fora ? ' · ' + (real < rec[0] ? 'baixa demais' : 'alta demais') : '') + '</small></div>' +
+          '<select class="gav-org" data-path="' + base + 'itens.' + k + '.org" title="Organizador dentro da gaveta"><option value=""' + (!it.org ? ' selected' : '') + '>sem divisória</option><option value="talheres"' + (it.org === 'talheres' ? ' selected' : '') + '>talheres (4)</option><option value="grade"' + (it.org === 'grade' ? ' selected' : '') + '>grade (3 × 3)</option></select>' +
           '<div class="gav-alt"><label>altura (mm)</label><input type="number" min="60" max="1200" step="5" data-path="' + base + 'itens.' + k + '.altura" data-tipo="numnull" value="' + (it.altura || '') + '" placeholder="' + (real !== null ? real : 'auto') + '" title="Altura da frente em mm. Vazio = automática (divide o espaço que sobra)">' +
           (it.altura ? '<button class="gav-auto" data-act="gavAuto:' + k + '" title="Voltar para automática">auto</button>' : '') + '</div></div>';
       }
@@ -799,7 +815,11 @@
     });
     h += '</div>';
     if (s.puxador.tipo !== 'toque' && s.puxador.tipo !== 'nenhum') h += '<div class="campo"><label>Posição' + aj('posicao') + '</label></div>' + pilulas('puxador.posicao', [['auto', 'Auto'], ['topo', 'Topo'], ['base', 'Base'], ['lateral', 'Lateral']], true);
-    if (s.puxador.tipo === 'cava') h += deslizante('Vão da cava 45°', 'puxador.tamanho', 8, 14, 1, fmtMm);
+    if (s.puxador.tipo === 'cava') {
+      h += '<div class="campo"><label>Tipo de cava</label></div>' + pilulas('puxador.cavaTipo', [['45', '45° usinada'], ['reta', 'Rasgo reto'], ['perfilJ', 'Perfil J de alumínio']], true);
+      if ((s.puxador.cavaTipo || '45') === '45') h += deslizante('Vão da cava 45°', 'puxador.tamanho', 8, 14, 1, fmtMm);
+      h += '<p class="ajuda">45°: chanfro atrás da borda. Rasgo reto: canal de 12 mm na frente, deixando 6 mm atrás. Perfil J: alumínio no lugar da borda (a chapa fica 22 mm menor).</p>';
+    }
     if (s.puxador.tipo === 'passante') h += deslizante('Quanto a porta passa da caixa', 'puxador.passa', 10, 60, 1, fmtMm) + '<p class="ajuda">A frente passa além da caixa e vira a pega. Em aéreo, passa por baixo; em torre e roupeiro, por cima.</p>';
     if (s.puxador.tipo === 'meu') h += bibEscolha('puxador', 'puxador.bib', null, { encaixe: true, comprimento: 'puxador.comprimento', deitar: true });
     if (['alca', 'barra', 'meu'].indexOf(s.puxador.tipo) >= 0 && s.puxador.posicao !== 'topo' && s.puxador.posicao !== 'base') h += campoNum('Altura do puxador nas portas (centro, do piso)', 'puxador.alturaPiso', 'mm', ' placeholder="1100 em porta alta"');
@@ -854,7 +874,8 @@
     h += '</div>';
     h += '<div class="grupo"><h4>Iluminação' + aj('iluminacao') + '</h4>' + interruptor('Fita de LED em perfil de alumínio', 'led.ativo');
     if (led.ativo) {
-      h += '<div class="campo"><label>Onde</label></div>' + cartoes('led.local', [['base', 'Sob o móvel', 'led_fundo'], ['prateleiras', 'Nas prateleiras dos nichos', 'nicho_led']]);
+      h += '<div class="campo"><label>Onde</label></div>' + cartoes('led.local', [['base', 'Sob o móvel', 'led_fundo'], ['prateleiras', 'Nas prateleiras dos nichos', 'nicho_led'], ['bancada', 'Sob a bancada', 'led_frente']]);
+      if (led.local === 'bancada') h += '<p class="ajuda">Perfil de sobrepor logo abaixo do tampo, no plano das portas: as frentes de cima descem 30 mm e a luz lava as portas.</p>';
       h += '<div class="campo"><label>Posição na profundidade</label></div>' + cartoes('led.posicao', [['frente', 'Frente', 'led_frente'], ['meio', 'Meio', 'led_meio'], ['fundo', 'Fundo', 'led_fundo']]);
       h += '<div class="campo"><label>Perfil</label></div>' + cartoes('led.tipo', [['embutido', 'Embutido', 'led_embutido'], ['sobreposto', 'Sobreposto', 'led_sobreposto']]);
       h += '<div class="campo"><label>Temperatura da luz</label></div><div class="pilulas">' + [[2700, 'quente'], [3000, 'quente'], [4000, 'neutra'], [6000, 'fria']].map(function (t) {
@@ -898,7 +919,11 @@
   function abaAcabamento() {
     var s = st.spec;
     var h = '<div class="grupo"><h4>Materiais' + aj('materiais') + '</h4>';
-    [['frente', 'Frentes'], ['caixa', 'Caixaria']].forEach(function (p) {
+    [['frente', 'Frentes'], ['frente2', 'Frentes · 2ª cor'], ['caixa', 'Caixaria']].forEach(function (p) {
+      if (p[0] === 'frente2' && !s.materiais.frente2) {
+        h += '<div class="mat-linha"><span>' + p[1] + '</span><button class="swatch-btn" data-act="picker:frente2"><span class="amostra" style="background:repeating-linear-gradient(45deg,#f4e8e5 0 4px,#fff 4px 8px)"></span><span>escolher (para frentes em duas cores)</span></button></div>';
+        return;
+      }
       var m = s.materiais[p[0]];
       h += '<div class="mat-linha"><span>' + p[1] + '</span><button class="swatch-btn' + (st.picker === p[0] ? ' ativo' : '') + '" data-act="picker:' + p[0] + '">' + amostraHtml(m) + '<span>' + esc((m.marca && m.marca !== 'Genérico' ? m.marca + ' · ' : '') + m.nome) + '</span></button></div>';
     });
@@ -942,7 +967,7 @@
       if (st.busca && (m.nome + ' ' + m.marca).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').indexOf(st.busca.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')) < 0) return false;
       return true;
     });
-    var nomes = { frente: 'das frentes', caixa: 'da caixaria', gaveta: 'das gavetas', fundo: 'dos fundos', tela: 'da tela' };
+    var nomes = { frente: 'das frentes', frente2: 'da 2ª cor das frentes', caixa: 'da caixaria', gaveta: 'das gavetas', fundo: 'dos fundos', tela: 'da tela' };
     var h = '<div class="picker"><div class="topo-picker"><span>Material ' + nomes[chave] + '</span><button class="botao pequeno fantasma" data-act="picker:">fechar</button></div><div class="pilulas">';
     marcas.forEach(function (m) { h += '<button class="pilula pequena' + (pastas.indexOf(m) >= 0 ? ' pasta' : '') + (st.marcaPicker === m ? ' ativo' : '') + '" data-act="marca:' + esc(m) + '">' + (pastas.indexOf(m) >= 0 ? IC.bibPasta : '') + esc(m === 'Genérico' ? 'Genéricos' : m) + '</button>'; });
     h += '</div><input class="busca" id="busca-mat" placeholder="Buscar padrão (ex.: carvalho, freijó, cinza)" value="' + esc(st.busca) + '"><div class="grade-amostras">';
@@ -1017,7 +1042,7 @@
       }
       case 'bibUsar': {
         var pth = el.getAttribute('data-path'), it = bibItem(el.getAttribute('data-id'));
-        setPath(s, pth, it ? { id: it.id, nome: it.nome, marca: it.marca || '', medidas: it.medidas, encaixe: it.encaixe || 'real', virar: false, deitar: false } : null);
+        setPath(s, pth, it ? { id: it.id, nome: it.nome, marca: it.marca || '', medidas: it.medidas, encaixe: it.encaixe || 'real', folga: it.folga || null, virar: false, deitar: false } : null);
         if (it && pth === 'puxador.bib' && it.encaixe === 'esticar' && !(s.puxador.comprimento > 60)) s.puxador.comprimento = 300;
         break;
       }
@@ -1512,7 +1537,7 @@
           // ferragens escolhidas cujo arquivo sumiu ficam marcadas (o móvel volta ao desenho da planê.mob)
           [['puxador', 'bib'], ['gavetas', 'bibTelescopica'], ['gavetas', 'bibOculta'], ['frentes', 'bibDobradica']].forEach(function (pp) {
             var o = st.spec && st.spec[pp[0]] && st.spec[pp[0]][pp[1]];
-            if (o && o.id) { var it = bibItem(o.id); o.existe = !!(it && it.existe !== false); if (it) { o.nome = it.nome; o.marca = it.marca || ''; } }
+            if (o && o.id) { var it = bibItem(o.id); o.existe = !!(it && it.existe !== false); if (it) { o.nome = it.nome; o.marca = it.marca || ''; o.folga = it.folga || null; } }
           });
           if (msg.fabrica === 'baixando') toast('Preparando as ferragens que vêm com a planê.mob (só na primeira vez)…');
           if (msg.fabrica === 'pronta') toast(msg.novosFabrica ? msg.novosFabrica + ' ferragens da planê.mob prontas na biblioteca' + (msg.erros && msg.erros.length ? ' · ' + msg.erros.length + ' não baixaram (tenta de novo ao reabrir)' : '') : (msg.erros && msg.erros.length ? 'Sem internet para baixar as ferragens: tenta de novo ao reabrir' : 'Biblioteca pronta'));

@@ -10,7 +10,8 @@
    "encaixe": "esticar",
    "tipo": "telescopica",
    "sha256": "30eca04cb100e80fceed9a2bbca99a2abdfbff54331967a1eec5fb21e970e09d",
-   "bytes": 214235
+   "bytes": 214235,
+   "folga": 12.7
   },
   {
    "arquivo": "corredica-telescopica.skp",
@@ -20,7 +21,8 @@
    "encaixe": "esticar",
    "tipo": "telescopica",
    "sha256": "417734b9a8629d1040230bde0292fc85fa784cc4d68b150108005f7f27465913",
-   "bytes": 288482
+   "bytes": 288482,
+   "folga": 12.7
   },
   {
    "arquivo": "corredica-invisivel.skp",
@@ -30,7 +32,8 @@
    "encaixe": "esticar",
    "tipo": "oculta",
    "sha256": "75fd34d563b9a6028dbfe9d69e5f8f2fc83434181dcca366ebb20f9a3ce2586d",
-   "bytes": 773495
+   "bytes": 773495,
+   "folga": 5
   },
   {
    "arquivo": "dobradica-reta.skp",

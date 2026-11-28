@@ -138,7 +138,7 @@ module ArqLais
 
       def chave_def(p)
         forma = p['forma'] ? p['forma']['pts'].flatten.map { |v| v.to_f.round(1) }.join(',') : ''
-        furo = p['furo'] ? [p['furo']['x'], p['furo']['z'], p['furo']['d']].join(',') : ''
+        furo = p['furo'] ? [p['furo']['eixo'], p['furo']['x'], p['furo']['y'], p['furo']['z'], p['furo']['d']].join(',') : ''
         # frente com veio: cada uma com o veio na posição real (contínuo entre portas e gavetas)
         furo += "|veio#{p['x'].to_f.round}:#{p['z'].to_f.round}" if veio_continuo?(p)
         [p['nome'], p['dx'].to_f.round(1), p['dy'].to_f.round(1), p['dz'].to_f.round(1), p['mat'], forma.hash, furo].join('|')
@@ -216,7 +216,7 @@ module ArqLais
       end
 
       def veio_continuo?(p)
-        p['grupo'] == 'frente' && p['mat'] == 'frente' && p['veio'] && p['corte']
+        p['grupo'] == 'frente' && %w[frente frente2].include?(p['mat']) && p['veio'] && p['corte']
       end
 
       # Pinta a face da frente com o veio na posição que ela ocupa no móvel: as frentes parecem cortadas
@@ -245,6 +245,13 @@ module ArqLais
       def furar(ents, p)
         f = p['furo']
         r = Util.mm(f['d'].to_f / 2)
+        if f['eixo'] == 'z' # chapa deitada (ex.: topo, para o duto da coifa): furo de cima para baixo
+          centro = Geom::Point3d.new(Util.mm(f['x']), Util.mm(f['y']), Util.mm(p['dz']))
+          arestas = ents.add_circle(centro, Geom::Vector3d.new(0, 0, 1), r, 32)
+          disco = arestas.first.faces.min_by(&:area)
+          disco.pushpull(-Util.mm(p['dz'])) if disco && disco.area < r * r * 3.3
+          return
+        end
         centro = Geom::Point3d.new(Util.mm(f['x']), 0, Util.mm(f['z']))
         arestas = ents.add_circle(centro, Geom::Vector3d.new(0, -1, 0), r, 32)
         disco = arestas.first.faces.min_by(&:area)
