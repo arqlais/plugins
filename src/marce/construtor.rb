@@ -199,6 +199,9 @@ module ArqLais
         if forma && forma['plano'] == 'yz'
           pts = forma['pts'].map { |q| Geom::Point3d.new(0, Util.mm(q[0]), Util.mm(q[1])) }
           extrudar(ents, pts, Geom::Vector3d.new(1, 0, 0), Util.mm(dx))
+        elsif forma && forma['plano'] == 'xy'
+          pts = forma['pts'].map { |q| Geom::Point3d.new(Util.mm(q[0]), Util.mm(q[1]), 0) }
+          extrudar(ents, pts, Geom::Vector3d.new(0, 0, 1), Util.mm(dz))
         elsif forma && forma['plano'] == 'xz'
           pts = forma['pts'].map { |q| Geom::Point3d.new(Util.mm(q[0]), 0, Util.mm(q[1])) }
           extrudar(ents, pts, Geom::Vector3d.new(0, 1, 0), Util.mm(dy))

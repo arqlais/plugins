@@ -59,6 +59,13 @@ module ArqLais
           m.color = Sketchup::Color.new(*(TEMP_LED[temp] || TEMP_LED[4000]))
           return cache[chave] = m
         end
+        if chave.to_s.start_with?('vidro_') # vidro escolhido folha a folha (porta de correr)
+          nome, rgb, alpha = VIDROS[chave.to_s.sub('vidro_', '')] || VIDROS['incolor']
+          m = mats[PREFIXO + nome] || mats.add(PREFIXO + nome)
+          m.color = Sketchup::Color.new(*rgb)
+          m.alpha = alpha if alpha < 1.0
+          return cache[chave] = m
+        end
         if FIXOS.key?(chave)
           nome, rgb, alpha = chave == 'vidro' ? (VIDROS[spec.dig('frentes', 'vidro').to_s] || VIDROS['canelado']) : FIXOS[chave]
           m = mats[PREFIXO + nome] || mats.add(PREFIXO + nome)

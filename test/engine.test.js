@@ -154,7 +154,11 @@ function permitido(a, b) {
   if (um(/^Fundo$/) && a.grupo !== b.grupo && (um(/^Lateral|^Divisória|^Base|^Topo|^Travessa superior/))) return true; // fundo encaixado em rasgo
   if (um(/^Travessa da cava/) && um(/^Divisória/)) return true; // divisória entalhada para a travessa da cava
   if (um(/^Dobradiça \(caneco\)/) && um(/^Porta/)) return true;
-  if (um(/^Puxador concha/) && um(/^Folha de correr/)) return true; // concha embutida na folha
+  if (um(/^Puxador concha|^Perfil puxador vertical|^Cava vertical/) && um(/^Folha de correr/)) return true; // puxador embutido na folha
+  // gaveta interna atrás de porta de correr: no uso, a folha é corrida antes de abrir a gaveta
+  const folhaC = (p) => /^Folha de correr|^Quadro de alumínio da folha|\(folha de correr\)$|^Puxador concha|^Perfil puxador vertical|^Cava vertical/.test(p.nome);
+  if ((folhaC(a) && b.conj && !folhaC(b)) || (folhaC(b) && a.conj && !folhaC(a))) return true;
+  if (um(/^Quadro de alumínio da folha|folha de correr\)$/) && um(/^Trilho|^Guia inferior/)) return true;
   if (um(/^Folha de correr/) && um(/^Trilho|^Guia inferior/)) return true; // folha encaixada no trilho/guia
   if (/^Dobradiça /.test(a.nome) && a.biblio && /^Lateral|^Divisória|^Porta/.test(b.nome)) return true; // dobradiça do fabricante: caneco no furo e calço na lateral
   if (/^Dobradiça /.test(b.nome) && b.biblio && /^Lateral|^Divisória|^Porta/.test(a.nome)) return true;
@@ -348,4 +352,118 @@ test('portas de correr em colunas vizinhas formam um só conjunto (folhas por ci
   assert.ok(x0 <= 1 && x1 >= 2699, 'as folhas cobrem o móvel inteiro');
   assert.ok(m.pecas.filter((p) => /^Divisória/.test(p.nome) && p.grupo === 'caixa').length >= 2, 'divisórias continuam atrás');
   assert.strictEqual(m.pecas.filter((p) => /^Trilho superior/.test(p.nome)).length, 1, 'um trilho só, na largura toda');
+});
+
+test('interior por módulos: gavetas internas com calço, cabideiro na altura recomendada e prateleiras no que sobra', () => {
+  const s = E.specPadrao('roupeiro');
+  s.L = 1000; s.H = 2400;
+  s.colunas = [E.novaColuna(null, [E.novaSecao('portas', { interno: [{ tipo: 'gavetas', qtd: 2 }, { tipo: 'cabideiro', uso: 'medio' }, { tipo: 'prateleiras' }] })])];
+  const m = E.calcular(s);
+  const mods = m.elementos.filter((e) => e.tipo === 'modulo').sort((a, b) => a.z0 - b.z0);
+  assert.strictEqual(mods.length, 3);
+  assert.ok(Math.abs(mods[0].z1 - mods[0].z0 - 340) < 1, 'duas gavetas de 17 cm');
+  assert.ok(Math.abs(mods[1].z1 - mods[1].z0 - 1050) < 1, 'cabideiro médio 105 cm');
+  assert.strictEqual(m.pecas.filter((p) => p.nome === 'Frente gaveta interna').length, 2);
+  assert.strictEqual(m.pecas.filter((p) => p.nome === 'Calço da gaveta interna').length, 2);
+  assert.ok(m.pecas.some((p) => p.nome === 'Tubo cabideiro'));
+  assert.strictEqual(m.pecas.filter((p) => p.nome === 'Prateleira fixa').length, 2, 'prateleira fixa entre os módulos');
+  // cada combinação pronta gera sem erro e sem peça atravessando outra
+  for (const k of Object.keys(E.INTERNOS_PRONTOS)) {
+    const s2 = E.specPadrao('roupeiro'); s2.L = 900; s2.H = 2300;
+    s2.colunas = [E.novaColuna(null, [E.novaSecao('portas', { interno: JSON.parse(JSON.stringify(E.INTERNOS_PRONTOS[k].mods)) })])];
+    const m2 = E.calcular(s2);
+    assert.ok(m2.ok, k + ' gera');
+    const ps = caixas(m2, false);
+    for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) {
+      if (sobrepoe(ps[i], ps[j], 0.6) && !permitido(ps[i], ps[j])) assert.fail(k + ': ' + ps[i].nome + ' atravessa ' + ps[j].nome);
+    }
+    const ab = caixas(m2, true);
+    ab.filter((p) => p.conj && !p.giro).forEach((a) => ab.filter((b) => !b.conj).forEach((b) => { if (sobrepoe(a, b, 0.6) && !permitido(a, b)) assert.fail(k + ': ' + a.nome + ' aberto bate em ' + b.nome); }));
+  }
+});
+
+test('mesclar o interno sem mudar as portas: divisória à direita "tirar" junta os vãos', () => {
+  const s = E.specPadrao('roupeiro');
+  s.L = 1800; s.divisorias = 'cada'; s.larguraMax = 600;
+  s.colunas = [0, 1, 2].map(() => E.novaColuna(null, [E.novaSecao('portas', { prateleiras: 3 })]));
+  const antes = E.calcular(s);
+  s.colunas[0].divisoria = 'unir';
+  const depois = E.calcular(s);
+  assert.strictEqual(depois.vaos.length, antes.vaos.length - 1, 'um vão a menos');
+  assert.strictEqual(depois.pecas.filter((p) => p.meta && p.meta.tipo === 'porta').length, antes.pecas.filter((p) => p.meta && p.meta.tipo === 'porta').length, 'mesmas portas');
+  s.divisorias = 'nenhuma'; s.colunas[0].divisoria = 'auto'; s.colunas[1].divisoria = 'manter';
+  assert.strictEqual(E.calcular(s).vaos.length, 2, '"manter" segura a divisória mesmo sem divisórias no resto');
+});
+
+test('folhas de correr personalizadas: espelho e vidro em quadro de alumínio, puxador perfil, sem peça atravessando', () => {
+  for (const pux of ['concha', 'perfil', 'cava', 'nenhum']) {
+    const s = E.specPadrao('roupeiro'); s.L = 2700; s.H = 2500;
+    s.colunas = [0, 1, 2].map(() => E.novaColuna(null, [E.novaSecao('correr', { puxCorrer: pux, acabCorrer: 'mdf', folhasCfg: [{ acab: 'espelho' }, { acab: 'vidro' }, {}], vidroCorrer: 'bronze', interno: [{ tipo: 'gavetas', qtd: 3 }, { tipo: 'cabideiro', uso: 'medio' }, { tipo: 'prateleiras' }] })]));
+    const m = E.calcular(s);
+    assert.ok(m.pecas.some((p) => p.mat === 'vidro_espelho'), 'folha de espelho');
+    assert.ok(m.pecas.some((p) => p.mat === 'vidro_bronze'), 'folha de vidro bronze');
+    assert.ok(m.pecas.filter((p) => p.nome === 'Quadro de alumínio da folha').length === 8, 'quadro nas duas folhas de vidro');
+    assert.ok(m.pecas.some((p) => p.nome === 'Folha de correr'), 'terceira folha em MDF');
+    assert.ok(m.ferragens.some((f) => /bronze/i.test(f.item)) && m.ferragens.some((f) => /Espelho/.test(f.item)));
+    const ps = caixas(m, false);
+    for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) if (sobrepoe(ps[i], ps[j], 0.6) && !permitido(ps[i], ps[j])) assert.fail(pux + ': ' + ps[i].nome + ' atravessa ' + ps[j].nome);
+    const ab = caixas(m, true);
+    const mov = ab.filter((p) => p.conj && !p.giro);
+    mov.forEach((a) => ab.filter((b) => !b.conj).forEach((b) => { if (sobrepoe(a, b, 0.6) && !permitido(a, b)) assert.fail(pux + ': ' + a.nome + ' aberto bate em ' + b.nome); }));
+  }
+});
+
+test('cantos frontais arredondados: peça curva no canto, frentes começam depois dela, sem invadir o vão', () => {
+  for (const tipo of ['criado', 'balcao', 'roupeiro']) {
+    const s = E.specPadrao(tipo); s.cantos = { ativo: true, raio: 50 }; s.pedra.ativa = tipo === 'balcao'; s.pedra.cantos = true;
+    const m = E.calcular(s);
+    const cantos = m.pecas.filter((p) => /^Canto arredondado/.test(p.nome));
+    assert.strictEqual(cantos.length, 2, tipo + ': dois cantos');
+    cantos.forEach((c) => assert.strictEqual(c.forma.plano, 'xy'));
+    const fr = m.pecas.filter((p) => p.grupo === 'frente' && p.meta);
+    assert.ok(Math.min(...fr.map((f) => f.x)) >= 49, tipo + ': frentes começam depois do canto');
+    assert.ok(Math.max(...fr.map((f) => f.x + f.dx)) <= s.L - 49, tipo + ': e terminam antes do outro canto');
+    const ps = caixas(m, false);
+    for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) if (sobrepoe(ps[i], ps[j], 0.6) && !permitido(ps[i], ps[j])) {
+      const a = ps[i], b = ps[j];
+      if (/^Canto arredondado/.test(a.nome) || /^Canto arredondado/.test(b.nome)) {
+        // a caixa da peça curva é maior que a curva: confere pelo polígono (a curva só entra no lugar da lateral)
+        const c = /^Canto arredondado/.test(a.nome) ? a : b, o = c === a ? b : a;
+        const dentroVao = c.forma.pts.some((q) => { const x = c.x + q[0], y = c.y + q[1]; return x > o.x + 0.6 && x < o.x + o.dx - 0.6 && y > o.y + 0.6 && y < o.y + o.dy - 0.6; });
+        if (dentroVao && o.grupo !== 'pedra' && !/^Base|^Rodapé/.test(o.nome)) assert.fail(tipo + ': canto invade ' + o.nome);
+        continue;
+      }
+      assert.fail(tipo + ': ' + a.nome + ' atravessa ' + b.nome);
+    }
+    if (s.pedra.ativa) assert.ok(m.pecas.find((p) => p.grupo === 'pedra').forma, 'pedra com cantos arredondados');
+  }
+});
+
+test('puxador vertical das portas altas no centro a 110 cm do piso (ou na altura escolhida)', () => {
+  const s = E.specPadrao('roupeiro'); s.puxador.tipo = 'barra'; s.puxador.posicao = 'lateral';
+  const m = E.calcular(s);
+  const px = m.pecas.filter((p) => p.nome === 'Puxador barra' && p.z < 1800); // portas altas (o maleiro de cima tem portas baixas)
+  assert.ok(px.length > 0);
+  // portas altas (> 1,5 m): centro a 110 cm; portas baixas (maleiro, porta sobre gavetas) seguem o meio da porta
+  const altas = m.pecas.filter((p) => p.meta && p.meta.tipo === 'porta' && p.dz > 1500);
+  const naAlta = (lista) => lista.filter((p) => altas.some((a) => p.x >= a.x - 1 && p.x + p.dx <= a.x + a.dx + 1 && p.z >= a.z && p.z + p.dz <= a.z + a.dz));
+  assert.ok(naAlta(px).length > 0);
+  naAlta(px).forEach((p) => assert.ok(Math.abs(p.z + p.dz / 2 - 1100) < 2, 'centro a 110 cm: ' + (p.z + p.dz / 2)));
+  s.puxador.alturaPiso = 1000;
+  naAlta(E.calcular(s).pecas.filter((p) => p.nome === 'Puxador barra')).forEach((p) => assert.ok(Math.abs(p.z + p.dz / 2 - 1000) < 2));
+});
+
+test('mesclar colunas com maleiro: as faixas iguais ficam, o vão vira um só e cada faixa tem porta par', () => {
+  const s = E.specPadrao('roupeiro'); s.divisorias = 'cada'; s.larguraMax = 600;
+  s.colunas = [0, 1].map(() => E.novaColuna(600, [E.novaSecao('portas', { prateleiras: 3, portas: 1 }), E.novaSecao('portas', { altura: 400, prateleiras: 0, portas: 1 })]));
+  s.L = 1200;
+  const antes = E.calcular(s);
+  s.colunas[0].divisoria = 'unir';
+  const m = E.calcular(s);
+  assert.strictEqual(m.vaos.length, antes.vaos.length - 1, 'vão único');
+  assert.strictEqual(m.vaos[0].secoes.length, 2, 'maleiro continua');
+  const portas = m.pecas.filter((p) => p.meta && p.meta.tipo === 'porta');
+  assert.strictEqual(portas.length, 4, 'porta par embaixo e em cima');
+  ['esq', 'dir'].forEach((l) => assert.strictEqual(portas.filter((p) => p.meta.dobradica === l).length, 2));
+  assert.ok(!m.resumo.erros, 'sem erro técnico');
 });

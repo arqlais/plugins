@@ -15,7 +15,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: false, relatorioJunto: false, bib: [], bibBusca: {}, bibFiltro: 'todos',
-    padroes: null, projeto: {}, versao: '1.20.0', gerando: false, atualizacao: null, atualizando: false
+    padroes: null, projeto: {}, versao: '1.21.0', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -188,7 +188,9 @@
     } else if (st.vista === 'planta') {
       html = '<div class="barra-visao"></div><div class="area-desenho">' + R.planta(M, {}) + '</div>';
     } else if (st.vista === '3d') {
-      html = '<div class="barra-visao"><span class="dica-clique">Perspectiva das peças geradas</span><div class="segmentado"><button data-act="aberto:0" class="' + (!st.aberto3d ? 'ativo' : '') + '">Fechado</button><button data-act="aberto:1" class="' + (st.aberto3d ? 'ativo' : '') + '">Aberto</button></div></div><div class="area-desenho">' + R.perspectiva(M, { aberto: st.aberto3d }) + '</div>';
+      var algumAberto = st.aberto3d || Object.keys(st.abertos || {}).some(function (k) { return st.abertos[k]; });
+      html = '<div class="barra-visao"><span class="dica-clique">Arraste para girar · clique numa porta ou gaveta para abrir · duplo clique para editar</span><div class="segmentado mini"><button data-act="cam:reset" title="Voltar para a isométrica">iso</button><button data-act="aberto:0" class="' + (!algumAberto ? 'ativo' : '') + '">fechado</button><button data-act="aberto:1" class="' + (st.aberto3d ? 'ativo' : '') + '">tudo aberto</button></div></div>' +
+        '<div class="area-desenho orbita">' + R.perspectiva(M, { aberto: st.aberto3d ? true : (st.abertos || {}), camera: st.cam, clicavel: true }) + '</div>';
     } else {
       html = vistaPecas(M);
     }
@@ -518,6 +520,41 @@
 
   // altura recomendada da frente (mm): gaveta de talheres/utensílios, gavetão de panelas, gavetão com gaveta interna
   var GAV_REC = { gaveta: [100, 300], gavetao: [250, 450], interna: [300, 450] };
+  // ---------- interior por módulos (de baixo para cima)
+  var IC_MOD = {
+    prateleiras: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="3" width="16" height="18"/><path d="M4 9h16M4 15h16"/></svg>',
+    gavetas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="5" width="16" height="6"/><rect x="4" y="13" width="16" height="6"/><path d="M10 8h4M10 16h4"/></svg>',
+    cabideiro: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h18"/><path d="M12 6v2a2 2 0 1 0-2 2l-6 5h16l-6-5"/></svg>',
+    sapateira: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 10h16M4 17h16"/><path d="M6 10V8h4l3 2M7 17v-2h4l3 2"/></svg>',
+    maleiro: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="8" width="14" height="10" rx="1.5"/><path d="M9 8V6h6v2"/></svg>',
+    vazio: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="16" height="16" stroke-dasharray="2 2"/></svg>'
+  };
+  function interiorHtml(sec, base) {
+    var mods = sec.interno || [];
+    var h = '<div class="int-bloco"><div class="campo"><label>Interior por módulos' + aj('interior') + '</label></div>';
+    h += '<div class="int-prontos">' + Object.keys(E.INTERNOS_PRONTOS).map(function (k) { return '<button class="pilula pequena" data-act="intPronto:' + k + '">' + esc(E.INTERNOS_PRONTOS[k].nome) + '</button>'; }).join('') + '</div>';
+    if (!mods.length) return h + '<p class="ajuda">Escolha uma combinação pronta ou monte do zero: gavetas internas, cabideiro (alto, médio, baixo, infantil), sapateira, prateleiras, maleiro. <button class="link" data-act="intAdd:prateleiras">montar por módulos</button></p></div>';
+    // alturas reais calculadas
+    var reais = (st.modelo.elementos || []).filter(function (el) { return el.tipo === 'modulo' && el.col === st.sel.col; }).sort(function (x, y) { return x.z0 - y.z0; });
+    h += '<div class="int-lista">';
+    for (var k = mods.length - 1; k >= 0; k--) {
+      var m = mods[k], real = reais[k] ? Math.round(reais[k].z1 - reais[k].z0) : null;
+      var rec = m.tipo === 'gavetas' ? (m.qtd || 2) * E.REC_INTERNO.gaveta : m.tipo === 'sapateira' ? (m.qtd ? m.qtd * E.REC_INTERNO.sapateira : null) : m.tipo === 'cabideiro' ? E.USOS_CABIDEIRO[m.uso || 'medio'].altura : null;
+      h += '<div class="int-mod"><div class="int-topo"><span class="int-n">' + (mods.length - k) + '</span><div class="int-tipos">' + Object.keys(E.MODULOS_INTERNOS).map(function (t) {
+        return '<button class="int-tipo' + (m.tipo === t ? ' ativo' : '') + '" data-act="intTipo:' + k + ':' + t + '" title="' + esc(E.MODULOS_INTERNOS[t]) + '">' + IC_MOD[t] + '</button>';
+      }).join('') + '</div><div class="int-acoes"><button data-act="intMover:' + k + ':1" title="Subir"' + (k === mods.length - 1 ? ' disabled' : '') + '>↑</button><button data-act="intMover:' + k + ':-1" title="Descer"' + (k === 0 ? ' disabled' : '') + '>↓</button><button data-act="intDel:' + k + '" title="Tirar">×</button></div></div>';
+      h += '<div class="int-corpo"><b>' + esc(E.MODULOS_INTERNOS[m.tipo]) + (m.tipo === 'cabideiro' ? ' ' + esc(m.uso || 'medio') : '') + '</b>';
+      if (m.tipo === 'cabideiro') h += '<div class="pilulas">' + Object.keys(E.USOS_CABIDEIRO).map(function (u) { return '<button class="pilula pequena' + ((m.uso || 'medio') === u ? ' ativo' : '') + '" data-act="intUso:' + k + ':' + u + '" title="' + esc(E.USOS_CABIDEIRO[u].nome) + '">' + u + '</button>'; }).join('') + '</div>';
+      if (m.tipo === 'gavetas' || m.tipo === 'sapateira' || m.tipo === 'prateleiras' || m.tipo === 'maleiro') h += '<div class="campo"><label>' + (m.tipo === 'gavetas' ? 'Gavetas' : m.tipo === 'sapateira' ? 'Níveis' : 'Prateleiras') + '</label><span class="passo"><button data-act="intQtd:' + k + ':-1">−</button><span>' + (m.qtd || 'auto') + '</span><button data-act="intQtd:' + k + ':1">+</button></span></div>';
+      h += '<div class="int-alt"><small>' + (real !== null ? 'altura livre <b>' + real + ' mm</b>' : '') + (rec ? ' · recomendado ' + rec + ' mm' : (m.tipo === 'prateleiras' || m.tipo === 'maleiro' || m.tipo === 'vazio' ? ' · ocupa o que sobra' : '')) + '</small>' +
+        '<input type="number" min="60" step="10" data-path="' + base + 'interno.' + k + '.altura" data-tipo="numnull" value="' + (m.altura || '') + '" placeholder="' + (real !== null ? real : 'auto') + '" title="Altura livre do módulo (mm). Vazio = recomendada"></div></div></div>';
+    }
+    h += '</div><div class="int-add">' + ['gavetas', 'cabideiro', 'prateleiras', 'sapateira', 'maleiro'].map(function (t) { return '<button class="botao pequeno" data-act="intAdd:' + t + '">' + IC_MOD[t] + '+ ' + esc(E.MODULOS_INTERNOS[t].toLowerCase()) + '</button>'; }).join('') +
+      '<button class="link" data-act="intLimpar">voltar ao interior simples</button></div>';
+    h += '<p class="ajuda">Módulo 1 é o de baixo. Gavetas internas levam calço de 25 mm de cada lado para passar da dobradiça. Entre os módulos vai uma prateleira fixa.</p></div>';
+    return h;
+  }
+
   function fmtMm(v) { return Math.round(v) + ' mm'; }
   function fmtM(v) { return m2(v) + ' m'; }
 
@@ -568,6 +605,7 @@
     var cubaPossivel = s.tipo === 'balcao' || s.tipo === 'gabinete' || s.tipo === 'personalizado';
     if (cubaPossivel) {
       h += '<div class="grupo"><h4>Cuba e tampo' + aj('cuba') + '</h4>' + interruptor('Tem cuba sobre este móvel', 'cuba.ativa');
+      if (s.pedra && s.pedra.ativa) h += interruptor('Tampo com cantos da frente arredondados', 'pedra.cantos') + (s.pedra.cantos ? deslizante('Raio do tampo', 'pedra.raio', 10, 150, 5, fmtMm) : '');
       if (s.cuba.ativa) {
         h += campoNum('Centro da cuba (a partir da esquerda)', 'cuba.centro', 'mm') + campoNum('Largura da cuba', 'cuba.largura', 'mm') + campoNum('Profundidade da cuba', 'cuba.profundidade', 'mm');
         if (s.cuba.origem === 'modelo') h += '<p class="ajuda ok-linha">' + ILU.st_ok + 'Posição detectada no modelo.</p>';
@@ -611,6 +649,11 @@
     var larguras = [[null, 'Auto'], [150, '0,15'], [300, '0,30'], [400, '0,40'], [450, '0,45'], [600, '0,60']];
     larguras.forEach(function (l) { h += '<button class="pilula pequena' + ((c.largura || null) === l[0] ? ' ativo' : '') + '" data-act="larg:' + (l[0] || 'auto') + '">' + l[1] + '</button>'; });
     h += '</div><div class="campo"><label>Largura exata</label><input type="number" data-path="colunas.' + st.sel.col + '.largura" data-tipo="numnull" value="' + (c.largura || '') + '" placeholder="' + (mc.larg ? Math.round(mc.larg) : '') + '"><span class="un">mm</span></div>';
+    if (st.sel.col < st.spec.colunas.length - 1) {
+      h += '<div class="linha-botoes">' + (c.divisoria === 'unir' ? '<button class="botao pequeno" data-act="separarProx">' + IC_MOD.vazio + 'Separar da coluna ' + (st.sel.col + 2) + '</button>' : '<button class="botao pequeno" data-act="mesclarProx">' + IC.abaMontagem + 'Mesclar com a coluna ' + (st.sel.col + 2) + ' (porta par)</button>') + '</div>';
+      h += '<div class="campo"><label>Divisória à direita' + aj('divisorias') + '</label></div>' + pilulas('colunas.' + st.sel.col + '.divisoria', [['auto', 'Automática'], ['unir', 'Tirar (mesclar o interno)'], ['manter', 'Manter']], true);
+      if (c.divisoria === 'unir') h += '<p class="ajuda">O interior desta coluna e o da próxima viram um vão só; as portas continuam iguais. Vale quando as duas colunas têm as mesmas faixas (portas, correr, nicho ou basculante).</p>';
+    }
 
     // faixas
     h += '<div class="campo"><label>Faixas' + aj('faixas') + '</label><button class="botao pequeno" data-act="faixaAdd">+ faixa no topo</button></div><div class="faixas">';
@@ -650,7 +693,9 @@
       h += '<div class="campo"><label>Portas na coluna' + aj('portas') + '</label></div>' + pil('portas', [[0, 'Auto'], [1, '1 porta'], [2, '2 portas']]);
       h += '<div class="campo"><label>Dobradiça (porta única)</label></div>' + pil('dobradica', [['auto', 'Auto'], ['esq', 'Esquerda'], ['dir', 'Direita']]);
     }
-    if (sec.tipo === 'portas' || sec.tipo === 'basculante' || sec.tipo === 'nicho') {
+    if (sec.tipo === 'portas' && sec.interno && sec.interno.length) h += interiorHtml(sec, base);
+    else if (sec.tipo === 'portas' || sec.tipo === 'basculante' || sec.tipo === 'nicho') {
+      if (sec.tipo === 'portas') h += interiorHtml(sec, base);
       h += '<div class="campo"><label>Interior' + aj('interior') + '</label></div>' + pil('interior', [['prateleiras', 'Prateleiras'], ['cabideiro', 'Cabideiro'], ['vazio', 'Vazio']]);
       if (sec.interior === 'prateleiras') {
         h += '<div class="campo"><label>Prateleiras</label>' + passo('prateleiras', 0, 8) + '</div>';
@@ -701,11 +746,30 @@
     if (sec.tipo === 'lixeira' && !(sec.bib && sec.bib.id)) h += '<div class="campo"><label>Cestos' + aj('lixeira') + '</label></div>' + pil('baldes', [[1, '1 cesto'], [2, '2 cestos (seletiva)']]);
     if (sec.tipo === 'correr') {
       h += '<div class="campo"><label>Folhas</label></div>' + pil('folhas', [[0, 'Auto'], [2, '2'], [3, '3'], [4, '4']]);
+      // personalizar cada folha
+      var elC = (st.modelo.elementos || []).filter(function (el) { return el.tipo === 'correr' && el.col === st.sel.col; })[0];
+      var nFol = elC ? elC.folhas : (sec.folhas || 2);
+      var ACABS = [['mdf', 'MDF'], ['vidro', 'Vidro'], ['reflecta', 'Reflecta'], ['espelho', 'Espelho'], ['palhinha', 'Palhinha']];
+      h += '<div class="campo"><label>Todas as folhas</label></div>' + pil('acabCorrer', ACABS);
+      if ((sec.acabCorrer || 'mdf') === 'vidro') h += '<div class="pilulas">' + Object.keys(E.VIDROS).filter(function (k) { return k !== 'espelho' && k !== 'reflecta'; }).map(function (k) { return '<button class="pilula pequena com-cor' + ((sec.vidroCorrer || 'incolor') === k ? ' ativo' : '') + '" data-act="set" data-path="' + base + 'vidroCorrer" data-val="' + k + '"><i style="background:' + E.VIDROS[k].cor + '"></i>' + esc(E.VIDROS[k].nome.replace(/ 4 mm$/, '').replace(/^Vidro /, '')) + '</button>'; }).join('') + '</div>';
+      h += '<div class="folhas-lista">';
+      for (var kf2 = 0; kf2 < nFol; kf2++) {
+        var fc = (sec.folhasCfg || [])[kf2] || {};
+        h += '<div class="folha-item"><span class="int-n">' + (kf2 + 1) + '</span><div class="pilulas">' + [['', 'igual']].concat(ACABS).map(function (o) {
+          return '<button class="pilula pequena' + ((fc.acab || '') === o[0] ? ' ativo' : '') + '" data-act="folhaAcab:' + kf2 + ':' + o[0] + '">' + o[1] + '</button>';
+        }).join('') + '</div></div>';
+      }
+      h += '</div><p class="ajuda">Vidro, reflecta e espelho vão num quadro de alumínio de 25 mm; reflecta é o vidro espelhado que deixa ver pouco por dentro. Para outro acabamento, escolha o mais próximo e pinte no SketchUp.</p>';
+      h += '<div class="campo"><label>Puxador das folhas</label></div>' + pil('puxCorrer', [['concha', 'Concha embutida'], ['perfil', 'Perfil vertical'], ['cava', 'Cava vertical'], ['nenhum', 'Sem puxador']]);
+      if ((sec.puxCorrer === 'perfil' || sec.puxCorrer === 'cava')) h += '<p class="ajuda">Perfil e cava vertical só nas folhas de MDF; nas de vidro o próprio quadro de alumínio serve de pega.</p>';
       h += '<div class="linha-botoes"><button class="botao pequeno" data-act="correrTodas">Portas de correr em todas as colunas</button></div>';
       h += '<p class="ajuda">Colunas vizinhas com portas de correr formam um só conjunto: as folhas passam por cima das divisórias, que ficam atrás segurando as prateleiras.</p>';
       h += '<p class="ajuda">As folhas correm num trilho superior duplo (roldanas) com guia embaixo, em dois planos: a da frente passa por cima da de trás, com 30 mm de transpasse. Ficam ' + (2 * st.spec.esp.frente + 6) + ' mm à frente da caixa.</p>';
-      h += '<div class="campo"><label>Interior' + aj('interior') + '</label></div>' + pil('interior', [['prateleiras', 'Prateleiras'], ['cabideiro', 'Cabideiro'], ['vazio', 'Vazio']]);
-      if (sec.interior === 'prateleiras') h += '<div class="campo"><label>Prateleiras</label>' + passo('prateleiras', 0, 8) + '</div>';
+      h += interiorHtml(sec, base);
+      if (!(sec.interno && sec.interno.length)) {
+        h += '<div class="campo"><label>Interior' + aj('interior') + '</label></div>' + pil('interior', [['prateleiras', 'Prateleiras'], ['cabideiro', 'Cabideiro'], ['vazio', 'Vazio']]);
+        if (sec.interior === 'prateleiras') h += '<div class="campo"><label>Prateleiras</label>' + passo('prateleiras', 0, 8) + '</div>';
+      }
       h += '<div class="campo"><label>Kit do trilho</label></div>' + bibEscolha('correr', base + 'bibCorrer', 'Padrão', {});
     }
     if (sec.tipo === 'temperos' || sec.tipo === 'fruteira' || sec.tipo === 'lixeira') h += '<div class="campo"><label>Modelo do fabricante</label></div>' + bibEscolha('aramado', base + 'bib', 'Padrão', {});
@@ -738,6 +802,7 @@
     if (s.puxador.tipo === 'cava') h += deslizante('Vão da cava 45°', 'puxador.tamanho', 8, 14, 1, fmtMm);
     if (s.puxador.tipo === 'passante') h += deslizante('Quanto a porta passa da caixa', 'puxador.passa', 10, 60, 1, fmtMm) + '<p class="ajuda">A frente passa além da caixa e vira a pega. Em aéreo, passa por baixo; em torre e roupeiro, por cima.</p>';
     if (s.puxador.tipo === 'meu') h += bibEscolha('puxador', 'puxador.bib', null, { encaixe: true, comprimento: 'puxador.comprimento', deitar: true });
+    if (['alca', 'barra', 'meu'].indexOf(s.puxador.tipo) >= 0 && s.puxador.posicao !== 'topo' && s.puxador.posicao !== 'base') h += campoNum('Altura do puxador nas portas (centro, do piso)', 'puxador.alturaPiso', 'mm', ' placeholder="1100 em porta alta"');
     if (s.puxador.tipo === 'alca') h += '<div class="campo"><label>Comprimento da alça</label></div>' + pilulas('puxador.comprimento', [[96, '96'], [128, '128'], [160, '160'], [192, '192'], [256, '256'], [320, '320']], true);
     h += '</div>';
     h += '<div class="grupo"><h4>Gavetas' + aj('corredica') + '</h4>' + cartoes('gavetas.corredica', [['telescopica', 'Telescópica', 'corr_telescopica'], ['oculta', 'Oculta', 'corr_oculta']]) +
@@ -745,7 +810,9 @@
       '<div class="campo"><label>Modelo da corrediça ' + (s.gavetas.corredica === 'oculta' ? 'oculta' : 'telescópica') + '</label></div>' +
       bibEscolha('corredica', s.gavetas.corredica === 'oculta' ? 'gavetas.bibOculta' : 'gavetas.bibTelescopica', 'Padrão', {}) +
       '<div class="tres-campos" style="margin-top:8px"><div><label>Lateral gaveta</label><input type="number" data-path="esp.gaveta" data-tipo="num" value="' + s.esp.gaveta + '"></div><div><label>Fundo gaveta</label><input type="number" data-path="esp.fundoGaveta" data-tipo="num" value="' + s.esp.fundoGaveta + '"></div><div></div></div></div>';
-    h += '<div class="grupo"><h4>Dobradiças' + aj('biblioteca') + '</h4><p class="ajuda">Caneco de 35 mm; reta, curva ou super curva conforme a montagem. Escolha o modelo do fabricante para o desenho no SketchUp.</p>' + bibEscolha('dobradica', 'frentes.bibDobradica', 'Padrão', { deitar: true }) + '</div>';
+    h += '<div class="grupo"><h4>Dobradiças' + aj('biblioteca') + '</h4><p class="ajuda">Caneco de 35 mm. Reta (porta bate pela frente da lateral), curva (no centro da lateral, entre duas portas) ou super curva (por dentro, porta embutida): a planê.mob escolhe pela posição de cada porta.</p>' +
+      '<div class="campo"><label>Abertura</label></div>' + pilulas('frentes.anguloDobradica', [['auto', 'Auto'], [110, '110° comum'], [155, '155° ampla'], [170, '170° total']], true) +
+      '<p class="ajuda">Auto: 155° na porta com gaveta interna atrás (a porta abre mais e a gaveta passa); 110° nas demais.</p>' + bibEscolha('dobradica', 'frentes.bibDobradica', 'Padrão', { deitar: true }) + '</div>';
     h += '<div class="grupo"><h4>Minha biblioteca' + aj('biblioteca') + '</h4><p class="ajuda">' + (st.bib || []).length + ' ferragens do seu SketchUp. Anexe os arquivos .skp dos fabricantes (puxadores, corrediças, dobradiças) e use em qualquer móvel; a lista de peças sai com o nome e a marca.</p>' + bibBotoes('outro') + '</div>';
     return h;
   }
@@ -782,6 +849,9 @@
     h += '<div class="grupo"><h4>Prateleiras' + aj('prateleiras') + '</h4>' + deslizante('Recuo frontal', 'prateleiras.recuo', 0, 60, 5, fmtMm) + '</div>';
     var led = s.led || {};
     h += '<div class="grupo"><h4>Desempenho no SketchUp' + aj('leve') + '</h4>' + interruptor('Modo leve (ferragens simplificadas)', 'leve', 'Desenha corrediças, dobradiças e aramados de forma simples, com bem menos geometria. Use em projetos grandes; as pranchas e a lista de peças continuam iguais.') + '</div>';
+    h += '<div class="grupo"><h4>Cantos arredondados</h4>' + interruptor('Cantos frontais arredondados', 'cantos.ativo', 'Uma peça curva (MDF curvado ou maciço) em cada canto da frente, alinhada com as frentes; as frentes começam depois dela.');
+    if (s.cantos && s.cantos.ativo) h += deslizante('Raio do canto', 'cantos.raio', 30, 80, 5, fmtMm) + '<p class="ajuda">Com lateral de ' + s.esp.caixa + ' mm cabe até uns 6 cm de raio; para mais, use lateral dupla. O tampo de pedra acompanha a curva.</p>';
+    h += '</div>';
     h += '<div class="grupo"><h4>Iluminação' + aj('iluminacao') + '</h4>' + interruptor('Fita de LED em perfil de alumínio', 'led.ativo');
     if (led.ativo) {
       h += '<div class="campo"><label>Onde</label></div>' + cartoes('led.local', [['base', 'Sob o móvel', 'led_fundo'], ['prateleiras', 'Nas prateleiras dos nichos', 'nicho_led']]);
@@ -909,7 +979,8 @@
     var s = st.spec;
     switch (p[0]) {
       case 'vista': st.vista = p[1]; renderCabecalho(); renderVisao(); return;
-      case 'aberto': st.aberto3d = p[1] === '1'; renderVisao(); return;
+      case 'aberto': st.aberto3d = p[1] === '1'; st.abertos = {}; renderVisao(); return;
+      case 'cam': st.cam = { az: 31.8, el: 27.7 }; renderVisao(); return;
       case 'interno': st.interno = p[1] === '1'; renderVisao(); return;
       case 'avancadas': st.avancadas = !st.avancadas; try { localStorage.setItem('marce-avancadas', st.avancadas ? '1' : '0'); } catch (e) { /* */ } renderPainel(); return;
       case 'confAbrir': st.confAberta = true; renderConferencia(); var ce = $('#conferencia'); if (ce && ce.scrollIntoView) ce.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); return;
@@ -954,6 +1025,13 @@
         if (!enviar('bibAnexar', { modo: p[1], categoria: p[2] })) toast('Anexar arquivos funciona dentro do SketchUp');
         return;
       case 'bibGerenciar': bibGerenciar(); return;
+      case 'folhaAcab': {
+        var sF = colSel().secoes[st.sel.secao];
+        if (!sF) break;
+        sF.folhasCfg = Array.isArray(sF.folhasCfg) ? sF.folhasCfg : [];
+        sF.folhasCfg[+p[1]] = Object.assign(sF.folhasCfg[+p[1]] || {}, { acab: p[2] || null });
+        break;
+      }
       case 'correrTodas': {
         // a faixa escolhida vira portas de correr em todas as colunas (mesma altura)
         var secR = colSel().secoes[st.sel.secao];
@@ -969,6 +1047,45 @@
           });
         });
         toast('Portas de correr em todas as colunas');
+        break;
+      }
+      case 'intPronto': case 'intLimpar': case 'intAdd': case 'intDel': case 'intMover': case 'intTipo': case 'intUso': case 'intQtd': {
+        var si = colSel().secoes[st.sel.secao];
+        if (!si) break;
+        si.interno = Array.isArray(si.interno) ? si.interno : [];
+        var ki = +p[1];
+        if (p[0] === 'intPronto') si.interno = JSON.parse(JSON.stringify(E.INTERNOS_PRONTOS[p[1]].mods));
+        else if (p[0] === 'intLimpar') si.interno = [];
+        else if (p[0] === 'intAdd') si.interno.push(p[1] === 'cabideiro' ? { tipo: 'cabideiro', uso: 'medio' } : p[1] === 'gavetas' ? { tipo: 'gavetas', qtd: 2 } : { tipo: p[1] });
+        else if (p[0] === 'intDel') si.interno.splice(ki, 1);
+        else if (p[0] === 'intMover') { var kj = ki + (+p[2]); if (kj >= 0 && kj < si.interno.length) { var tm = si.interno[ki]; si.interno[ki] = si.interno[kj]; si.interno[kj] = tm; } }
+        else if (p[0] === 'intTipo') { si.interno[ki].tipo = p[2]; if (p[2] === 'cabideiro' && !si.interno[ki].uso) si.interno[ki].uso = 'medio'; si.interno[ki].qtd = p[2] === 'gavetas' ? 2 : 0; si.interno[ki].altura = null; }
+        else if (p[0] === 'intUso') { si.interno[ki].uso = p[2]; si.interno[ki].altura = null; }
+        else if (p[0] === 'intQtd') { var mq = si.interno[ki]; mq.qtd = Math.max(0, Math.min(12, (mq.qtd || 0) + (+p[2]))); mq.altura = null; }
+        break;
+      }
+      case 'mesclarProx': case 'separarProx': {
+        var ca = s.colunas[st.sel.col], cb = s.colunas[st.sel.col + 1];
+        if (!ca || !cb) break;
+        if (p[0] === 'separarProx') { ca.divisoria = 'manter'; toast('Colunas separadas: a divisória volta'); break; }
+        // mesmas faixas: só tira a divisória e deixa uma porta em cada coluna (porta par em cada faixa)
+        var compat = ca.secoes.length === cb.secoes.length && ca.secoes.every(function (sa, k) { var sb = cb.secoes[k]; return sa.tipo === sb.tipo && ['portas', 'correr', 'nicho', 'basculante'].indexOf(sa.tipo) >= 0 && (sa.altura || 0) === (sb.altura || 0); });
+        if (compat) {
+          ca.secoes.forEach(function (sa, k) { if (sa.tipo === 'portas') { sa.portas = 1; cb.secoes[k].portas = 1; } });
+          ca.divisoria = 'unir';
+          toast('Colunas ' + (st.sel.col + 1) + ' e ' + (st.sel.col + 2) + ' mescladas: interior único com porta par');
+          break;
+        }
+        // faixas diferentes: as duas viram uma faixa de portas só (uma porta em cada) e dividem o mesmo interior
+        var base0 = ca.secoes.filter(function (x) { return x.tipo === 'portas' || x.tipo === 'correr'; })[0] || ca.secoes[0];
+        var tipoM = base0 && base0.tipo === 'correr' ? 'correr' : 'portas';
+        var novaA = E.novaSecao(tipoM, { prateleiras: base0 ? base0.prateleiras : 1, interior: base0 ? base0.interior : 'prateleiras', interno: base0 && base0.interno ? JSON.parse(JSON.stringify(base0.interno)) : undefined, portas: 1 });
+        var novaB = E.novaSecao(tipoM, { prateleiras: novaA.prateleiras, interior: novaA.interior, interno: novaA.interno ? JSON.parse(JSON.stringify(novaA.interno)) : undefined, portas: 1 });
+        if (ca.secoes.length > 1 || cb.secoes.length > 1) toast('As duas colunas viraram uma faixa só de portas para poder mesclar');
+        ca.secoes = [novaA]; cb.secoes = [novaB];
+        ca.divisoria = 'unir';
+        st.sel.secao = 0;
+        toast('Colunas ' + (st.sel.col + 1) + ' e ' + (st.sel.col + 2) + ' mescladas: interior único com porta par');
         break;
       }
       case 'pratAuto': { var sp = colSel().secoes[st.sel.secao]; if (sp) sp.pratAlturas = []; break; }
@@ -1212,6 +1329,42 @@
   }
 
   // ---------------------------------------------------------------- Ruby -> JS
+  // ---------------------------------------------------------------- prévia 3D: girar, abrir e editar
+  st.cam = { az: 31.8, el: 27.7 };
+  st.abertos = {};
+  (function () {
+    var arr = null, quadro = 0;
+    document.addEventListener('pointerdown', function (ev) {
+      var area = ev.target.closest && ev.target.closest('.area-desenho.orbita');
+      if (!area || ev.button !== 0) return;
+      arr = { x: ev.clientX, y: ev.clientY, az: st.cam.az, el: st.cam.el, moveu: false, alvo: ev.target };
+    });
+    document.addEventListener('pointermove', function (ev) {
+      if (!arr) return;
+      var dx = ev.clientX - arr.x, dy = ev.clientY - arr.y;
+      if (!arr.moveu && Math.abs(dx) + Math.abs(dy) < 4) return;
+      arr.moveu = true;
+      st.cam = { az: arr.az - dx * 0.4, el: Math.max(-10, Math.min(80, arr.el + dy * 0.3)) };
+      if (!quadro) quadro = requestAnimationFrame(function () { quadro = 0; renderVisao(); });
+    });
+    document.addEventListener('pointerup', function () {
+      if (!arr) return;
+      var a2 = arr; arr = null;
+      if (a2.moveu) return;
+      // clique: abre/fecha a porta ou gaveta
+      var cj = a2.alvo && a2.alvo.getAttribute && a2.alvo.getAttribute('data-conj');
+      if (cj) { st.aberto3d = false; st.abertos[cj] = !st.abertos[cj]; renderVisao(); }
+    });
+    document.addEventListener('dblclick', function (ev) {
+      var pol = ev.target.closest && ev.target.closest('.area-desenho.orbita polygon[data-col]');
+      if (!pol) return;
+      st.sel = { col: +pol.getAttribute('data-col'), secao: +pol.getAttribute('data-sec') || 0 };
+      st.aba = 'montagem';
+      renderPainel(); renderVisao();
+      toast('Coluna ' + (st.sel.col + 1) + ' selecionada para editar');
+    });
+  })();
+
   // ---------------------------------------------------------------- ajuda ("?")
   var AJ_ILUS = {
     base: [['base_rodape', 'rodapé recuado'], ['base_suspenso', 'suspenso'], ['base_pes', 'pés']],

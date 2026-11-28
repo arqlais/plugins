@@ -1,5 +1,18 @@
 [
   {
+    "versao": "1.21.0",
+    "notas": [
+      "Interior por módulos atrás das portas: gavetas internas (com calço para a dobradiça), cabideiro alto, médio, baixo, infantil ou bebê, sapateira, prateleiras e maleiro, cada um com a altura recomendada e editável; combinações prontas (cabideiro + gavetas, cabideiro duplo, vestidos longos, sapateira, infantil)",
+      "Mesclar colunas: o interior vira um só e as portas continuam (porta par), inclusive com maleiro em cima",
+      "Portas de correr personalizadas folha a folha: MDF, vidro (com o tipo), reflecta ou espelho em quadro de alumínio, ou palhinha; puxador concha, perfil vertical, cava vertical ou sem puxador",
+      "Cantos frontais arredondados (peça curva no canto) e tampo de pedra com os cantos arredondados",
+      "Prévia 3D: arraste para girar, clique numa porta ou gaveta para abrir, duplo clique para editar a coluna",
+      "Puxador vertical das portas altas a 110 cm do piso (ou na altura escolhida)",
+      "Abertura da dobradiça: 110°, 155° ou 170° (automático: 155° na porta com gaveta interna atrás)",
+      "Dobradiça do fabricante aparece só como o caneco na prévia; cota da planta em cima do desenho"
+    ]
+  },
+  {
     "versao": "1.20.0",
     "notas": [
       "Portas de correr: novo tipo de faixa com 2, 3 ou 4 folhas (ou automático pela largura), trilho superior duplo com roldanas e guia inferior; a folha da frente corre de verdade por cima da de trás",
