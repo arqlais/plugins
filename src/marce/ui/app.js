@@ -15,7 +15,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: false, relatorioJunto: false, bib: [], bibBusca: {}, bibFiltro: 'todos',
-    padroes: null, projeto: {}, versao: '1.22.6', gerando: false, atualizacao: null, atualizando: false
+    padroes: null, projeto: {}, versao: '1.23.0', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -146,7 +146,7 @@
 
   function atualizar(parcial) {
     recalcular();
-    renderCabecalho(); renderVisao(); renderChips(); renderConferencia(); renderRodape();
+    renderCabecalho(); renderRapida(); renderVisao(); renderChips(); renderConferencia(); renderRodape();
     if (!parcial) renderPainel();
   }
 
@@ -163,6 +163,42 @@
   }
 
   // ---------------------------------------------------------------- cabeçalho / vistas
+  // ---------------------------------------------------------------- barra rápida (em cima da prévia)
+  // O dia a dia sem entrar nas etapas: medidas, colunas, o que tem na coluna escolhida e as cores.
+  var CORES_RAPIDAS = ['arauco-branco', 'arauco-carvalho', 'duratex-freijo-puro', 'arauco-nogueira', 'duratex-cinza-cristal', 'arauco-grafite', 'arauco-preto', 'guararapes-verde-oliva', 'arauco-azul', 'duratex-areia'];
+  function renderRapida() {
+    var el = $('#rapida');
+    if (!el || !st.spec) return;
+    var s = st.spec, c = colSel(), sc = secSel ? secSel() : null;
+    var foco = document.activeElement && document.activeElement.closest && document.activeElement.closest('#rapida') ? document.activeElement.getAttribute('data-path') : null;
+    function medida(rot, path) {
+      return '<label class="rp-med"><span>' + rot + '</span><input type="number" step="10" data-path="' + path + '" data-tipo="num" value="' + Math.round(getPath(s, path)) + '"><i>mm</i></label>';
+    }
+    var h = '<div class="rp-grupo">' + medida('L', 'L') + '<b class="rp-x">×</b>' + medida('P', 'D') + '<b class="rp-x">×</b>' + medida('A', 'H') + '</div>';
+    h += '<div class="rp-grupo"><span class="rp-rot">colunas</span><span class="passo"><button data-act="rpCol:-1" title="Tirar coluna">−</button><span>' + s.colunas.length + '</span><button data-act="rpCol:1" title="Pôr coluna">+</button></span></div>';
+    if (c && sc) {
+      var tipos = [['portas', 'portas'], ['gavetas', 'gavetas'], ['nicho', 'nicho'], ['correr', 'correr']];
+      h += '<div class="rp-grupo rp-col"><span class="rp-rot">coluna ' + (st.sel.col + 1) + '</span><div class="segmentado mini">' + tipos.map(function (t) { return '<button data-act="rpTipo:' + t[0] + '" class="' + (sc.tipo === t[0] ? 'ativo' : '') + '">' + t[1] + '</button>'; }).join('') + '</div>';
+      if (sc.tipo === 'gavetas') h += '<span class="passo" title="Quantidade de gavetas"><button data-act="gavQtd:-1">−</button><span>' + sc.itens.length + '</span><button data-act="gavQtd:1">+</button></span>';
+      if (sc.tipo === 'portas') h += '<div class="segmentado mini" title="Portas nesta coluna">' + [[0, 'auto'], [1, '1'], [2, '2']].map(function (o) { return '<button data-act="rpPortas:' + o[0] + '" class="' + ((sc.portas || 0) === o[0] ? 'ativo' : '') + '">' + o[1] + '</button>'; }).join('') + '</div>';
+      h += '</div>';
+    }
+    var mf = s.materiais.frente, mc = s.materiais.caixa;
+    h += '<div class="rp-grupo rp-cores"><button class="rp-cor' + (st.rpCor === 'frente' ? ' ativo' : '') + '" data-act="rpCor:frente" title="Cor das frentes">' + amostraHtml(mf) + '<span>frentes</span></button>' +
+      '<button class="rp-cor' + (st.rpCor === 'caixa' ? ' ativo' : '') + '" data-act="rpCor:caixa" title="Cor da caixaria">' + amostraHtml(mc) + '<span>caixa</span></button></div>';
+    if (st.rpCor) {
+      var todos = listaMateriais(st.rpCor);
+      var rapidas = CORES_RAPIDAS.map(function (id) { return todos.filter(function (m) { return m.id === id; })[0]; }).filter(Boolean);
+      (st.rpRecentes || []).forEach(function (id) { var m = todos.filter(function (x) { return x.id === id; })[0]; if (m && rapidas.indexOf(m) < 0) rapidas.unshift(m); });
+      var atual = s.materiais[st.rpCor];
+      h += '<div class="rp-paleta">' + rapidas.slice(0, 14).map(function (m) {
+        return '<button class="rp-amostra' + (atual && atual.id === m.id ? ' ativo' : '') + '" data-act="rpMat:' + esc(m.id) + '" title="' + esc(m.nome + ' · ' + m.marca) + '">' + amostraHtml(m) + '</button>';
+      }).join('') + '<button class="rp-todas" data-act="rpCatalogo">catálogo completo</button>' + (st.rpCor === 'frente' ? '<button class="rp-todas" data-act="mesmoMaterial">caixa igual</button>' : '') + '</div>';
+    }
+    el.innerHTML = h;
+    if (foco) { var f = el.querySelector('[data-path="' + foco + '"]'); if (f) { f.focus(); var v = f.value; f.value = ''; f.value = v; } }
+  }
+
   function renderCabecalho() {
     var s = st.spec;
     var nome = $('#nome');
@@ -1128,6 +1164,25 @@
         break;
       }
       case 'col': st.sel = { col: parseInt(p[1], 10), secao: 0 }; break;
+      case 'rpCol': {
+        if (+p[1] > 0) { s.colunas.push(E.novaColuna(null, [E.novaSecao('portas', { prateleiras: pratComum() })])); toast('Coluna ' + s.colunas.length + ' criada'); }
+        else if (s.colunas.length > 1) { s.colunas.pop(); st.sel.col = Math.min(st.sel.col, s.colunas.length - 1); st.sel.secao = 0; }
+        s.colunas.forEach(function (cc) { cc.largura = null; }); // redistribui a largura
+        break;
+      }
+      case 'rpTipo': acao('secTipo:' + p[1], el); return;
+      case 'rpPortas': secSel().portas = +p[1]; break;
+      case 'rpCor': st.rpCor = st.rpCor === p[1] ? null : p[1]; renderRapida(); return;
+      case 'rpMat': {
+        var idM = nome.slice(6);
+        var mm2 = listaMateriais(st.rpCor).filter(function (x) { return x.id === idM; })[0];
+        if (mm2) {
+          s.materiais[st.rpCor] = { id: mm2.id, nome: mm2.nome, marca: mm2.marca, cor: mm2.cor, veio: !!mm2.veio, texturaLargura: (s.materiais[st.rpCor] && s.materiais[st.rpCor].texturaLargura) || 1200, textura: mm2.textura };
+          st.rpRecentes = [idM].concat((st.rpRecentes || []).filter(function (x) { return x !== idM; })).slice(0, 4);
+        }
+        break;
+      }
+      case 'rpCatalogo': st.aba = 'acabamento'; st.picker = st.rpCor || 'frente'; st.rpCor = null; break;
       case 'colAdd': s.colunas.splice(st.sel.col + 1, 0, E.novaColuna(null, [E.novaSecao('portas', { prateleiras: pratComum() })])); st.sel = { col: st.sel.col + 1, secao: 0 }; break;
       case 'colDel': if (s.colunas.length > 1) { s.colunas.splice(st.sel.col, 1); st.sel.col = Math.max(0, st.sel.col - 1); st.sel.secao = 0; } break;
       case 'larg': colSel().largura = p[1] === 'auto' ? null : parseFloat(p[1]); break;

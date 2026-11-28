@@ -1,5 +1,9 @@
 # Novidades da planê.mob
 
+## 1.23.0
+- Barra rápida em cima da prévia: largura, profundidade e altura direto ali; colunas com − e +; a coluna escolhida vira portas, gavetas, nicho ou correr com um clique, com a quantidade de gavetas e de portas ao lado
+- Cor em um clique: amostras das frentes e da caixaria abrem uma paleta com os padrões mais usados e os últimos escolhidos, mais o catálogo completo e "caixa igual às frentes"
+
 ## 1.22.6
 - Dobradiça do fabricante (.skp) de volta e no lugar certo: a planê.mob acha o caneco no bloco (o círculo de 35 mm) e encaixa ele no furo da porta, com o braço virado para a lateral, em qualquer posição que o fabricante tenha desenhado
 - A parte do caneco vai com a porta e o resto do bloco fica preso na lateral; se o arquivo não tiver o caneco reconhecível, entra o desenho da planê.mob (base na lateral, caneco na porta)

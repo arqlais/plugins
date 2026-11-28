@@ -1,5 +1,12 @@
 [
   {
+    "versao": "1.23.0",
+    "notas": [
+      "Barra rápida em cima da prévia: largura, profundidade e altura direto ali; colunas com − e +; a coluna escolhida vira portas, gavetas, nicho ou correr com um clique, com a quantidade de gavetas e de portas ao lado",
+      "Cor em um clique: amostras das frentes e da caixaria abrem uma paleta com os padrões mais usados e os últimos escolhidos, mais o catálogo completo e \"caixa igual às frentes\""
+    ]
+  },
+  {
     "versao": "1.22.6",
     "notas": [
       "Dobradiça do fabricante (.skp) de volta e no lugar certo: a planê.mob acha o caneco no bloco (o círculo de 35 mm) e encaixa ele no furo da porta, com o braço virado para a lateral, em qualquer posição que o fabricante tenha desenhado",

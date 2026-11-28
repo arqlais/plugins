@@ -1,10 +1,9 @@
 {
-  "versao": "1.22.6",
+  "versao": "1.23.0",
   "rbz": "dist/marce.rbz",
-  "sha256": "fce672c4db5bba45413f75839ebe8954a312fb7a93477274a413b7f9351d1e8b",
+  "sha256": "679e33df8f5dff8fbfbac4466dc0b0309183c1b00c0dffed2a8c17fde004c45b",
   "notas": [
-    "Dobradiça do fabricante (.skp) de volta e no lugar certo: a planê.mob acha o caneco no bloco (o círculo de 35 mm) e encaixa ele no furo da porta, com o braço virado para a lateral, em qualquer posição que o fabricante tenha desenhado",
-    "A parte do caneco vai com a porta e o resto do bloco fica preso na lateral; se o arquivo não tiver o caneco reconhecível, entra o desenho da planê.mob (base na lateral, caneco na porta)",
-    "Dobradiça reta do fabricante volta a ser o padrão nos móveis novos"
+    "Barra rápida em cima da prévia: largura, profundidade e altura direto ali; colunas com − e +; a coluna escolhida vira portas, gavetas, nicho ou correr com um clique, com a quantidade de gavetas e de portas ao lado",
+    "Cor em um clique: amostras das frentes e da caixaria abrem uma paleta com os padrões mais usados e os últimos escolhidos, mais o catálogo completo e \"caixa igual às frentes\""
   ]
 }
