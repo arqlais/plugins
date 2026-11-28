@@ -1,15 +1,10 @@
 {
-  "versao": "1.16.0",
+  "versao": "1.16.1",
   "rbz": "dist/marce.rbz",
-  "sha256": "f5d17353219a3c540de68e71c118f646da5b060ad1082c5f7ee83e35f740b004",
+  "sha256": "856c650703edd3a837ca5978c1f3f1c4156e5ac5e88f1dac6399e3e84a538e31",
   "notas": [
-    "Primeiro o ambiente (cozinha, sala, quarto, escritório, banheiro, lavanderia, closet), depois só os móveis daquele ambiente; \"ver todos os tipos\" quando precisar",
-    "Móveis novos: rack, escrivaninha (vão livre para as pernas e travessa de fundo), criado-mudo e torre de geladeira",
-    "Corrediça telescópica com os 3 perfis reais em \"C\" (fixo na lateral, intermediário que anda a metade, interno na gaveta), encaixados sem se tocar e com 12,5 mm de folga",
-    "Corrediça oculta com trilho fixo em \"L\" e trilho móvel em \"U\" sob a gaveta; caneco da dobradiça redondo (Ø 35 mm)",
-    "Avisos com o porquê e o limite recomendado: gaveta abaixo de 30 cm ou acima de 90 cm, porta estreita ou larga, porta alta, basculante pesado, prateleira com vão grande, aéreo baixo ou fundo, balcão raso, guarda-roupa raso",
-    "Modo leve (aba Detalhes) para projetos grandes, sugerido sozinho acima de 600 peças",
-    "Fotos do relatório em JPEG: bem mais leves para a janela e para o arquivo",
-    "Prévia 3D mais fiel (peças não aparecem mais por cima de outras)"
+    "Pranchas sem texto encavalado: plano de corte com nome e medida que cabem em cada peça, chamadas com espaço entre as linhas, balões, cota da cuba e eixo hidráulico em faixas separadas",
+    "Ajuste final automático: se algum texto ainda encostar em outro, ele é afastado para o lugar livre mais perto (as cotas não saem do lugar)",
+    "Verificador de sobreposição nos testes: nenhuma versão sai com texto em cima de texto"
   ]
 }

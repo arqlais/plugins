@@ -508,6 +508,58 @@
   function ler(ch) { try { var v = root.localStorage.getItem(ch); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
   function gravar(ch, v) { try { root.localStorage.setItem(ch, JSON.stringify(v)); return true; } catch (e) { return false; } }
 
+  // Ajuste final das pranchas: nada de texto encavalado. Mede cada texto (posição real) e, se tocar
+  // outro, afasta para o lugar livre mais próximo; números de cota não se movem. Se andar muito,
+  // ganha uma linha de chamada fina até o ponto de origem.
+  function afastarTextos(raiz) {
+    var NS = 'http://www.w3.org/2000/svg';
+    Array.prototype.forEach.call(raiz.querySelectorAll('.folha svg'), function (svg) {
+      var ctm = svg.getScreenCTM && svg.getScreenCTM();
+      if (!ctm) return;
+      var esc2 = Math.sqrt(ctm.a * ctm.a + ctm.b * ctm.b) || 1;
+      var itens = [];
+      Array.prototype.forEach.call(svg.querySelectorAll('text'), function (t) {
+        if (!t.textContent.trim()) return;
+        var el = t.closest('g.balao') || t;
+        if (itens.some(function (i) { return i.el === el; })) return;
+        itens.push({ el: el, fixo: t.classList.contains('cota-n') });
+      });
+      if (itens.length < 2) return;
+      itens.sort(function (a, b) { return (b.fixo ? 1 : 0) - (a.fixo ? 1 : 0); });
+      var caixa = svg.getBoundingClientRect(), postos = [], folga = 1.2;
+      function bate(r) { return postos.some(function (q) { return r.left < q.right + folga && q.left < r.right + folga && r.top < q.bottom + folga && q.top < r.bottom + folga; }); }
+      itens.forEach(function (it) {
+        var r = it.el.getBoundingClientRect();
+        if (!r.width || !bate(r)) { postos.push(r); return; }
+        var passo = Math.max(2, r.height * 0.55), achou = null;
+        for (var d = 1; d <= 10 && !achou; d++) {
+          var cand = [[0, -d], [0, d], [d, 0], [-d, 0], [d, -d], [-d, -d], [d, d], [-d, d]];
+          for (var c = 0; c < cand.length; c++) {
+            var dx = cand[c][0] * passo, dy = cand[c][1] * passo;
+            var r2 = { left: r.left + dx, right: r.right + dx, top: r.top + dy, bottom: r.bottom + dy };
+            if (r2.left < caixa.left || r2.right > caixa.right || r2.top < caixa.top || r2.bottom > caixa.bottom) continue;
+            if (!bate(r2)) { achou = [dx, dy, r2]; break; }
+          }
+        }
+        if (!achou) { postos.push(r); return; }
+        var ux = achou[0] / esc2, uy = achou[1] / esc2;
+        var antes = it.el.getAttribute('transform') || '';
+        it.el.setAttribute('transform', 'translate(' + ux.toFixed(2) + ' ' + uy.toFixed(2) + ')' + (antes ? ' ' + antes : ''));
+        if (Math.abs(achou[0]) + Math.abs(achou[1]) > r.height * 1.6 && it.el.tagName.toLowerCase() === 'text') {
+          var bb = it.el.getBBox ? null : null;
+          var p0 = svg.createSVGPoint(); p0.x = r.left + r.width / 2; p0.y = r.top + r.height / 2;
+          var p1 = svg.createSVGPoint(); p1.x = p0.x + achou[0]; p1.y = p0.y + achou[1];
+          var inv = ctm.inverse(), a0 = p0.matrixTransform(inv), a1 = p1.matrixTransform(inv);
+          var ln = document.createElementNS(NS, 'line');
+          ln.setAttribute('x1', a0.x.toFixed(2)); ln.setAttribute('y1', a0.y.toFixed(2)); ln.setAttribute('x2', a1.x.toFixed(2)); ln.setAttribute('y2', (a1.y + (achou[1] > 0 ? -r.height * 0.5 : r.height * 0.5) / esc2).toFixed(2));
+          ln.setAttribute('stroke', '#a88a80'); ln.setAttribute('stroke-width', (0.5 / esc2 * 3).toFixed(2));
+          svg.insertBefore(ln, svg.firstChild);
+        }
+        postos.push(achou[2]);
+      });
+    });
+  }
+
   // prancha ligada ao móvel: confere o arquivo de dados ao lado e se redesenha quando ele muda
   var vivo = null;
   function vigiar(arquivo, selo) {
@@ -559,8 +611,13 @@
       var dim = dimFolha(est);
       doc.body.className = est.visual === 'neutro' ? 'neutro' : '';
       doc.getElementById('pagina').textContent = '@page{size:' + dim[0] + 'mm ' + dim[1] + 'mm;margin:0}';
-      doc.getElementById('pranchas').innerHTML = montarPranchas(dados, est);
+      var area = doc.getElementById('pranchas');
+      area.innerHTML = montarPranchas(dados, est);
+      area.style.zoom = 1;
+      try { afastarTextos(area); } catch (e) { /* o ajuste é só cosmético */ }
       ajustarZoom();
+      // a Poppins termina de carregar depois: mede de novo com a fonte certa
+      if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(function () { area.style.zoom = 1; try { afastarTextos(area); } catch (e) { /* */ } ajustarZoom(); });
       Array.prototype.forEach.call(doc.querySelectorAll('[data-f]'), function (b) { b.classList.toggle('ativo', b.getAttribute('data-v') === String(est[b.getAttribute('data-f')])); });
       var pers = doc.getElementById('ed-pers'); if (pers) pers.style.display = est.folha === 'personalizada' ? '' : 'none';
       var pv = doc.getElementById('ed-logo-pv'); if (pv) pv.innerHTML = est.escritorio.logo ? '<img src="' + esc(est.escritorio.logo) + '" alt="">' : logoSvg(est.corPrincipal, '#f5f1ee');
@@ -672,5 +729,5 @@
       '<script>window.__MARCE__=' + json + ';MarceRelatorio.montar(window.__MARCE__);</script></body></html>';
   }
 
-  return { vigiar: vigiar, receberDados: receberDados, gerar: gerar, montar: montar, montarPranchas: montarPranchas, detalhe: detalhe, FOLHAS: FOLHAS };
+  return { afastarTextos: afastarTextos, vigiar: vigiar, receberDados: receberDados, gerar: gerar, montar: montar, montarPranchas: montarPranchas, detalhe: detalhe, FOLHAS: FOLHAS };
 });

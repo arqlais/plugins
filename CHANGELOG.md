@@ -1,5 +1,10 @@
 # Novidades da planê.mob
 
+## 1.16.1
+- Pranchas sem texto encavalado: plano de corte com nome e medida que cabem em cada peça, chamadas com espaço entre as linhas, balões, cota da cuba e eixo hidráulico em faixas separadas
+- Ajuste final automático: se algum texto ainda encostar em outro, ele é afastado para o lugar livre mais perto (as cotas não saem do lugar)
+- Verificador de sobreposição nos testes: nenhuma versão sai com texto em cima de texto
+
 ## 1.16.0
 - Primeiro o ambiente (cozinha, sala, quarto, escritório, banheiro, lavanderia, closet), depois só os móveis daquele ambiente; "ver todos os tipos" quando precisar
 - Móveis novos: rack, escrivaninha (vão livre para as pernas e travessa de fundo), criado-mudo e torre de geladeira

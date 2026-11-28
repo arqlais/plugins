@@ -475,10 +475,10 @@
     var cabe = len > f * txt.length * 0.62 + t * 2;
     if (vert) {
       var tx = mx - f * 0.35;
-      s.push('<text x="' + n1(tx) + '" y="' + n1(my) + '" font-size="' + n1(f) + '" fill="' + (o.corTxt || o.cor) + '" text-anchor="middle" transform="rotate(-90 ' + n1(tx) + ' ' + n1(my) + ')">' + esc(txt) + '</text>');
+      s.push('<text class="cota-n" x="' + n1(tx) + '" y="' + n1(my) + '" font-size="' + n1(f) + '" fill="' + (o.corTxt || o.cor) + '" text-anchor="middle" transform="rotate(-90 ' + n1(tx) + ' ' + n1(my) + ')">' + esc(txt) + '</text>');
     } else {
       var ty = cabe ? my - f * 0.35 : my - f * 0.35 - f;
-      s.push('<text x="' + n1(mx) + '" y="' + n1(ty) + '" font-size="' + n1(f) + '" fill="' + (o.corTxt || o.cor) + '" text-anchor="middle">' + esc(txt) + '</text>');
+      s.push('<text class="cota-n" x="' + n1(mx) + '" y="' + n1(ty) + '" font-size="' + n1(f) + '" fill="' + (o.corTxt || o.cor) + '" text-anchor="middle">' + esc(txt) + '</text>');
     }
     return s.join('');
   }
@@ -605,7 +605,7 @@
     // chamadas escritas numa coluna à direita do desenho: marcador no ponto, linha e texto
     if (chamadas.length) {
       chamadas.sort(function (a, b) { return b.z - a.z; });
-      var xTxt = ox + L + mg * 0.75, passo = fs * 2.6, yPrev = -1e9;
+      var xTxt = ox + L + mg * 0.75, passo = fs * 3.4, yPrev = -1e9;
       chamadas.forEach(function (c) {
         var ty = Math.max(Number(Y(c.z)), yPrev + passo);
         yPrev = ty;
@@ -613,7 +613,7 @@
           var px = ox + pt.x, py = Number(Y(pt.z));
           s.push('<path d="M' + n1(px) + ' ' + n1(py) + 'L' + n1(xTxt - fs) + ' ' + n1(ty) + 'H' + n1(xTxt - fs * 0.3) + '" fill="none" stroke="#a88a80" stroke-width="' + n1(lw * 0.9) + '"/><circle cx="' + n1(px) + '" cy="' + n1(py) + '" r="' + n1(0.6 * E) + '" fill="#a88a80" stroke="#fff" stroke-width="' + n1(lw * 0.6) + '"/>');
         });
-        c.t.forEach(function (lt, k) { s.push('<text x="' + n1(xTxt) + '" y="' + n1(ty + fs * 0.35 + k * fs * 1.15) + '" font-size="' + n1(fs * (k ? 0.82 : 0.92)) + '" fill="' + (k ? '#66717b' : '#3e4b57') + '"' + (k ? '' : ' font-weight="500"') + '>' + esc(lt) + '</text>'); });
+        c.t.forEach(function (lt, k) { s.push('<text x="' + n1(xTxt) + '" y="' + n1(ty + fs * 0.35 + k * fs * 1.45) + '" font-size="' + n1(fs * (k ? 0.82 : 0.92)) + '" fill="' + (k ? '#66717b' : '#3e4b57') + '"' + (k ? '' : ' font-weight="500"') + '>' + esc(lt) + '</text>'); });
       });
     }
     // vãos livres: largura interna embaixo de cada vão e alturas livres entre prateleiras
@@ -626,7 +626,7 @@
         if (t === 'geladeira') {
           var xg = ox + vm.il + vm.largInt / 2;
           s.push('<text x="' + n1(xg) + '" y="' + Y(sm.it / 2) + '" font-size="' + n1(Math.min(fs, vm.largInt * 0.9 / (15 * 0.6))) + '" text-anchor="middle" fill="#5a5a5a">NICHO GELADEIRA</text>');
-          s.push(cotaT(ox + vm.il + vm.largInt * 0.25, Y(sm.it), ox + vm.il + vm.largInt * 0.25, Y(0), fmtUn(sm.it, un), op));
+          s.push(cotaT(ox + vm.il + fs * 1.6, Y(sm.it), ox + vm.il + fs * 1.6, Y(0), fmtUn(sm.it, un), op));
           return;
         }
         var nivs = [sm.ib];
@@ -700,12 +700,12 @@
     var pedra = M.pecas.filter(function (p) { return p.grupo === 'pedra'; })[0];
     var topoZ = pedra ? pedra.z + pedra.dz : H;
     var mPapel = 13.5; // mm de papel para cotas e textos em volta
-    var E = o.escala || escolherEscala(L, topoZ, o.areaW || 260, o.areaH || 150, mPapel);
+    var E = o.escala || escolherEscala(L, topoZ + (M.cuba ? 5 * 25 : 0), o.areaW || 260, o.areaH || 150, mPapel);
     var fs = 2.2 * E, lw = 0.18 * E, lwF = 0.35 * E, tq = 1.1 * E;
     var mg = mPapel * E;
     var xMin = pedra ? Math.min(0, pedra.x) : 0, xMax = pedra ? Math.max(L, pedra.x + pedra.dx) : L;
-    var W = xMax - xMin + 2 * mg, Ht = topoZ + 2 * mg;
-    var ox = mg - xMin, oy = mg + topoZ;
+    var W = xMax - xMin + 2 * mg, extraTopo = M.cuba ? 5 * E : 0, Ht = topoZ + 2 * mg + extraTopo; // cuba: faixa extra em cima para cota, balões e eixo
+    var ox = mg - xMin, oy = mg + extraTopo + topoZ;
     function X(x) { return n1(ox + x); }
     function Y(z) { return n1(oy - z); }
     var linha = '#2b2b2b', fina = '#5a5a5a';
@@ -775,7 +775,8 @@
       if (rot) {
         var vertical = p.dz > p.dx * 1.4;
         var cx = p.x + p.dx / 2, cz2 = p.z + p.dz / 2;
-        s.push('<text x="' + X(cx) + '" y="' + Y(cz2) + '" font-size="' + n1(fs * 0.85) + '" fill="' + fina + '" text-anchor="middle"' + (vertical ? ' transform="rotate(-90 ' + X(cx) + ' ' + Y(cz2) + ')"' : '') + '>' + rot + '</text>');
+        var fsR = Math.min(fs * 0.85, (vertical ? p.dz : p.dx) * 0.62 / (rot.length * 0.62), (vertical ? p.dx : p.dz) * 0.55);
+        s.push('<text x="' + X(cx) + '" y="' + Y(cz2) + '" font-size="' + n1(fsR) + '" fill="' + fina + '" text-anchor="middle"' + (vertical ? ' transform="rotate(-90 ' + X(cx) + ' ' + Y(cz2) + ')"' : '') + '>' + rot + '</text>');
       }
     });
     ripas.forEach(function (p) { s.push(ret(p.x, p.z, p.dx, p.dz, lw * 0.7, col ? { fill: shade(cFr, 0.93), cor: shade(cFr, 0.62) } : { cor: fina })); });
@@ -790,7 +791,7 @@
     });
     if (pedra) s.push(ret(pedra.x, pedra.z, pedra.dx, pedra.dz, lw, { fill: '#ececec' }));
     // balões das colunas (mesma numeração do corte, da planta e dos detalhes)
-    var yBal = Y(topoZ) - mg * 0.55, rBal = 2.1 * E;
+    var yBal = Y(topoZ) - mg * (M.cuba ? 0.66 : 0.55), rBal = 2.1 * E;
     (M.colunas || []).forEach(function (c) {
       var cx = (c.x0 + c.x1) / 2;
       if (M.cuba && Math.abs(cx - M.cuba.centro) < rBal * 1.6) cx = M.cuba.centro + (cx < M.cuba.centro ? -1 : 1) * rBal * 1.8;
@@ -801,9 +802,9 @@
       var ch = Math.min(220, d.Hc * 0.35);
       s.push(ret(M.cuba.x0, d.zTop - ch, M.cuba.x1 - M.cuba.x0, ch, lw, { cor: '#4d6f99', dash: n1(2 * E) + ' ' + n1(1.2 * E) }));
       s.push('<text x="' + X(M.cuba.x0 + 8 * E / 4) + '" y="' + Y(d.zTop - fs * 1.4) + '" font-size="' + n1(fs * 0.85) + '" fill="#4d6f99">cuba</text>');
-      s.push('<line x1="' + X(M.cuba.centro) + '" y1="' + Y(topoZ + mg * 0.75) + '" x2="' + X(M.cuba.centro) + '" y2="' + Y(d.zTop - ch - 5 * E) + '" stroke="' + cor + '" stroke-width="' + n1(lw) + '" stroke-dasharray="' + n1(4 * E) + ' ' + n1(1 * E) + ' ' + n1(0.6 * E) + ' ' + n1(1 * E) + '"/>');
-      s.push('<text x="' + n1(ox + M.cuba.centro + fs * 0.4) + '" y="' + Y(topoZ + mg * 0.78) + '" font-size="' + n1(fs * 0.85) + '" fill="' + cor + '">eixo hidráulico</text>');
-      s.push(cotaT(ox, Y(topoZ) - mg * 0.32, ox + M.cuba.centro, Y(topoZ) - mg * 0.32, fmtUn(M.cuba.centro, un), Object.assign({}, op, { chamada: [[ox, Y(topoZ) - mg * 0.36, ox, Y(topoZ)]] })));
+      s.push('<line x1="' + X(M.cuba.centro) + '" y1="' + Y(topoZ + mg * 0.92) + '" x2="' + X(M.cuba.centro) + '" y2="' + Y(d.zTop - ch - 5 * E) + '" stroke="' + cor + '" stroke-width="' + n1(lw) + '" stroke-dasharray="' + n1(4 * E) + ' ' + n1(1 * E) + ' ' + n1(0.6 * E) + ' ' + n1(1 * E) + '"/>');
+      s.push('<text x="' + n1(ox + M.cuba.centro + fs * 0.4) + '" y="' + Y(topoZ + mg * 0.96) + '" font-size="' + n1(fs * 0.85) + '" fill="' + cor + '">eixo hidráulico</text>');
+      s.push(cotaT(ox, Y(topoZ) - mg * 0.24, ox + M.cuba.centro, Y(topoZ) - mg * 0.24, fmtUn(M.cuba.centro, un), Object.assign({}, op, { chamada: [[ox, Y(topoZ) - mg * 0.28, ox, Y(topoZ)]] })));
     }
     // cotas: colunas, total, alturas
     var yc = Y(0) + mg * 0.3;
@@ -899,10 +900,17 @@
     ch.itens.forEach(function (it, k) {
       var hue = (k * 47) % 360;
       s.push('<rect x="' + n1(it.x) + '" y="' + n1(it.y) + '" width="' + n1(it.w) + '" height="' + n1(it.h) + '" fill="hsl(' + hue + ',35%,86%)" stroke="#5c4a3d" stroke-width="0.8" vector-effect="non-scaling-stroke"/>');
-      var tf = Math.min(fs, it.h * 0.32, it.w / Math.max(6, it.nome.length * 0.62));
+      // nome e medida em duas linhas que cabem na peça (com folga entre elas); peça pequena: só a medida
+      var med = Math.round(it.c) + '×' + Math.round(it.l) + (it.rot ? ' (girada)' : '');
+      var larg = Math.max(it.nome.length, med.length * 0.82) * 0.6;
+      var tf = Math.min(fs, it.h / 3.9, it.w * 0.9 / Math.max(4, larg));
+      var cx = n1(it.x + it.w / 2), cy = it.y + it.h / 2;
       if (tf > fs * 0.35) {
-        s.push('<text x="' + n1(it.x + it.w / 2) + '" y="' + n1(it.y + it.h / 2 - tf * 0.1) + '" font-size="' + n1(tf) + '" text-anchor="middle" fill="#3a2e26">' + esc(it.nome) + '</text>');
-        s.push('<text x="' + n1(it.x + it.w / 2) + '" y="' + n1(it.y + it.h / 2 + tf * 1.0) + '" font-size="' + n1(tf * 0.85) + '" text-anchor="middle" fill="#6b5b4f">' + Math.round(it.c) + '×' + Math.round(it.l) + (it.rot ? ' (girada)' : '') + '</text>');
+        s.push('<text x="' + cx + '" y="' + n1(cy - tf * 0.3) + '" font-size="' + n1(tf) + '" text-anchor="middle" fill="#3a2e26">' + esc(it.nome) + '</text>');
+        s.push('<text x="' + cx + '" y="' + n1(cy + tf * 1.3) + '" font-size="' + n1(tf * 0.8) + '" text-anchor="middle" fill="#6b5b4f">' + med + '</text>');
+      } else {
+        var t2 = Math.min(fs, it.h / 1.8, it.w * 0.9 / Math.max(3, med.length * 0.55));
+        if (t2 > fs * 0.3) s.push('<text x="' + cx + '" y="' + n1(cy + t2 * 0.35) + '" font-size="' + n1(t2) + '" text-anchor="middle" fill="#6b5b4f">' + med + '</text>');
       }
     });
     return '<svg class="desenho chapa" xmlns="http://www.w3.org/2000/svg" viewBox="-4 -4 ' + (g.w + 8) + ' ' + (g.h + 8) + '">' + s.join('') + '</svg>';
