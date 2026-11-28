@@ -72,6 +72,8 @@
     '.ed-chk{display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer}.ed-chk input{accent-color:#3e4b57;width:15px;height:15px}',
     '.ed-pe{padding:12px 18px 16px;border-top:1px solid var(--b);display:flex;flex-direction:column;gap:8px}.ed-pe .linha{display:flex;gap:6px;flex-wrap:wrap}.ed-pe small{color:#8b939a;font-size:10.5px;line-height:1.35}',
     '.ed-ok{color:#6b8a72;font-size:11px;min-height:14px}',
+    '.vivo{position:fixed;right:22px;bottom:22px;z-index:9;background:#3e4b57;color:#fff;border-radius:14px;padding:10px 16px;font:500 12.5px Poppins,sans-serif;box-shadow:0 10px 30px -10px rgba(0,0,0,.45);opacity:0;transform:translateY(8px);transition:.25s;pointer-events:none}.vivo.mostra{opacity:1;transform:none}',
+    '.ed-vivo{display:flex;align-items:center;gap:6px;color:#8b939a;font-size:10.5px}.ed-vivo i{width:7px;height:7px;border-radius:50%;background:#c9ccd0}.ed-vivo.on i{background:#4f6f8f;box-shadow:0 0 0 3px #e8eef4}',
     '.folha{position:relative;background:#fff;box-shadow:0 10px 40px -12px rgba(62,75,87,.35);overflow:hidden;font-size:calc(var(--k)*2.75mm);line-height:1.4}',
     '.moldura{position:absolute;border:calc(var(--k)*.35mm) solid var(--t);display:flex;flex-direction:column}',
     '.area{flex:1;min-height:0;position:relative;padding:calc(var(--k)*5mm) calc(var(--k)*6mm) calc(var(--k)*3mm);display:flex;flex-direction:column;gap:calc(var(--k)*3mm);overflow:hidden}',
@@ -506,6 +508,36 @@
   function ler(ch) { try { var v = root.localStorage.getItem(ch); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
   function gravar(ch, v) { try { root.localStorage.setItem(ch, JSON.stringify(v)); return true; } catch (e) { return false; } }
 
+  // prancha ligada ao móvel: confere o arquivo de dados ao lado e se redesenha quando ele muda
+  var vivo = null;
+  function vigiar(arquivo, selo) {
+    if (!vivo) return;
+    vivo.selo = selo;
+    var doc = root.document, el = doc.getElementById('ed-vivo');
+    if (el) { el.classList.add('on'); el.lastChild.textContent = 'ligada ao móvel: atualiza sozinha'; }
+    function puxar() {
+      var sc = doc.createElement('script');
+      sc.src = encodeURIComponent(arquivo) + '?t=' + Date.now();
+      sc.onload = sc.onerror = function () { sc.remove(); };
+      doc.head.appendChild(sc);
+    }
+    setInterval(puxar, 2000);
+  }
+  function receberDados(d) {
+    if (!vivo || !d || !d.spec || d.selo === vivo.selo) return;
+    vivo.selo = d.selo;
+    vivo.dados.spec = d.spec;
+    if (d.imagens) vivo.dados.imagens = d.imagens;
+    if (d.versao) vivo.dados.versao = d.versao;
+    vivo.redesenhar();
+    var doc = root.document, t = doc.getElementById('vivo');
+    if (!t) { t = doc.createElement('div'); t.id = 'vivo'; t.className = 'vivo'; doc.body.appendChild(t); }
+    var a = new Date();
+    t.textContent = 'Prancha atualizada com o móvel · ' + ('0' + a.getHours()).slice(-2) + ':' + ('0' + a.getMinutes()).slice(-2);
+    t.classList.add('mostra');
+    setTimeout(function () { t.classList.remove('mostra'); }, 3500);
+  }
+
   function montar(dados) {
     var doc = root.document;
     var chaveProj = 'marce-editor-projeto:' + String(dados.arquivo || dados.spec.nome || 'projeto');
@@ -606,6 +638,7 @@
       }
     });
     root.addEventListener('resize', ajustarZoom);
+    vivo = { dados: dados, selo: null, redesenhar: function () { desenhar(); } };
     preencher();
     desenhar();
   }
@@ -632,12 +665,12 @@
       sec('notas do carimbo', '<div class="ed-campo"><textarea data-e="est.notas" placeholder="Conferir medidas no local antes da produção..."></textarea></div>') +
       sec('pranchas que entram', PAGS.map(function (pg) { return '<label class="ed-chk"><input type="checkbox" data-e="paginas.' + pg[0] + '">' + pg[1] + '</label>'; }).join('')) +
       '</div><div class="ed-pe"><button class="ed-bt pri" data-acao="imprimir">imprimir / salvar PDF</button><div class="linha"><button class="ed-bt" data-acao="exportar">exportar configuração</button><button class="ed-bt" data-acao="importar">importar</button><button class="ed-bt" data-acao="padrao">voltar ao padrão</button></div>' +
-      '<input type="file" id="ed-imp" accept="application/json,.json" hidden><span class="ed-ok" id="ed-ok"></span><small id="dica-papel"></small></div></aside>';
+      '<input type="file" id="ed-imp" accept="application/json,.json" hidden><span class="ed-vivo" id="ed-vivo"><i></i><span>prancha avulsa (não ligada ao móvel)</span></span><span class="ed-ok" id="ed-ok"></span><small id="dica-papel"></small></div></aside>';
     return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pranchas · ' + esc(spec.nome) + '</title><style>' + CSS + '</style><style id="pagina"></style></head><body>' +
       ed + '<main id="area"><div id="pranchas"></div></main>' +
       '<script data-marce="engine.js" src="engine.js"></script><script data-marce="nesting.js" src="nesting.js"></script><script data-marce="render.js" src="render.js"></script><script data-marce="detalhes.js" src="detalhes.js"></script><script data-marce="report.js" src="report.js"></script>' +
       '<script>window.__MARCE__=' + json + ';MarceRelatorio.montar(window.__MARCE__);</script></body></html>';
   }
 
-  return { gerar: gerar, montar: montar, montarPranchas: montarPranchas, detalhe: detalhe, FOLHAS: FOLHAS };
+  return { vigiar: vigiar, receberDados: receberDados, gerar: gerar, montar: montar, montarPranchas: montarPranchas, detalhe: detalhe, FOLHAS: FOLHAS };
 });

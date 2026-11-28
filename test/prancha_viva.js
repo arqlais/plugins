@@ -1,0 +1,30 @@
+// Prancha ligada ao móvel: muda o arquivo de dados ao lado e a página aberta se redesenha sozinha.
+const { chromium } = require('playwright');
+const fs = require('fs'), path = require('path'), os = require('os');
+const UI = path.join(__dirname, '..', 'src', 'marce', 'ui');
+const E = require(path.join(UI, 'engine.js'));
+const REL = require(path.join(UI, 'report.js'));
+const embutir = (html) => html.replace(/<script data-marce="([a-z.]+)" src="[a-z.]+"><\/script>/g, (_m, f) => '<script>' + fs.readFileSync(path.join(UI, f), 'utf8').replace(/<\/script/gi, '<\\/script') + '</script>');
+(async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'marce-viva-'));
+  const s = E.specPadrao('balcao'); s.nome = 'Balcão da Laís'; s.colunas = E.autoColunas(s);
+  const dados = { spec: s, imagens: null, versao: 't', prancha: {}, projeto: {}, escritorio: {}, arquivo: '' };
+  const nome = 'Relatorio - Balcão da Laís';
+  const escrever = (sp, selo) => fs.writeFileSync(path.join(dir, nome + '.dados.js'), 'MarceRelatorio.receberDados(' + JSON.stringify(Object.assign({}, dados, { spec: sp, selo })) + ');');
+  escrever(s, '1');
+  const html = embutir(REL.gerar(E.calcular(s), dados)).replace(/<\/body>\s*<\/html>\s*$/, '<script>MarceRelatorio.vigiar(' + JSON.stringify(nome + '.dados.js') + ', "1");</script></body></html>');
+  fs.writeFileSync(path.join(dir, nome + '.html'), html);
+  const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1300, height: 900 } });
+  const erros = []; p.on('pageerror', (e) => erros.push(e.message));
+  await p.goto('file://' + path.join(dir, nome + '.html'));
+  await p.waitForTimeout(2600);
+  const antes = await p.evaluate(() => ({ nome: document.querySelector('.carimbo .nome').textContent, vivo: document.getElementById('ed-vivo').className }));
+  const s2 = JSON.parse(JSON.stringify(s)); s2.nome = 'Balcão alterado'; s2.L = 2000; s2.colunas = E.autoColunas(s2);
+  escrever(s2, '2');
+  await p.waitForFunction(() => document.querySelector('.carimbo .nome').textContent === 'Balcão alterado', null, { timeout: 8000 }).catch(() => {});
+  const depois = await p.evaluate(() => ({ nome: document.querySelector('.carimbo .nome').textContent, aviso: (document.getElementById('vivo') || {}).textContent || '', l200: document.body.innerHTML.includes('200,0') }));
+  await b.close();
+  const ok = !erros.length && antes.nome === 'Balcão da Laís' && /on/.test(antes.vivo) && depois.nome === 'Balcão alterado' && depois.l200 && /atualizada/.test(depois.aviso);
+  console.log(ok ? 'prancha ligada ao móvel: ok' : 'prancha ligada ao móvel FALHOU ' + JSON.stringify({ antes, depois, erros }));
+  process.exitCode = ok ? 0 : 1;
+})();

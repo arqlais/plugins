@@ -42,6 +42,17 @@ module ArqLais
       end
     end
 
+    def self.cmd_atualizar_prancha
+      model = Sketchup.active_model
+      grupo = Util.movel_selecionado(model)
+      return UI.messagebox('Selecione um móvel gerado pelo marcê.') unless grupo
+      if Exportar.atualizar_prancha(model, grupo)
+        Sketchup.status_text = 'marcê: prancha atualizada (a página aberta no navegador se redesenha sozinha)'
+      else
+        UI.messagebox('Este móvel ainda não tem prancha salva. Gere o relatório uma vez para ligar a prancha ao móvel; depois ela acompanha as mudanças.')
+      end
+    end
+
     def self.cmd_abrir_fechar
       Sketchup.active_model.select_tool(AbrirFechar::Ferramenta.new)
     end
@@ -105,6 +116,7 @@ module ArqLais
       menu.add_item(c_fechar_tudo)
       menu.add_separator
       menu.add_item(c_rel)
+      menu.add_item('Atualizar prancha do móvel') { cmd_atualizar_prancha }
       menu.add_item(c_lista)
       menu.add_separator
       menu.add_item('Autoteste (confere o plugin neste SketchUp)') { Autoteste.abrir }

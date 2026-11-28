@@ -1,16 +1,10 @@
 {
-  "versao": "1.12.0",
+  "versao": "1.13.0",
   "rbz": "dist/marce.rbz",
-  "sha256": "1a97ca25c57b32ab33539583d7967327b354104c515495f6c48d7cf17e60c040",
+  "sha256": "5c1308b6efbf4ffe9d00bf324763fd0c6349f236b5ea5badf5012339112e670e",
   "notas": [
-    "Autoteste (Extensões → marcê → Autoteste): gera 23 tipos de móvel no seu SketchUp, confere peças, portas e gavetas, faces, medidas, materiais, etiquetas, abrir/fechar, edição, fotos, relatório e lista de peças, e desfaz tudo no fim; botão para copiar o resultado",
-    "Fotos do relatório com a proporção da janela do SketchUp: móvel comprido não sai mais cortado",
-    "Editar um móvel que virou componente e foi copiado mexe só naquela cópia",
-    "Os nomes das peças não ganham mais \"#1\" a cada edição",
-    "Relatório abre certo em pastas com acento e em pastas de rede no Windows",
-    "Abrir e fechar portas e gavetas entra no Ctrl+Z; digitar os dados do projeto não enche mais o Ctrl+Z",
-    "Detecção da cuba certa mesmo com o móvel dentro de outro grupo",
-    "Se nenhuma peça puder ser desenhada, nada fica pela metade (o volume volta)",
-    "Menus não duplicam depois de atualizar"
+    "Prancha ligada ao móvel: depois de gerar o relatório uma vez, ao editar e atualizar o móvel a prancha aberta no navegador se redesenha sozinha (com fotos novas), mantendo cores, logotipo e dados do carimbo",
+    "Botão \"Atualizar prancha\" na aba Relatório e no menu Extensões → marcê",
+    "No painel do editor de pranchas, um indicador mostra se a prancha está ligada ao móvel"
   ]
 }

@@ -1,5 +1,10 @@
 # Novidades do marcê
 
+## 1.13.0
+- Prancha ligada ao móvel: depois de gerar o relatório uma vez, ao editar e atualizar o móvel a prancha aberta no navegador se redesenha sozinha (com fotos novas), mantendo cores, logotipo e dados do carimbo
+- Botão "Atualizar prancha" na aba Relatório e no menu Extensões → marcê
+- No painel do editor de pranchas, um indicador mostra se a prancha está ligada ao móvel
+
 ## 1.12.0
 - Autoteste (Extensões → marcê → Autoteste): gera 23 tipos de móvel no seu SketchUp, confere peças, portas e gavetas, faces, medidas, materiais, etiquetas, abrir/fechar, edição, fotos, relatório e lista de peças, e desfaz tudo no fim; botão para copiar o resultado
 - Fotos do relatório com a proporção da janela do SketchUp: móvel comprido não sai mais cortado

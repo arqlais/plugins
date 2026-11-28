@@ -240,6 +240,7 @@ module Sketchup
     def write_image(o); File.write(o[:filename], 'png'); true; end
   end
   class Model
+    include Atributos
     attr_reader :entities, :definitions, :materials, :layers, :selection, :active_view, :ops
     def initialize
       @entities = Entities.new; @definitions = DefinitionList.new; @materials = Materials.new; @layers = Layers.new

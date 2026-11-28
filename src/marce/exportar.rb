@@ -42,12 +42,50 @@ module ArqLais
         end
       end
 
-      def salvar_relatorio(model, html, nome)
-        html = embutir_scripts(html.to_s.sub('/*MARCE_FONTES*/') { css_fontes })
+      # grava o relatório (editor de pranchas) e um arquivo de dados ao lado: a prancha aberta no
+      # navegador confere esse arquivo e se redesenha quando o móvel muda
+      def salvar_relatorio(model, html, nome, dados = nil, grupo = nil, abrir: true)
         caminho = File.join(pasta_relatorios(model), Util.nome_arquivo(nome.to_s.sub(/\.html?\z/i, '')) + '.html')
+        arq_dados = File.basename(caminho, '.html') + '.dados.js'
+        selo = escrever_dados(caminho, dados) if dados.is_a?(Hash)
+        vigia = selo ? "<script>MarceRelatorio.vigiar(#{Util.json(arq_dados)}, #{Util.json(selo)});</script>" : ''
+        html = embutir_scripts(html.to_s.sub('/*MARCE_FONTES*/') { css_fontes }).sub(%r{</body>\s*</html>\s*\z}) { vigia + '</body></html>' }
         File.open(caminho, 'wb') { |f| f.write(html) }
-        Util.abrir_no_navegador(caminho)
+        if grupo && grupo.valid?
+          model.start_operation('marcê: ligar relatório', true, false, true)
+          grupo.set_attribute(DICT, 'relatorio', caminho)
+          model.commit_operation
+        end
+        Util.abrir_no_navegador(caminho) if abrir
         caminho
+      end
+
+      def escrever_dados(caminho_html, dados)
+        selo = Time.now.strftime('%Y%m%d%H%M%S%L')
+        arq = File.join(File.dirname(caminho_html), File.basename(caminho_html, '.html') + '.dados.js')
+        corpo = Util.json(dados.merge('selo' => selo)).gsub('</', '<\\/')
+        File.open(arq, 'wb') { |f| f.write("MarceRelatorio.receberDados(#{corpo});\n") }
+        selo
+      end
+
+      # o móvel mudou: regrava os dados (com fotos novas) e a prancha aberta se atualiza sozinha
+      def atualizar_prancha(model, grupo, capturar: true)
+        return nil unless grupo && grupo.valid?
+        caminho = grupo.get_attribute(DICT, 'relatorio').to_s
+        return nil if caminho.empty? || !File.exist?(caminho)
+        spec = Util.ler_json(grupo.get_attribute(DICT, 'spec') || '{}') || {}
+        imagens = capturar ? capturar_imagens(model, grupo) : nil
+        dados = {
+          'spec' => spec, 'imagens' => imagens, 'versao' => VERSAO, 'prancha' => spec['prancha'] || {},
+          'projeto' => Util.ler_json(model.get_attribute(DICT, 'projeto') || '{}') || {},
+          'escritorio' => (ler_padroes || {})['escritorio'] || {},
+          'arquivo' => File.basename(model.path.to_s)
+        }
+        escrever_dados(caminho, dados)
+        caminho
+      rescue StandardError => e
+        puts "marcê: não foi possível atualizar a prancha: #{e.message}"
+        nil
       end
 
       def salvar_csv(csv, nome)

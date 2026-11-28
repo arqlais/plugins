@@ -88,6 +88,9 @@ module ArqLais
             model.selection.add(grupo)
             imagens = dados['relatorio'] ? Exportar.capturar_imagens(model, grupo) : nil
             txt = erros.zero? ? 'Móvel gerado no modelo' : "Móvel gerado (#{erros} peça(s) com problema — veja o Console Ruby)"
+            # móvel com relatório já salvo: a prancha aberta no navegador se atualiza sozinha
+            prancha = !dados['relatorio'] && Exportar.atualizar_prancha(model, grupo)
+            txt += ' · prancha atualizada' if prancha
             enviar('tipo' => 'gerado', 'ok' => true, 'msg' => txt, 'relatorio' => dados['relatorio'] ? true : false, 'imagens' => imagens)
           rescue StandardError => e
             puts "marcê: #{e.class}: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
@@ -116,10 +119,21 @@ module ArqLais
         d.add_action_callback('salvarRelatorio') do |_c, j|
           dados = Util.ler_json(j)
           begin
-            caminho = Exportar.salvar_relatorio(Sketchup.active_model, dados['html'], dados['nome'])
-            enviar('tipo' => 'salvo', 'msg' => "Relatório salvo em #{caminho}")
+            grupo = @ctx && @ctx[:grupo] && @ctx[:grupo].valid? ? @ctx[:grupo] : nil
+            caminho = Exportar.salvar_relatorio(Sketchup.active_model, dados['html'], dados['nome'], dados['dados'], grupo)
+            enviar('tipo' => 'salvo', 'msg' => "Relatório salvo em #{caminho}" + (grupo ? ' · a prancha acompanha as mudanças deste móvel' : ''))
           rescue StandardError => e
             enviar('tipo' => 'aviso', 'msg' => "Não foi possível salvar o relatório: #{e.message}")
+          end
+        end
+
+        d.add_action_callback('atualizarPrancha') do |_c, _j|
+          grupo = @ctx && @ctx[:grupo]
+          caminho = grupo && grupo.valid? ? Exportar.atualizar_prancha(Sketchup.active_model, grupo) : nil
+          if caminho
+            enviar('tipo' => 'salvo', 'msg' => 'Prancha atualizada: a página aberta no navegador se redesenha sozinha.')
+          else
+            enviar('tipo' => 'aviso', 'msg' => 'Este móvel ainda não tem prancha salva: gere o relatório uma vez para ligar a prancha ao móvel.')
           end
         end
 

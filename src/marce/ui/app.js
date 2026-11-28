@@ -15,7 +15,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: true, relatorioJunto: true,
-    padroes: null, projeto: {}, versao: '1.12.0', gerando: false, atualizacao: null, atualizando: false
+    padroes: null, projeto: {}, versao: '1.13.0', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -511,9 +511,9 @@
   }
 
   function abaRelatorio() {
-    var h = '<div class="grupo"><h4>Relatório executivo' + aj('relatorio') + '</h4><p class="ajuda amb">O relatório abre no navegador como um <b>editor de pranchas</b>: lá você escolhe folha, cores, cota, logotipo, dados do escritório e do projeto e quais pranchas entram. Fica salvo no navegador e não pesa no SketchUp.</p>';
+    var h = '<div class="grupo"><h4>Relatório executivo' + aj('relatorio') + '</h4><p class="ajuda amb">O relatório abre no navegador como um <b>editor de pranchas</b>: lá você escolhe folha, cores, cota, logotipo, dados do escritório e do projeto e quais pranchas entram. Fica salvo no navegador e não pesa no SketchUp.</p><p class="ajuda">A prancha aberta acompanha o móvel: ao atualizar o móvel, ela se redesenha sozinha (ou use <b>Atualizar prancha</b>).</p>';
     h += '<label class="interruptor"><input type="checkbox" data-act-chk="relatorioJunto"' + (st.relatorioJunto ? ' checked' : '') + '><span class="trilho"></span><span class="txt">Abrir o editor de pranchas junto ao gerar o móvel</span></label>';
-    h += '<div class="linha-botoes"><button class="botao" data-act="relatorio">Abrir editor de pranchas</button><button class="botao" data-act="csv">Exportar lista de peças (CSV)</button></div></div>';
+    h += '<div class="linha-botoes"><button class="botao" data-act="relatorio">Abrir editor de pranchas</button><button class="botao" data-act="atualizarPrancha">Atualizar prancha</button><button class="botao" data-act="csv">Exportar lista de peças (CSV)</button></div></div>';
     h += '<div class="grupo"><h4>Código do móvel</h4><div class="campo"><label>Código na planta de marcenaria</label><input type="text" data-path="codigo" value="' + esc(st.spec.codigo || 'M01') + '" placeholder="M01" maxlength="8" style="max-width:90px"></div><p class="ajuda">Cada móvel novo recebe o próximo código livre (M01, M02...). Ele aparece no selo da isométrica, no topo das pranchas e na planta de marcenaria.</p></div>';
     h += '<div class="grupo"><h4>No modelo</h4><p class="ajuda">Depois de gerar: use <b>Extensões → marcê → Abrir/fechar portas e gavetas</b> e clique numa porta ou gaveta para ver o interior. Para editar, selecione o móvel e clique em <b>Editar móvel</b> (ou botão direito → marcê).</p></div>';
     return h;
@@ -621,6 +621,7 @@
         renderPainel(); return;
       case 'detectarCuba': enviar('detectarCuba', { L: s.L, D: s.D, H: s.H }); toast('Procurando cuba no modelo…'); return;
       case 'relatorio': abrirRelatorio(null); return;
+      case 'atualizarPrancha': if (!enviar('atualizarPrancha', {})) toast('Abra pelo SketchUp para atualizar a prancha.'); return;
       case 'csv': exportarCsv(); return;
       case 'gerar': gerar(); return;
       case 'cancelar': if (!enviar('cancelar', {})) toast('Fora do SketchUp: nada para cancelar'); return;
@@ -737,9 +738,11 @@
   }
 
   function abrirRelatorio(imagens) {
-    var html = REL.gerar(st.modelo, { imagens: imagens, versao: st.versao, prancha: st.spec.prancha, projeto: st.projeto || {}, escritorio: (st.padroes && st.padroes.escritorio) || {}, arquivo: st.arquivo || '' });
+    var opts = { imagens: imagens, versao: st.versao, prancha: st.spec.prancha, projeto: st.projeto || {}, escritorio: (st.padroes && st.padroes.escritorio) || {}, arquivo: st.arquivo || '' };
+    var html = REL.gerar(st.modelo, opts);
     var nome = 'Relatorio - ' + nomeArquivo(st.spec.nome) + '.html';
-    if (!enviar('salvarRelatorio', { html: html, nome: nome })) {
+    var dados = { spec: st.modelo.spec, imagens: imagens || null, versao: st.versao, prancha: st.spec.prancha || {}, projeto: opts.projeto, escritorio: opts.escritorio, arquivo: opts.arquivo };
+    if (!enviar('salvarRelatorio', { html: html, nome: nome, dados: dados })) {
       var w = window.open('', '_blank');
       if (w) { w.document.open(); w.document.write(html); w.document.close(); }
       else baixar(nome, html, 'text/html;charset=utf-8');

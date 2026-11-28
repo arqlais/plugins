@@ -266,3 +266,36 @@ class TesteAutoteste < Minitest::Test
     assert amb['itens'].find { |i| i['nome'] == 'arquivos da janela' }['ok'], 'arquivos da janela presentes'
   end
 end
+
+class TestePranchaViva < Minitest::Test
+  M = ArqLais::Marce
+  def setup
+    Sketchup.reset!
+    @model = Sketchup.active_model
+  end
+
+  def test_relatorio_ligado_ao_movel_e_atualizado
+    dados = dados_do_motor('video')
+    grupo, = M::Construtor.gerar(@model, dados, {})
+    html = "<!doctype html><html><head></head><body>x</body></html>"
+    caminho = M::Exportar.salvar_relatorio(@model, html, 'Relatorio - Teste Laís', { 'spec' => dados['spec'] }, grupo, abrir: false)
+    arq = caminho.sub(/\.html\z/, '.dados.js')
+    assert File.exist?(arq), 'grava o arquivo de dados ao lado'
+    assert_includes File.read(caminho, encoding: 'UTF-8'), 'MarceRelatorio.vigiar(', 'prancha passa a acompanhar o arquivo'
+    assert_equal caminho, grupo.get_attribute('marce', 'relatorio'), 'móvel lembra da prancha'
+    selo1 = File.read(arq, encoding: 'UTF-8')[/"selo":"(\d+)"/, 1]
+    sleep 0.01
+    assert M::Exportar.atualizar_prancha(@model, grupo, capturar: false), 'atualiza a prancha'
+    selo2 = File.read(arq, encoding: 'UTF-8')[/"selo":"(\d+)"/, 1]
+    refute_equal selo1, selo2, 'dados novos com selo novo'
+    assert_includes File.read(arq, encoding: 'UTF-8'), 'MarceRelatorio.receberDados('
+    assert_empty @model.ops.select { |o| o[0] == :aninhada }
+  ensure
+    [caminho, arq].compact.each { |f| File.delete(f) if File.exist?(f) }
+  end
+
+  def test_sem_relatorio_nao_atualiza
+    grupo, = M::Construtor.gerar(@model, dados_do_motor('video'), {})
+    assert_nil M::Exportar.atualizar_prancha(@model, grupo, capturar: false)
+  end
+end
