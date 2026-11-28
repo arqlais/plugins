@@ -90,6 +90,11 @@ module ArqLais
             if fim
               UI.stop_timer(id)
               @animando.delete(eid)
+              begin
+                registrar(g, de, para) if g.valid?
+              rescue StandardError
+                nil # modelo fechado ou peça apagada no meio da animação
+              end
             end
           end
         end
@@ -115,9 +120,28 @@ module ArqLais
       end
 
       # abre/fecha todos os conjuntos de um móvel (sem animação)
-      def todos(movel, abrir)
-        conjuntos(movel).each { |g| aplicar(g, abrir ? 1.0 : 0.0) }
-        Sketchup.active_model.active_view.invalidate
+      # operacao: false quando quem chama já está dentro de uma operação (autoteste)
+      def todos(movel, abrir, operacao: true)
+        model = Sketchup.active_model
+        model.start_operation(abrir ? 'marcê: abrir tudo' : 'marcê: fechar tudo', true) if operacao
+        conjuntos(movel).each { |g| g.transformation = movimento(g, abrir ? 1.0 : 0.0) * base(g) }
+        model.commit_operation if operacao
+        model.active_view.invalidate
+      end
+
+      # grava a posição final numa operação (o Ctrl+Z fecha/abre de volta); a animação usa move!
+      def registrar(g, de, para)
+        model = Sketchup.active_model
+        aplicar(g, de)
+        model.start_operation(para > de ? 'marcê: abrir' : 'marcê: fechar', true)
+        g.transformation = movimento(g, para) * base(g)
+        model.commit_operation
+      rescue StandardError
+        begin
+          aplicar(g, para)
+        rescue StandardError
+          nil
+        end
       end
 
       class Ferramenta

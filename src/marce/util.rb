@@ -83,7 +83,25 @@ module ArqLais
         {}
       end
 
+      # posição do grupo/componente no modelo, somando os grupos em volta
+      def transformacao_mundo(ent)
+        t = ent.transformation
+        pai = ent.parent
+        guarda = 0
+        while pai.is_a?(Sketchup::ComponentDefinition) && (inst = pai.instances.first) && guarda < 20
+          t = inst.transformation * t
+          pai = inst.parent
+          guarda += 1
+        end
+        t
+      end
+
       def abrir_no_navegador(caminho)
+        if Sketchup.respond_to?(:platform) && Sketchup.platform == :platform_win
+          # o Windows recebe o caminho como texto Unicode: não codifica acentos (só # % ?)
+          c = caminho.to_s.tr('\\', '/').gsub('%', '%25').gsub('#', '%23').gsub('?', '%3F')
+          return UI.openURL(c.start_with?('//') ? 'file:' + c : 'file:///' + c)
+        end
         partes = caminho.to_s.tr('\\', '/').sub(%r{\A/+}, '').split('/')
         seguras = partes.each_with_index.map do |p, i|
           next p if i.zero? && p =~ /\A[A-Za-z]:\z/ # letra do disco no Windows

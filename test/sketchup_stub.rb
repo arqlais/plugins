@@ -249,9 +249,10 @@ module Sketchup
     def active_entities; @entities; end
     def edit_transform; @edit_transform_teste || Geom::Transformation.new; end
     def close_active; @active_path = nil; true; end
-    def start_operation(n, *_); @ops << [:start, n]; end
-    def commit_operation; @ops << [:commit]; end
-    def abort_operation; @ops << [:abort]; end
+    # operação aberta dentro de outra é erro (no SketchUp a de fora seria gravada sem querer)
+    def start_operation(n, *_); @ops << [:aninhada, n] if @aberta; @aberta = true; @ops << [:start, n]; end
+    def commit_operation; @aberta = false; @ops << [:commit]; end
+    def abort_operation; @aberta = false; @ops << [:abort]; end
     def path; ''; end
   end
 

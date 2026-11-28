@@ -190,8 +190,13 @@ module ArqLais
         nil
       end
 
-      def capturar(view, nome, largura = 1400, altura = 900)
+      def capturar(view, nome, largura = 1400, altura = nil)
         view.refresh if view.respond_to?(:refresh)
+        if altura.nil?
+          vw = view.respond_to?(:vpwidth) ? view.vpwidth.to_f : 0
+          vh = view.respond_to?(:vpheight) ? view.vpheight.to_f : 0
+          altura = vw > 10 && vh > 10 ? (largura * vh / vw).round : 900
+        end
         arq = File.join(Sketchup.temp_dir, "marce_#{nome}_#{Time.now.to_i}.png")
         ok = view.write_image(filename: arq, width: largura, height: altura, antialias: true, transparent: false)
         return nil unless ok && File.exist?(arq)

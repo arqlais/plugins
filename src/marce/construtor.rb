@@ -28,9 +28,12 @@ module ArqLais
         grupo = alvo[:grupo]
         defs_antigas = []
         if grupo && grupo.valid?
-          grupo.make_unique if grupo.is_a?(Sketchup::Group)
+          # móvel que virou componente e foi copiado: editar mexe só nesta cópia
+          grupo.make_unique if grupo.respond_to?(:make_unique)
           defs_antigas = definicoes_usadas(Util.entidades_de(grupo))
           Util.entidades_de(grupo).clear!
+          # limpa já as definições que saíram de uso: as novas reaproveitam o nome (sem "#1")
+          limpar_definicoes(model, defs_antigas)
         else
           t = alvo[:ancora] ? Volume.transformacao(alvo[:ancora]) : Geom::Transformation.new
           if alvo[:ancora].nil? && spec['base'] && spec['base']['tipo'] == 'suspenso'
@@ -85,6 +88,8 @@ module ArqLais
             puts "marcê: falha na peça #{p['nome']}: #{e.message}"
           end
         end
+
+        raise "Nenhuma peça pôde ser desenhada (#{erros} erros). Veja o Console Ruby." if erros >= pecas.length
 
         grupo.set_attribute(DICT, 'versao', VERSAO)
         grupo.set_attribute(DICT, 'spec', Util.json(spec))

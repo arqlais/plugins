@@ -122,10 +122,10 @@ module ArqLais
           med = format('%.0f × %.0f × %.0f mm (pedido %d × %d × %d)', l, pf, a, spec['L'].to_i, spec['D'].to_i, spec['H'].to_i)
           ok.call('medidas do móvel conferem', lim.call(l, spec['L'], 160) && lim.call(pf, spec['D'], 220) && lim.call(a, spec['H'], 80), med)
 
-          AbrirFechar.todos(grupo, true)
+          AbrirFechar.todos(grupo, true, operacao: false)
           abertos = movs.count { |g| AbrirFechar.aberto?(g) }
           ok.call('abrir tudo abre todas as portas e gavetas', abertos == movs.length, "#{abertos} de #{movs.length}")
-          AbrirFechar.todos(grupo, false)
+          AbrirFechar.todos(grupo, false, operacao: false)
           fechados = movs.count { |g| !AbrirFechar.aberto?(g) }
           ok.call('fechar tudo volta cada peça ao lugar exato', fechados == movs.length, "#{fechados} de #{movs.length}")
 

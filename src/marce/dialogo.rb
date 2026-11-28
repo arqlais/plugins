@@ -100,7 +100,7 @@ module ArqLais
           model = Sketchup.active_model
           t = nil
           if @ctx[:grupo] && @ctx[:grupo].valid?
-            t = @ctx[:grupo].transformation
+            t = Util.transformacao_mundo(@ctx[:grupo])
           elsif @ctx[:volume]
             t = Volume.transformacao(@ctx[:volume])
           end
@@ -133,7 +133,7 @@ module ArqLais
           dados = Util.ler_json(j)
           model = Sketchup.active_model
           if dados['projeto'].is_a?(Hash)
-            model.start_operation('marcê: dados do projeto', true)
+            model.start_operation('marcê: dados do projeto', true, false, true) # transparente: não vira passo do Ctrl+Z
             model.set_attribute(DICT, 'projeto', Util.json(dados['projeto']))
             model.commit_operation
           end

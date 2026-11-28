@@ -71,7 +71,8 @@ module ArqLais
               m.texture = tex
             end
             larg = (info['texturaLargura'] || 1200).to_f
-            m.texture.size = larg.mm if m.texture
+            m.texture.size = larg.mm if m.texture && (chave == 'frente' || !m.get_attribute(DICT, 'veio_ajustado'))
+            m.set_attribute(DICT, 'veio_ajustado', true) if chave == 'frente'
             m.color = cor
             m.colorize_type = Sketchup::Material::COLORIZE_TINT if m.respond_to?(:colorize_type=)
           rescue StandardError

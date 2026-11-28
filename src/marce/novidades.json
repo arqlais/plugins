@@ -1,5 +1,19 @@
 [
   {
+    "versao": "1.12.0",
+    "notas": [
+      "Autoteste (Extensões → marcê → Autoteste): gera 23 tipos de móvel no seu SketchUp, confere peças, portas e gavetas, faces, medidas, materiais, etiquetas, abrir/fechar, edição, fotos, relatório e lista de peças, e desfaz tudo no fim; botão para copiar o resultado",
+      "Fotos do relatório com a proporção da janela do SketchUp: móvel comprido não sai mais cortado",
+      "Editar um móvel que virou componente e foi copiado mexe só naquela cópia",
+      "Os nomes das peças não ganham mais \"#1\" a cada edição",
+      "Relatório abre certo em pastas com acento e em pastas de rede no Windows",
+      "Abrir e fechar portas e gavetas entra no Ctrl+Z; digitar os dados do projeto não enche mais o Ctrl+Z",
+      "Detecção da cuba certa mesmo com o móvel dentro de outro grupo",
+      "Se nenhuma peça puder ser desenhada, nada fica pela metade (o volume volta)",
+      "Menus não duplicam depois de atualizar"
+    ]
+  },
+  {
     "versao": "1.11.0",
     "notas": [
       "Tamanho da folha editável no editor de pranchas: A4 a A0 ou personalizada (largura e altura em mm), deitada ou em pé",

@@ -34,6 +34,11 @@ def dados_do_motor(cenario)
 end
 
 class TesteMarce < Minitest::Test
+  def teardown
+    aninhadas = Sketchup.active_model.ops.select { |o| o[0] == :aninhada }
+    assert_empty aninhadas, 'operação aberta dentro de outra'
+  end
+
   M = ArqLais::Marce
 
   def setup
@@ -253,6 +258,7 @@ class TesteAutoteste < Minitest::Test
     assert_empty falhas.map { |i| "#{i['nome']}: #{i['detalhe']}" }, 'autoteste aponta falha num móvel correto'
     assert_equal [:abort], @model.ops.last, 'autoteste desfaz tudo no fim'
     refute @model.ops.include?([:commit]), 'nada fica gravado no modelo'
+    assert_empty @model.ops.select { |o| o[0] == :aninhada }, 'nenhuma operação aberta dentro de outra'
   end
 
   def test_autoteste_ambiente

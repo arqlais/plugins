@@ -85,7 +85,8 @@ module ArqLais
       c
     end
 
-    unless file_loaded?(__FILE__)
+    unless file_loaded?(__FILE__) || @menus_criados
+      @menus_criados = true
       c_novo = comando('Novo móvel', 'Cria um móvel a partir do volume selecionado', 'novo') { cmd_novo }
       c_editar = comando('Editar móvel', 'Abre o móvel selecionado para editar', 'editar') { cmd_editar }
       c_abrir = comando('Abrir/fechar portas e gavetas', 'Clique numa porta, gaveta ou aramado para abrir/fechar', 'abrir') { cmd_abrir_fechar }
