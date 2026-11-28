@@ -1,9 +1,9 @@
 {
-  "versao": "1.22.1",
+  "versao": "1.22.2",
   "rbz": "dist/marce.rbz",
-  "sha256": "5f0d5817b41a2b48d73d25a87512e60edfe3634479f2a8a1692ce494ba4b7a15",
+  "sha256": "79789a251ae42c0ad8348371029215f9308dcfb30875fb87e5798e50e720d428",
   "notas": [
-    "Tipo de frente por faixa: cada faixa (e cada coluna) pode ser lisa, ripada, moldura, vidro ou palhinha; o tipo da etapa Frentes vale para as outras",
-    "Prévia mostra a cor do vidro escolhido (fumê, bronze...)"
+    "Guarda-roupa novo como é mais comum: portas na altura toda (sem o maleiro em cima), em pares, com gavetas embaixo e o interior variando de par em par (cabideiro + gavetas, vestidos longos com gavetas, gavetas + prateleiras)",
+    "O resumo conta as gavetas internas e as folhas de correr"
   ]
 }

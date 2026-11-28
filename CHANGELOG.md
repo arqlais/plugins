@@ -1,5 +1,9 @@
 # Novidades da planê.mob
 
+## 1.22.2
+- Guarda-roupa novo como é mais comum: portas na altura toda (sem o maleiro em cima), em pares, com gavetas embaixo e o interior variando de par em par (cabideiro + gavetas, vestidos longos com gavetas, gavetas + prateleiras)
+- O resumo conta as gavetas internas e as folhas de correr
+
 ## 1.22.1
 - Tipo de frente por faixa: cada faixa (e cada coluna) pode ser lisa, ripada, moldura, vidro ou palhinha; o tipo da etapa Frentes vale para as outras
 - Prévia mostra a cor do vidro escolhido (fumê, bronze...)

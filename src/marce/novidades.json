@@ -1,5 +1,12 @@
 [
   {
+    "versao": "1.22.2",
+    "notas": [
+      "Guarda-roupa novo como é mais comum: portas na altura toda (sem o maleiro em cima), em pares, com gavetas embaixo e o interior variando de par em par (cabideiro + gavetas, vestidos longos com gavetas, gavetas + prateleiras)",
+      "O resumo conta as gavetas internas e as folhas de correr"
+    ]
+  },
+  {
     "versao": "1.22.1",
     "notas": [
       "Tipo de frente por faixa: cada faixa (e cada coluna) pode ser lisa, ripada, moldura, vidro ou palhinha; o tipo da etapa Frentes vale para as outras",

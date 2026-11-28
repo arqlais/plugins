@@ -356,10 +356,16 @@
         for (i = 0; i < n; i++) add([novaSecao('gavetas', { gavetas: 4 })]);
         return cols;
       case 'roupeiro':
+        // o mais comum: portas na altura toda, em pares, com gavetas embaixo (por dentro) e o interior
+        // variando de par em par: cabideiro + gavetas, vestidos longos com gavetas, gavetas + prateleiras
+        var interiores = [
+          [{ tipo: 'gavetas', qtd: 2 }, { tipo: 'cabideiro', uso: 'medio' }, { tipo: 'prateleiras' }],
+          [{ tipo: 'gavetas', qtd: 2 }, { tipo: 'cabideiro', uso: 'alto' }],
+          [{ tipo: 'gavetas', qtd: 3 }, { tipo: 'prateleiras' }]
+        ];
         for (i = 0; i < n; i++) {
-          var maleiro = novaSecao('portas', { altura: 450, prateleiras: 0, interior: 'vazio' });
-          if (n >= 3 && i === n - 1) add([novaSecao('gavetas', { altura: 600, gavetas: 3 }), novaSecao('portas', { prateleiras: 3 }), maleiro]);
-          else add([novaSecao('portas', { prateleiras: 0, interior: 'cabideiro' }), maleiro]);
+          var par = Math.floor(i / 2) % interiores.length;
+          add([novaSecao('portas', { prateleiras: 3, interior: 'prateleiras', interno: JSON.parse(JSON.stringify(interiores[par])) })]);
         }
         return cols;
       case 'estante':
@@ -2039,9 +2045,9 @@
         frentes: 1,
         vaos: R.vaos.length || spec.colunas.length,
         colunas: spec.colunas.length,
-        portas: frentesP.filter(function (p) { return p.meta.tipo === 'porta'; }).length,
         basculantes: frentesP.filter(function (p) { return p.meta.tipo === 'basculante'; }).length,
-        gavetas: frentesP.filter(function (p) { return p.meta.tipo === 'gaveta'; }).length,
+        gavetas: frentesP.filter(function (p) { return p.meta.tipo === 'gaveta'; }).length + pecas.filter(function (p) { return p.nome === 'Frente gaveta interna'; }).length, // inclui as internas (atrás das portas)
+        portas: frentesP.filter(function (p) { return p.meta.tipo === 'porta' || p.meta.tipo === 'correr'; }).length,
         especiais: frentesP.filter(function (p) { return /temperos|lixeira|fruteira/.test(p.meta.tipo); }).length,
         pecas: pecas.filter(function (p) { return p.cortavel; }).length,
         erros: nErros,
