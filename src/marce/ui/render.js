@@ -491,6 +491,7 @@
       P.forEach(function (q) { var X = dot(q, right), Y = -dot(q, sup); r2[0] = Math.min(r2[0], X); r2[1] = Math.min(r2[1], Y); r2[2] = Math.max(r2[2], X); r2[3] = Math.max(r2[3], Y); });
       grupos.push({ faces: faces, bb: bb, r2: r2, prof: dot(centro, dir) });
     });
+    if (opts.soFaces) return { grupos: grupos, dir: dir, right: right, sup: sup };
     // Ordem de pintura por peça: caixas separadas por um eixo têm ordem exata
     // (a de trás primeiro); as demais seguem a profundidade do centro.
     function atras(A, B) { // 1: A atrás de B, -1: A na frente, 0: indefinido
@@ -532,6 +533,120 @@
     return '<svg class="desenho perspectiva" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + n1(maxX - minX + 2 * m) + ' ' + n1(maxY - minY + 2 * m) + '" preserveAspectRatio="xMidYMid meet">' + s.join('') + '</svg>';
   }
 
+
+  // ================================================================
+  // PRÉVIA 3D EM CANVAS COM PROFUNDIDADE POR PIXEL (z-buffer)
+  // Nada aparece na frente do que está mais perto, por mais que portas e gavetas abertas se enrosquem.
+  // Guarda, para cada pixel, de qual porta/gaveta/coluna ele é (clique para abrir e editar).
+  // ================================================================
+  function hexRgb(h) {
+    h = String(h || '#999').replace('#', '');
+    if (h.length === 3) h = h.split('').map(function (c) { return c + c; }).join('');
+    var n = parseInt(h, 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  function corRgb(c) {
+    var m = /rgba?\(([^)]+)\)/.exec(c);
+    if (m) { var v = m[1].split(',').map(Number); return [v[0], v[1], v[2]]; }
+    return hexRgb(c);
+  }
+  // triangula um polígono (2D da tela) por recorte de orelhas; aceita polígono côncavo
+  function triangular(p) {
+    var n = p.length, idx = [], k;
+    if (n < 3) return [];
+    var area = 0;
+    for (k = 0; k < n; k++) { var a = p[k], b = p[(k + 1) % n]; area += a[0] * b[1] - b[0] * a[1]; }
+    for (k = 0; k < n; k++) idx.push(area > 0 ? k : n - 1 - k);
+    var tris = [], guarda = 0;
+    function dentro(q, a, b, c) {
+      var d1 = (q[0] - b[0]) * (a[1] - b[1]) - (a[0] - b[0]) * (q[1] - b[1]);
+      var d2 = (q[0] - c[0]) * (b[1] - c[1]) - (b[0] - c[0]) * (q[1] - c[1]);
+      var d3 = (q[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (q[1] - a[1]);
+      return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0));
+    }
+    while (idx.length > 3 && guarda++ < 400) {
+      var achou = false;
+      for (k = 0; k < idx.length; k++) {
+        var i0 = idx[(k + idx.length - 1) % idx.length], i1 = idx[k], i2 = idx[(k + 1) % idx.length];
+        var A = p[i0], B = p[i1], C = p[i2];
+        if ((B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0]) <= 0) continue;
+        var vazio = true;
+        for (var q = 0; q < idx.length && vazio; q++) { var iq = idx[q]; if (iq !== i0 && iq !== i1 && iq !== i2 && dentro(p[iq], A, B, C)) vazio = false; }
+        if (!vazio) continue;
+        tris.push([i0, i1, i2]); idx.splice(k, 1); achou = true; break;
+      }
+      if (!achou) break;
+    }
+    if (idx.length >= 3) for (k = 1; k < idx.length - 1; k++) tris.push([idx[0], idx[k], idx[k + 1]]);
+    return tris;
+  }
+
+  function desenharCanvas(canvas, M, opts) {
+    opts = opts || {};
+    var dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
+    var cw = canvas.clientWidth || 800, ch = canvas.clientHeight || 500;
+    var W = Math.max(50, Math.round(cw * dpr)), H = Math.max(50, Math.round(ch * dpr));
+    canvas.width = W; canvas.height = H;
+    var g = canvas.getContext('2d');
+    var dados = perspectiva(M, Object.assign({}, opts, { soFaces: true }));
+    if (!dados || !dados.grupos) { g.clearRect(0, 0, W, H); return; }
+    var dir = dados.dir, right = dados.right, sup = dados.sup;
+    var faces = [];
+    dados.grupos.forEach(function (gr) { gr.faces.forEach(function (f) { faces.push(f); }); });
+    var minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9;
+    faces.forEach(function (f) {
+      f.p2 = f.pts.map(function (q) { var x = dot(q, right), y = -dot(q, sup); minX = Math.min(minX, x); maxX = Math.max(maxX, x); minY = Math.min(minY, y); maxY = Math.max(maxY, y); return [x, y, dot(q, dir)]; });
+    });
+    var mg = 0.06, esc = Math.min(W * (1 - 2 * mg) / Math.max(1, maxX - minX), H * (1 - 2 * mg) / Math.max(1, maxY - minY));
+    var ox = (W - (maxX - minX) * esc) / 2 - minX * esc, oy = (H - (maxY - minY) * esc) / 2 - minY * esc;
+    var zb = new Float32Array(W * H).fill(1e30), img = g.createImageData(W, H), px = img.data, ids = new Int32Array(W * H).fill(-1);
+    var infos = [];
+    function tri(a, b, c, cor, id) {
+      var x0 = Math.max(0, Math.floor(Math.min(a[0], b[0], c[0]))), x1 = Math.min(W - 1, Math.ceil(Math.max(a[0], b[0], c[0])));
+      var y0 = Math.max(0, Math.floor(Math.min(a[1], b[1], c[1]))), y1 = Math.min(H - 1, Math.ceil(Math.max(a[1], b[1], c[1])));
+      var den = (b[1] - c[1]) * (a[0] - c[0]) + (c[0] - b[0]) * (a[1] - c[1]);
+      if (Math.abs(den) < 1e-9) return;
+      for (var y = y0; y <= y1; y++) {
+        for (var x = x0; x <= x1; x++) {
+          var X = x + 0.5, Y = y + 0.5;
+          var w0 = ((b[1] - c[1]) * (X - c[0]) + (c[0] - b[0]) * (Y - c[1])) / den;
+          var w1 = ((c[1] - a[1]) * (X - c[0]) + (a[0] - c[0]) * (Y - c[1])) / den;
+          var w2 = 1 - w0 - w1;
+          if (w0 < -1e-6 || w1 < -1e-6 || w2 < -1e-6) continue;
+          var z = w0 * a[2] + w1 * b[2] + w2 * c[2], k = y * W + x;
+          if (z < zb[k]) { zb[k] = z; var o = k * 4; px[o] = cor[0]; px[o + 1] = cor[1]; px[o + 2] = cor[2]; px[o + 3] = 255; ids[k] = id; }
+        }
+      }
+    }
+    var arestas = [];
+    faces.forEach(function (f, fi) {
+      var p = f.p2.map(function (q) { return [q[0] * esc + ox, q[1] * esc + oy, q[2]]; });
+      var id = infos.length;
+      infos.push({ conj: f.conj || '', col: f.col, secao: f.secao });
+      var cor = corRgb(f.cor);
+      triangular(p).forEach(function (t) { tri(p[t[0]], p[t[1]], p[t[2]], cor, id); });
+      if (f.linha !== f.cor) for (var k = 0; k < p.length; k++) arestas.push([p[k], p[(k + 1) % p.length], corRgb(f.linha)]);
+    });
+    // arestas com teste de profundidade (um pouco de folga para ficarem por cima da própria face)
+    var folga = 4; // mm: a aresta fica por cima da própria face, mas não aparece através de outra peça
+    arestas.forEach(function (ar) {
+      var a = ar[0], b = ar[1], cor = ar[2];
+      var n = Math.ceil(Math.max(Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1]))) + 1;
+      for (var i = 0; i <= n; i++) {
+        var t = i / n, x = Math.round(a[0] + (b[0] - a[0]) * t - 0.5), y = Math.round(a[1] + (b[1] - a[1]) * t - 0.5);
+        if (x < 0 || y < 0 || x >= W || y >= H) continue;
+        var k = y * W + x, z = a[2] + (b[2] - a[2]) * t;
+        if (z <= zb[k] + folga) { var o = k * 4; px[o] = cor[0]; px[o + 1] = cor[1]; px[o + 2] = cor[2]; px[o + 3] = 255; }
+      }
+    });
+    g.putImageData(img, 0, 0);
+    canvas.__pegar = function (cx, cy) {
+      var x = Math.floor(cx * dpr), y = Math.floor(cy * dpr);
+      if (x < 0 || y < 0 || x >= W || y >= H) return null;
+      var id = ids[y * W + x];
+      return id >= 0 ? infos[id] : null;
+    };
+  }
 
   // ================================================================
   // DESENHO TÉCNICO EM ESCALA (pranchas) — linhas, cotas ABNT
@@ -1016,5 +1131,5 @@
     return '<svg class="desenho chapa" xmlns="http://www.w3.org/2000/svg" viewBox="-4 -4 ' + (g.w + 8) + ' ' + (g.h + 8) + '">' + s.join('') + '</svg>';
   }
 
-  return { corMat: corMat, frontalInterna: frontalInterna, lateralExterna: lateralExterna, frontalTecnico: frontalTecnico, plantaTecnica: plantaTecnica, corteTecnico: corteTecnico, colunasTipicas: colunasTipicas, balao: balao, COR_LED: COR_LED, escolherEscala: escolherEscala, fmtUn: fmtUn, cotaT: cotaT, frontal: frontal, planta: planta, perspectiva: perspectiva, chapaSvg: chapaSvg, cor: { shade: shade, lighten: lighten, lum: lum }, esc: esc, cotaH: cotaH, cotaV: cotaV };
+  return { corMat: corMat, frontalInterna: frontalInterna, lateralExterna: lateralExterna, frontalTecnico: frontalTecnico, plantaTecnica: plantaTecnica, corteTecnico: corteTecnico, colunasTipicas: colunasTipicas, balao: balao, COR_LED: COR_LED, escolherEscala: escolherEscala, fmtUn: fmtUn, cotaT: cotaT, frontal: frontal, planta: planta, perspectiva: perspectiva, desenharCanvas: desenharCanvas, chapaSvg: chapaSvg, cor: { shade: shade, lighten: lighten, lum: lum }, esc: esc, cotaH: cotaH, cotaV: cotaV };
 });

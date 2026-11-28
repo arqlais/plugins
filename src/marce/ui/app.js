@@ -15,7 +15,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: false, relatorioJunto: false, bib: [], bibBusca: {}, bibFiltro: 'todos',
-    padroes: null, projeto: {}, versao: '1.22.3', gerando: false, atualizacao: null, atualizando: false
+    padroes: null, projeto: {}, versao: '1.22.4', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -191,11 +191,13 @@
     } else if (st.vista === '3d') {
       var algumAberto = st.aberto3d || Object.keys(st.abertos || {}).some(function (k) { return st.abertos[k]; });
       html = '<div class="barra-visao"><span class="dica-clique">Arraste para girar · clique numa porta ou gaveta para abrir · duplo clique para editar</span><div class="segmentado mini"><button data-act="cam:reset" title="Voltar para a isométrica">iso</button><button data-act="aberto:0" class="' + (!algumAberto ? 'ativo' : '') + '">fechado</button><button data-act="aberto:1" class="' + (st.aberto3d ? 'ativo' : '') + '">tudo aberto</button></div></div>' +
-        '<div class="area-desenho orbita">' + R.perspectiva(M, { aberto: st.aberto3d ? true : (st.abertos || {}), camera: st.cam, clicavel: true }) + '</div>';
+        '<div class="area-desenho orbita"><canvas class="cv3d"></canvas></div>';
     } else {
       html = vistaPecas(M);
     }
     el.innerHTML = html;
+    var cv = el.querySelector('canvas.cv3d');
+    if (cv) R.desenharCanvas(cv, M, { aberto: st.aberto3d ? true : (st.abertos || {}), camera: st.cam, clicavel: true });
   }
 
   function vistaPecas(M) {
@@ -266,7 +268,7 @@
     var at = st.atualizacao;
     var htmlVersao = '<span class="versao">planê<i>.mob</i> ' + esc(st.versao) + '</span>';
     if (st.atualizando) htmlVersao += '<span class="pilula-atualizar ocupado">atualizando…</span>';
-    else if (at && at.nova) htmlVersao += '<button class="pilula-atualizar nova" data-act="atualizar" title="' + esc((at.notas || []).join(' · ')) + '">nova versão ' + esc(at.versao) + ' · atualizar</button>';
+    else if (at && at.nova) htmlVersao += '<button class="pilula-atualizar nova" data-act="atualizar" title="' + esc((at.notas || []).join(' · ')) + '">atualizar para ' + esc(at.versao) + '</button>';
     else htmlVersao += '<button class="pilula-atualizar" data-act="verificarAtualizacao">' + (at && at.verificado ? (at.erro ? 'sem conexão · tentar de novo' : 'está atualizado') : 'verificar atualização') + '</button>';
     $('#rodape').innerHTML = '<div class="rodape-topo"><button class="resumo-conf" data-act="confAbrir" title="Ver a conferência técnica">' +
       (r.erros ? '<span class="contador erro">' + r.erros + ' erro' + (r.erros > 1 ? 's' : '') + '</span>' : '<span class="contador ok">' + ILU.st_ok + 'pronto para gerar</span>') +
@@ -1365,7 +1367,7 @@
     document.addEventListener('pointerdown', function (ev) {
       var area = ev.target.closest && ev.target.closest('.area-desenho.orbita');
       if (!area || ev.button !== 0) return;
-      arr = { x: ev.clientX, y: ev.clientY, az: st.cam.az, el: st.cam.el, moveu: false, alvo: ev.target };
+      arr = { x: ev.clientX, y: ev.clientY, cx: ev.clientX, cy: ev.clientY, az: st.cam.az, el: st.cam.el, moveu: false, alvo: ev.target };
     });
     document.addEventListener('pointermove', function (ev) {
       if (!arr) return;
@@ -1380,13 +1382,22 @@
       var a2 = arr; arr = null;
       if (a2.moveu) return;
       // clique: abre/fecha a porta ou gaveta
-      var cj = a2.alvo && a2.alvo.getAttribute && a2.alvo.getAttribute('data-conj');
-      if (cj) { st.aberto3d = false; st.abertos[cj] = !st.abertos[cj]; renderVisao(); }
+      var info = pegar3d(a2.cx, a2.cy, a2.alvo);
+      // espera um instante: se vier o segundo clique (duplo clique = editar), não abre a porta
+      clearTimeout(st.cliqueEspera);
+      if (info && info.conj) st.cliqueEspera = setTimeout(function () { st.aberto3d = false; st.abertos[info.conj] = !st.abertos[info.conj]; renderVisao(); }, 260);
     });
+    function pegar3d(cx, cy, alvo) {
+      var cv = document.querySelector('.area-desenho.orbita canvas.cv3d'); // o canvas é redesenhado a cada clique
+      if (!cv || !cv.__pegar) return null;
+      var bb = cv.getBoundingClientRect();
+      return cv.__pegar(cx - bb.left, cy - bb.top);
+    }
     document.addEventListener('dblclick', function (ev) {
-      var pol = ev.target.closest && ev.target.closest('.area-desenho.orbita polygon[data-col]');
-      if (!pol) return;
-      st.sel = { col: +pol.getAttribute('data-col'), secao: +pol.getAttribute('data-sec') || 0 };
+      var info = pegar3d(ev.clientX, ev.clientY, ev.target);
+      if (!info || info.col === null || info.col === undefined) return;
+      clearTimeout(st.cliqueEspera);
+      st.sel = { col: +info.col, secao: +info.secao || 0 };
       st.aba = 'montagem';
       renderPainel(); renderVisao();
       toast('Coluna ' + (st.sel.col + 1) + ' selecionada para editar');

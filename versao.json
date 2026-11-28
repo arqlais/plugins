@@ -1,9 +1,10 @@
 {
-  "versao": "1.22.3",
+  "versao": "1.22.4",
   "rbz": "dist/marce.rbz",
-  "sha256": "aa1f8edff5e870e2dc37894bf0f917580b3fd5a12fb5c53b5fc584cc35f0ee7b",
+  "sha256": "79479ab503b654d67bd7a72e8159a5ecbe82b332426ae1c2e1674f317b02ece4",
   "notas": [
-    "Portas abertas não se cruzam mais: porta com a dobradiça numa divisória abre até 90°; só a porta da ponta abre 155° ou 170°. As gavetas internas passam ao lado das portas abertas",
-    "Número das cotas em cima da linha na prévia"
+    "Prévia 3D refeita com profundidade por pixel: nenhuma peça aparece por cima de outra que está mais perto (portas e gavetas abertas não parecem mais se atravessar)",
+    "Clique numa porta ou gaveta abre; duplo clique leva para editar a coluna (sem abrir a porta antes)",
+    "Botão de atualizar não fica mais cortado no pé do painel"
   ]
 }

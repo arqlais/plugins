@@ -1,5 +1,10 @@
 # Novidades da planê.mob
 
+## 1.22.4
+- Prévia 3D refeita com profundidade por pixel: nenhuma peça aparece por cima de outra que está mais perto (portas e gavetas abertas não parecem mais se atravessar)
+- Clique numa porta ou gaveta abre; duplo clique leva para editar a coluna (sem abrir a porta antes)
+- Botão de atualizar não fica mais cortado no pé do painel
+
 ## 1.22.3
 - Portas abertas não se cruzam mais: porta com a dobradiça numa divisória abre até 90°; só a porta da ponta abre 155° ou 170°. As gavetas internas passam ao lado das portas abertas
 - Número das cotas em cima da linha na prévia
