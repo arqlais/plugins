@@ -1,15 +1,10 @@
 {
-  "versao": "1.21.0",
+  "versao": "1.21.1",
   "rbz": "dist/marce.rbz",
-  "sha256": "378138325e62bf2750a0d16e78a539097b1dff52b8ff40730ccc30464fa011f4",
+  "sha256": "505b22c27f61df6c339d1b296a082652bdf3ec0f6447a943a7366023777a3a3f",
   "notas": [
-    "Interior por módulos atrás das portas: gavetas internas (com calço para a dobradiça), cabideiro alto, médio, baixo, infantil ou bebê, sapateira, prateleiras e maleiro, cada um com a altura recomendada e editável; combinações prontas (cabideiro + gavetas, cabideiro duplo, vestidos longos, sapateira, infantil)",
-    "Mesclar colunas: o interior vira um só e as portas continuam (porta par), inclusive com maleiro em cima",
-    "Portas de correr personalizadas folha a folha: MDF, vidro (com o tipo), reflecta ou espelho em quadro de alumínio, ou palhinha; puxador concha, perfil vertical, cava vertical ou sem puxador",
-    "Cantos frontais arredondados (peça curva no canto) e tampo de pedra com os cantos arredondados",
-    "Prévia 3D: arraste para girar, clique numa porta ou gaveta para abrir, duplo clique para editar a coluna",
-    "Puxador vertical das portas altas a 110 cm do piso (ou na altura escolhida)",
-    "Abertura da dobradiça: 110°, 155° ou 170° (automático: 155° na porta com gaveta interna atrás)",
-    "Dobradiça do fabricante aparece só como o caneco na prévia; cota da planta em cima do desenho"
+    "Madeira com o veio de cada família: carvalho (fio reto), freijó e louro (catedral), nogueira e escuros (faixas largas) e lineares; antes todos os padrões usavam o mesmo desenho só mudando a cor",
+    "Veio contínuo nas frentes: cada porta e gaveta recebe o veio na posição real dela, como se fossem cortadas da mesma chapa, sem o desenho repetido em cada porta",
+    "Móveis já gerados trocam para o veio novo ao clicar em atualizar móvel"
   ]
 }

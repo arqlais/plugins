@@ -1,5 +1,10 @@
 # Novidades da planê.mob
 
+## 1.21.1
+- Madeira com o veio de cada família: carvalho (fio reto), freijó e louro (catedral), nogueira e escuros (faixas largas) e lineares; antes todos os padrões usavam o mesmo desenho só mudando a cor
+- Veio contínuo nas frentes: cada porta e gaveta recebe o veio na posição real dela, como se fossem cortadas da mesma chapa, sem o desenho repetido em cada porta
+- Móveis já gerados trocam para o veio novo ao clicar em atualizar móvel
+
 ## 1.21.0
 - Interior por módulos atrás das portas: gavetas internas (com calço para a dobradiça), cabideiro alto, médio, baixo, infantil ou bebê, sapateira, prateleiras e maleiro, cada um com a altura recomendada e editável; combinações prontas (cabideiro + gavetas, cabideiro duplo, vestidos longos, sapateira, infantil)
 - Mesclar colunas: o interior vira um só e as portas continuam (porta par), inclusive com maleiro em cima

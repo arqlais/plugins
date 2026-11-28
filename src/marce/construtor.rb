@@ -139,6 +139,8 @@ module ArqLais
       def chave_def(p)
         forma = p['forma'] ? p['forma']['pts'].flatten.map { |v| v.to_f.round(1) }.join(',') : ''
         furo = p['furo'] ? [p['furo']['x'], p['furo']['z'], p['furo']['d']].join(',') : ''
+        # frente com veio: cada uma com o veio na posição real (contínuo entre portas e gavetas)
+        furo += "|veio#{p['x'].to_f.round}:#{p['z'].to_f.round}" if veio_continuo?(p)
         [p['nome'], p['dx'].to_f.round(1), p['dy'].to_f.round(1), p['dz'].to_f.round(1), p['mat'], forma.hash, furo].join('|')
       end
 
@@ -165,6 +167,7 @@ module ArqLais
         end
         k = chave_def(p)
         defi = cache_def[k]
+        nova_def = defi.nil?
         unless defi
           defi = model.definitions.add(nome_def(p))
           defi.set_attribute(DICT, 'gerada', true) # da planê.mob: pode ser limpa quando sair de uso
@@ -184,6 +187,7 @@ module ArqLais
         inst = destino.add_instance(defi, tr)
         inst.name = p['nome'].to_s
         inst.material = Materiais.para(model, spec, p['mat'], cache_mat)
+        pintar_veio(defi, inst.material, p) if nova_def && veio_continuo?(p) && inst.material && inst.material.texture
         inst.layer = Materiais.tag(model, p['grupo'], cache_tag)
         inst.set_attribute(DICT, 'peca', p['nome'].to_s)
         inst.set_attribute(DICT, 'obs', p['obs'].to_s) unless p['obs'].to_s.empty?
@@ -209,6 +213,31 @@ module ArqLais
           pts = [[0, 0, 0], [dx, 0, 0], [dx, dy, 0], [0, dy, 0]].map { |q| Geom::Point3d.new(Util.mm(q[0]), Util.mm(q[1]), 0) }
           extrudar(ents, pts, Geom::Vector3d.new(0, 0, 1), Util.mm(dz))
         end
+      end
+
+      def veio_continuo?(p)
+        p['grupo'] == 'frente' && p['mat'] == 'frente' && p['veio'] && p['corte']
+      end
+
+      # Pinta a face da frente com o veio na posição que ela ocupa no móvel: as frentes parecem cortadas
+      # da mesma chapa, sem o desenho repetido em cada porta. Se não der, fica a pintura normal.
+      def pintar_veio(defi, mat, p)
+        w = mat.texture.width.to_f
+        h = mat.texture.height.to_f
+        return if w <= 0 || h <= 0
+        x0 = Util.mm(p['x']).to_f
+        z0 = Util.mm(p['z']).to_f
+        passo = Util.mm(100).to_f
+        defi.entities.grep(Sketchup::Face).each do |f|
+          next unless f.normal.y < -0.9 # a face que olha para a frente
+          y = f.vertices.first.position.y
+          pts = [[0, 0], [passo, 0], [0, passo]].flat_map do |dx, dz|
+            [Geom::Point3d.new(dx, y, dz), Geom::Point3d.new((x0 + dx) / w, (z0 + dz) / h, 0)]
+          end
+          f.position_material(mat, pts, true)
+        end
+      rescue StandardError => e
+        puts "planê.mob: veio contínuo não aplicado em #{p['nome']}: #{e.message}"
       end
 
       # furo redondo atravessando uma chapa em pé no eixo y (ex.: fundo da cuba, para o sifão).

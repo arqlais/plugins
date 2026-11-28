@@ -48,7 +48,7 @@ module ArqLais
         ok.call("SketchUp #{Sketchup.version}", Sketchup.version.to_i >= 17, 'Ruby ' + RUBY_VERSION)
         faltam = %w[index.html app.js engine.js render.js report.js detalhes.js nesting.js catalogo.js ajuda.js ilustra.js style.css autoteste.html].reject { |f| File.exist?(File.join(PASTA_UI, f)) }
         ok.call('arquivos da janela', faltam.empty?, faltam.empty? ? 'todos presentes' : 'faltam: ' + faltam.join(', '))
-        tex = %w[veio_v.png veio_h.png].reject { |f| File.exist?(File.join(PASTA, 'texturas', f)) }
+        tex = %w[veio_v.png veio_h.png veio_carvalho_v.jpg veio_catedral_v.jpg veio_nogueira_v.jpg veio_linear_v.jpg].reject { |f| File.exist?(File.join(PASTA, 'texturas', f)) }
         ok.call('texturas de veio', tex.empty?, tex.empty? ? 'ok' : 'faltam: ' + tex.join(', '))
         begin
           teste = File.join(Util.pasta_usuario, 'autoteste.tmp')

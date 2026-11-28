@@ -44,8 +44,19 @@ module ArqLais
         [(n >> 16) & 255, (n >> 8) & 255, n & 255]
       end
 
-      def textura_veio(horizontal)
-        f = File.join(PASTA, 'texturas', horizontal ? 'veio_h.png' : 'veio_v.png')
+      # desenho do veio pelo nome do padrão: cada família de madeira com o seu
+      def estilo_veio(nome)
+        n = nome.to_s.downcase
+        return 'catedral' if n =~ /freij|louro|itapu|cedro|jequiti|ip[eê]|tauari|cumaru|amendoa|amêndoa/
+        return 'nogueira' if n =~ /nogueira|[ée]bano|cadiz|canelato|dakar|boreal|imbuia|tabaco|castanh|gianduia|malva/
+        return 'linear' if n =~ /linho|essencial|line|tramad|areia|authentic|baltic/
+        'carvalho'
+      end
+
+      def textura_veio(horizontal, nome = '')
+        estilo = estilo_veio(nome)
+        f = File.join(PASTA, 'texturas', "veio_#{estilo}_#{horizontal ? 'h' : 'v'}.jpg")
+        f = File.join(PASTA, 'texturas', horizontal ? 'veio_h.png' : 'veio_v.png') unless File.exist?(f)
         File.exist?(f) ? f : nil
       end
 
@@ -83,11 +94,13 @@ module ArqLais
         nome += ' (veio horizontal)' if info['veio'] && horizontal
         m = mats[nome] || mats.add(nome)
         cor = Sketchup::Color.new(*hex_para_rgb(info['cor'] || '#cccccc'))
-        tex = info['veio'] ? textura_veio(horizontal) : nil
+        tex = info['veio'] ? textura_veio(horizontal, info['nome']) : nil
         if tex
           begin
-            unless m.texture
+            # troca a imagem quando o desenho do veio muda (materiais de versões antigas usavam um veio só)
+            unless m.texture && m.get_attribute(DICT, 'veio_arquivo') == File.basename(tex)
               m.texture = tex
+              m.set_attribute(DICT, 'veio_arquivo', File.basename(tex))
             end
             larg = (info['texturaLargura'] || 1200).to_f
             m.texture.size = larg.mm if m.texture && (chave == 'frente' || !m.get_attribute(DICT, 'veio_ajustado'))
