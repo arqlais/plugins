@@ -52,7 +52,7 @@ function embutir(html) {
   await p.goto('file://' + arq);
   await p.waitForTimeout(600);
   await p.screenshot({ path: path.join(out, 'pranchas-tela.png') });
-  await p.evaluate(() => { document.getElementById('pranchas').style.zoom = 1; });
+  await p.evaluate(() => { document.getElementById('pranchas').style.zoom = 1; const ed = document.querySelector('.ed'); if (ed) { ed.style.display = 'none'; document.getElementById('area').style.marginLeft = '0'; } });
   const folhas = await p.$$('.folha');
   for (let i = 0; i < folhas.length; i++) await folhas[i].screenshot({ path: path.join(out, 'prancha-' + (i + 1) + '.png') });
   // estouro: conteúdo que não cabe na área da prancha

@@ -1,5 +1,8 @@
 # Novidades do marcê
 
+## 1.10.1
+- Simbologia virou "legenda": coluna estreita no alto, à direita da prancha, com ícones e textos pequenos; as vistas ganham o espaço
+
 ## 1.10.0
 - O relatório agora abre no navegador como um editor de pranchas: painel ao lado com folha, cores da prancha (principal e destaque), unidade e cores da cota (linha e número), logotipo, dados do escritório e do projeto, notas do carimbo e quais pranchas entram
 - A prévia atualiza na hora e tudo fica salvo no navegador: o escritório e o logotipo valem para os próximos relatórios; os dados do projeto ficam guardados por arquivo

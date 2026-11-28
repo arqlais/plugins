@@ -109,6 +109,9 @@
     '.pm{flex:1;min-height:0;display:grid;grid-template-columns:1fr calc(var(--k)*62mm);gap:calc(var(--k)*5mm)}.pm .lado{display:flex;flex-direction:column;gap:calc(var(--k)*2mm)}.pm table{border-collapse:collapse;font-size:.9em;width:100%}.pm td{padding:calc(var(--k)*1mm) calc(var(--k)*1.2mm);border-top:calc(var(--k)*.2mm) solid #eee6e2}.pm td:first-child{width:calc(var(--k)*13mm)}.pm .cod{display:inline-block;background:#9a3b2f;color:#fff;border-radius:99px;padding:0 calc(var(--k)*1.6mm);font-weight:600;font-size:.86em}.pm tr.atual td{background:var(--tint);font-weight:600}.loc{margin-top:calc(var(--k)*1mm)}.loc h2{margin-bottom:calc(var(--k)*1mm)}',
     '.vista{margin:0;display:flex;align-items:center;justify-content:center;min-height:0;min-width:0}.vw{display:flex;flex-direction:column;align-items:flex-start;max-width:100%;max-height:100%;min-height:0}.vw>svg,.vw>img{display:block;flex:none;max-width:100%}.vw .tv{margin-top:calc(var(--k)*1.4mm)}',
     '.pk{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:space-evenly}.pk-l{display:flex;justify-content:space-evenly;align-items:flex-end;gap:calc(var(--k)*5mm)}.pk-l>.vista{flex:none}.pk-l .simb{align-self:center}',
+    '.pk-wrap{flex:1;min-height:0;display:flex;gap:calc(var(--k)*4mm)}.pk-wrap .pk{flex:1;min-width:0}',
+    '.leg-col{flex:none;align-self:flex-start;border-left:calc(var(--k)*.25mm) solid var(--b);padding-left:calc(var(--k)*2.4mm)}.leg-col .simb{border:0;padding:0;border-radius:0}.leg-col .simb h2{font-size:calc(var(--k)*2.1mm);text-transform:uppercase;letter-spacing:.08em;color:var(--ink);margin-bottom:calc(var(--k)*1.4mm)}',
+    '.leg-col .simb ul{display:flex;flex-direction:column;gap:calc(var(--k)*1.1mm);font-size:calc(var(--k)*1.62mm);line-height:1.2;color:var(--m)}.leg-col .simb li{gap:calc(var(--k)*1.2mm);align-items:center}.leg-col .simb svg{width:calc(var(--k)*5.4mm);height:calc(var(--k)*3.6mm)}',
     '.tv small i{font-style:normal;text-transform:none;letter-spacing:0;color:var(--m);margin-left:calc(var(--k)*1.2mm)}',
     '.mds{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(var(--k)*4mm);align-content:start;flex:1;min-height:0}',
     '.dc{display:flex;flex-direction:column;align-items:center;gap:calc(var(--k)*.6mm)}.dc svg{width:calc(var(--k)*var(--dc)*1mm);height:calc(var(--k)*var(--dc)*1mm)}.dc.cx svg{width:100%;height:auto}.dc small{color:var(--m);font-size:calc(var(--k)*1.9mm);text-transform:lowercase}',
@@ -197,21 +200,21 @@
     var t = '#2b2b2b', f = '#5a5a5a';
     function sv(x) { return '<svg viewBox="0 0 30 20">' + x + '</svg>'; }
     var it = [
-      [sv('<circle cx="15" cy="10" r="7" fill="#fff" stroke="#3e4b57" stroke-width="1.2"/><text x="15" y="13" font-size="8" font-weight="600" text-anchor="middle" fill="#3e4b57" font-family="Poppins,sans-serif">C1</text>'), 'coluna — mesma numeração no corte, na planta e nos detalhes'],
-      [sv('<rect x="6" y="2" width="18" height="16" fill="#fff" stroke="' + t + '" stroke-width="1.3"/><path d="M6 2L24 10L6 18" fill="none" stroke="' + f + '" stroke-width=".8" stroke-dasharray="2.4 1.4"/>'), 'porta de giro — as linhas saem do lado da dobradiça'],
-      [sv('<rect x="4" y="3" width="22" height="14" fill="#fff" stroke="' + t + '" stroke-width="1.3"/><path d="M4 3L15 17L26 3" fill="none" stroke="' + f + '" stroke-width=".8" stroke-dasharray="2.4 1.4"/>'), 'basculante — abre para cima, dobradiças no topo'],
-      [sv('<rect x="4" y="2" width="22" height="7" fill="#fff" stroke="' + t + '" stroke-width="1.3"/><rect x="4" y="11" width="22" height="7" fill="#fff" stroke="' + t + '" stroke-width="1.3"/>'), 'gaveta — frente lisa, sem traço de abertura'],
-      [sv('<path d="M3 12H27" stroke="' + cor + '" stroke-width=".8"/><path d="M3 7v8M27 7v8" stroke="' + cor + '" stroke-width=".6"/><path d="M1.5 13.5l3-3M25.5 13.5l3-3" stroke="' + cor + '" stroke-width=".9"/><text x="15" y="9.5" font-size="6" text-anchor="middle" fill="' + cor + '" font-family="Poppins,sans-serif">0,60</text>'), 'cota — medida da peça ou do vão'],
-      [sv('<path d="M3 4H27" stroke="' + f + '" stroke-width="1.1"/><path d="M3 10H27M3 16H27" stroke="' + f + '" stroke-width=".55"/>'), 'linha cheia — peça vista; fina — prateleira']
+      [sv('<circle cx="15" cy="10" r="7" fill="#fff" stroke="#3e4b57" stroke-width="1.2"/><text x="15" y="13" font-size="8" font-weight="600" text-anchor="middle" fill="#3e4b57" font-family="Poppins,sans-serif">C1</text>'), 'coluna'],
+      [sv('<rect x="6" y="2" width="18" height="16" fill="#fff" stroke="' + t + '" stroke-width="1.3"/><path d="M6 2L24 10L6 18" fill="none" stroke="' + f + '" stroke-width=".8" stroke-dasharray="2.4 1.4"/>'), 'porta de giro (lado da dobradiça)'],
+      [sv('<rect x="4" y="3" width="22" height="14" fill="#fff" stroke="' + t + '" stroke-width="1.3"/><path d="M4 3L15 17L26 3" fill="none" stroke="' + f + '" stroke-width=".8" stroke-dasharray="2.4 1.4"/>'), 'basculante'],
+      [sv('<rect x="4" y="2" width="22" height="7" fill="#fff" stroke="' + t + '" stroke-width="1.3"/><rect x="4" y="11" width="22" height="7" fill="#fff" stroke="' + t + '" stroke-width="1.3"/>'), 'gaveta'],
+      [sv('<path d="M3 12H27" stroke="' + cor + '" stroke-width=".8"/><path d="M3 7v8M27 7v8" stroke="' + cor + '" stroke-width=".6"/><path d="M1.5 13.5l3-3M25.5 13.5l3-3" stroke="' + cor + '" stroke-width=".9"/><text x="15" y="9.5" font-size="6" text-anchor="middle" fill="' + cor + '" font-family="Poppins,sans-serif">0,60</text>'), 'cota'],
+      [sv('<path d="M3 4H27" stroke="' + f + '" stroke-width="1.1"/><path d="M3 10H27M3 16H27" stroke="' + f + '" stroke-width=".55"/>'), 'peça vista / prateleira']
     ];
-    if (M.pecas.some(function (p) { return p.nome === 'Ripa'; })) it.push([sv('<rect x="4" y="2" width="22" height="16" fill="#fff" stroke="' + t + '" stroke-width="1.2"/><path d="M8 2v16M12 2v16M16 2v16M20 2v16" stroke="' + f + '" stroke-width=".55"/>'), 'ripado — ripas coladas sobre a frente']);
-    if (M.pecas.some(function (p) { return p.grupo === 'led'; })) it.push([sv('<path d="M3 7H27" stroke="#d9a400" stroke-width="2" stroke-dasharray="3 1.5"/><path d="M15 8L9 18H21Z" fill="#d9a400" opacity=".25"/>'), 'perfil de LED — linha amarela, luz para baixo']);
+    if (M.pecas.some(function (p) { return p.nome === 'Ripa'; })) it.push([sv('<rect x="4" y="2" width="22" height="16" fill="#fff" stroke="' + t + '" stroke-width="1.2"/><path d="M8 2v16M12 2v16M16 2v16M20 2v16" stroke="' + f + '" stroke-width=".55"/>'), 'ripado']);
+    if (M.pecas.some(function (p) { return p.grupo === 'led'; })) it.push([sv('<path d="M3 7H27" stroke="#d9a400" stroke-width="2" stroke-dasharray="3 1.5"/><path d="M15 8L9 18H21Z" fill="#d9a400" opacity=".25"/>'), 'perfil de LED']);
     if (M.cuba) {
-      it.push([sv('<rect x="5" y="4" width="20" height="12" fill="none" stroke="#4d6f99" stroke-width=".9" stroke-dasharray="2.4 1.4"/>'), 'cuba — projeção sob o tampo']);
-      it.push([sv('<path d="M15 1V19" stroke="' + cor + '" stroke-width=".8" stroke-dasharray="4 1 .6 1"/>'), 'eixo hidráulico — centro da cuba e do sifão']);
+      it.push([sv('<rect x="5" y="4" width="20" height="12" fill="none" stroke="#4d6f99" stroke-width=".9" stroke-dasharray="2.4 1.4"/>'), 'cuba (projeção)']);
+      it.push([sv('<path d="M15 1V19" stroke="' + cor + '" stroke-width=".8" stroke-dasharray="4 1 .6 1"/>'), 'eixo hidráulico']);
     }
-    if (comCorte) it.push([sv('<path d="M15 2V18" stroke="' + t + '" stroke-width="1" stroke-dasharray="4 1 .7 1"/><path d="M15 3h-7" stroke="' + t + '" stroke-width="1.6"/><path d="M8 3l3 -2v4z" fill="' + t + '"/><circle cx="20" cy="4" r="3.4" fill="#fff" stroke="' + t + '" stroke-width=".8"/><text x="20" y="5.6" font-size="4.5" font-weight="600" text-anchor="middle" fill="' + t + '" font-family="Poppins,sans-serif">A</text>'), 'linha de corte na planta — a seta mostra para onde o corte olha']);
-    if (comCorte) it.push([sv('<rect x="4" y="4" width="22" height="5" fill="#cfc6c0" stroke="' + t + '" stroke-width=".8"/><rect x="4" y="11" width="22" height="5" fill="#a89f99" stroke="' + t + '" stroke-width=".8"/>'), 'no corte: peça cortada preenchida (frente mais escura)']);
+    if (comCorte) it.push([sv('<path d="M15 2V18" stroke="' + t + '" stroke-width="1" stroke-dasharray="4 1 .7 1"/><path d="M15 3h-7" stroke="' + t + '" stroke-width="1.6"/><path d="M8 3l3 -2v4z" fill="' + t + '"/><circle cx="20" cy="4" r="3.4" fill="#fff" stroke="' + t + '" stroke-width=".8"/><text x="20" y="5.6" font-size="4.5" font-weight="600" text-anchor="middle" fill="' + t + '" font-family="Poppins,sans-serif">A</text>'), 'linha de corte']);
+    if (comCorte) it.push([sv('<rect x="4" y="4" width="22" height="5" fill="#cfc6c0" stroke="' + t + '" stroke-width=".8"/><rect x="4" y="11" width="22" height="5" fill="#a89f99" stroke="' + t + '" stroke-width=".8"/>'), 'peça cortada']);
     return '<div class="simb"><h2>simbologia</h2><ul>' + it.map(function (i) { return '<li>' + i[0] + '<span>' + esc(i[1]) + '</span></li>'; }).join('') + '</ul></div>';
   }
 
@@ -325,9 +328,10 @@
     var letras = 'ABCDEFGH';
     var tipicas = R.colunasTipicas(M, est.folha === 'A4' ? 3 : 4);
     var cortesP = tipicas.map(function (ci, ii) { var c = M.colunas[ci]; return { col: ci, letra: letras[ii], x: (c.x0 + c.x1) / 2 }; });
-    var hT = 9.5 * k, gapP = 4 * k, Wp = areaW - 2 * k, Hp = areaH - 9 * k;
+    var legW = 31 * k; // legenda: coluna estreita no alto, à direita
+    var hT = 9.5 * k, gapP = 4 * k, Wp = areaW - 2 * k - legW - 4 * k, Hp = areaH - 9 * k;
     var nSimb = 6 + (M.pecas.some(function (p) { return p.nome === 'Ripa'; }) ? 1 : 0) + (M.pecas.some(function (p) { return p.grupo === 'led'; }) ? 1 : 0) + (M.cuba ? 2 : 0) + (cortesP.length ? 1 : 0);
-    var simbItem = { html: '<div class="lat-simb" style="width:' + n1(Math.min(Wp, 190 * k)) + 'mm">' + simbologia(M, est.corCota, cortesP.length > 0) + '</div>', w: Math.min(Wp, 190 * k), h: 11 * k + Math.ceil(nSimb / 3) * 6.2 * k, simb: true };
+    var legendaHtml = '<aside class="leg-col" style="width:' + n1(legW) + 'mm">' + simbologia(M, est.corCota, cortesP.length > 0).replace('<h2>simbologia</h2>', '<h2>legenda</h2>') + '</aside>';
     function vistasEm(E) {
       var o = Object.assign({}, oc, { escala: E });
       var lst = [
@@ -356,7 +360,6 @@
         if (limite && E > limite) break;
         var vs = vistasEm(E);
         var its = sel.map(function (ix) { return vs[ix]; }).filter(Boolean);
-        if (comSimb) its.push(simbItem);
         var rows = empacotar(its);
         if (rows) return { E: E, rows: rows };
       }
@@ -387,7 +390,7 @@
     }
     folhasV.forEach(function (fv, nf) {
       pagina(cabeca('<span style="text-transform:none">' + esc(codigo) + '</span> · vistas e cortes' + (folhasV.length > 1 ? ' · ' + (nf + 1) + '/' + folhasV.length : '')) +
-        '<div class="pk">' + fv.rows.map(function (r) { return '<div class="pk-l">' + r.itens.map(function (it) { return it.html; }).join('') + '</div>'; }).join('') + '</div>', fv.E);
+        '<div class="pk-wrap"><div class="pk">' + fv.rows.map(function (r) { return '<div class="pk-l">' + r.itens.map(function (it) { return it.html; }).join('') + '</div>'; }).join('') + '</div>' + legendaHtml + '</div>', fv.E);
     });
 
     secao = 'detalhes';

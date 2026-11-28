@@ -1,11 +1,8 @@
 {
-  "versao": "1.10.0",
+  "versao": "1.10.1",
   "rbz": "dist/marce.rbz",
-  "sha256": "acc2e37a0cde5811c04fcab5d3a5f87ef55246e2ba51e8cfceac84115ae6c6c5",
+  "sha256": "9c2f7f8473b7e088afaf6eb8732b66e138d0ebd34faae795d70aee8e8ff5400b",
   "notas": [
-    "O relatório agora abre no navegador como um editor de pranchas: painel ao lado com folha, cores da prancha (principal e destaque), unidade e cores da cota (linha e número), logotipo, dados do escritório e do projeto, notas do carimbo e quais pranchas entram",
-    "A prévia atualiza na hora e tudo fica salvo no navegador: o escritório e o logotipo valem para os próximos relatórios; os dados do projeto ficam guardados por arquivo",
-    "Exportar e importar a configuração (arquivo .json) para levar a mesma identidade a outro computador",
-    "A aba Relatório do plugin ficou enxuta: só o botão do editor, o CSV e o código do móvel (o plugin fica mais leve)"
+    "Simbologia virou \"legenda\": coluna estreita no alto, à direita da prancha, com ícones e textos pequenos; as vistas ganham o espaço"
   ]
 }
