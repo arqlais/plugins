@@ -15,7 +15,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: false, relatorioJunto: false, bib: [], bibBusca: {}, bibFiltro: 'todos',
-    padroes: null, projeto: {}, versao: '1.22.4', gerando: false, atualizacao: null, atualizando: false
+    padroes: null, projeto: {}, versao: '1.22.5', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -118,8 +118,7 @@
   // com a escolha (o campo vira null); móveis já gerados não mudam sozinhos.
   var FABRICA_PADRAO = [
     ['gavetas', 'bibTelescopica', 'corredica-telescopica-amortecedor-350.skp'],
-    ['gavetas', 'bibOculta', 'corredica-invisivel.skp'],
-    ['frentes', 'bibDobradica', 'dobradica-reta.skp']
+    ['gavetas', 'bibOculta', 'corredica-invisivel.skp']
   ];
   function aplicarFabricaPadrao(spec) {
     if (!spec || st.modo === 'editar' || !(st.bib || []).length) return;

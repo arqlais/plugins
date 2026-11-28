@@ -28,7 +28,7 @@ const itens = [
   let g = await p.evaluate(() => window.__gerar);
   assert.ok(g, 'mandou gerar');
   assert.strictEqual(g.spec.gavetas.bibTelescopica.id, 'f0', 'corrediça FGV 350 como padrão');
-  assert.strictEqual(g.spec.frentes.bibDobradica.id, 'f3', 'dobradiça reta como padrão');
+  assert.ok(!g.spec.frentes.bibDobradica, 'dobradiça: desenho da planê.mob como padrão (base fixa na lateral)');
   assert.ok(g.modelo.pecas.some((x) => x.biblio && x.biblio.id === 'f0' && x.biblio.mover), 'peças da corrediça do fabricante, com movimento');
   // a pessoa escolhe "Padrão": continua com o desenho da planê.mob
   await p.evaluate(() => window.App.receber({ tipo: 'gerado', ok: true, msg: 'ok' }));

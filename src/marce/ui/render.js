@@ -176,7 +176,7 @@
     if (opts.interno) {
       // divisória interna, caixas de gaveta, aramados e kits (vistos de frente, sem as frentes)
       M.pecas.forEach(function (p) {
-        if (p.nome === 'Tubo cabideiro' || p.nome === 'Barra da sapateira') s.push('<rect x="' + X(p.x) + '" y="' + Y(p.z + p.dz) + '" width="' + n1(p.dx) + '" height="' + n1(Math.max(p.dz, fs * 0.25)) + '" rx="' + n1(fs * 0.12) + '" fill="#9aa2a9" stroke="#6b7278" stroke-width="0.5" vector-effect="non-scaling-stroke"/>');
+        if (/^Tubo cabideiro|^Suporte do cabideiro/.test(p.nome) || p.nome === 'Barra da sapateira') s.push('<rect x="' + X(p.x) + '" y="' + Y(p.z + p.dz) + '" width="' + n1(p.dx) + '" height="' + n1(Math.max(p.dz, fs * 0.25)) + '" rx="' + n1(fs * 0.12) + '" fill="#9aa2a9" stroke="#6b7278" stroke-width="0.5" vector-effect="non-scaling-stroke"/>');
         if (p.nome === 'Calço da gaveta interna') s.push('<rect x="' + X(p.x) + '" y="' + Y(p.z + p.dz) + '" width="' + n1(p.dx) + '" height="' + n1(p.dz) + '" fill="' + shade(intCor, 0.9) + '" stroke="' + shade(intCor, 0.6) + '" stroke-width="0.5" vector-effect="non-scaling-stroke"/>');
         if (p.nome === 'Divisória interna') s.push('<rect x="' + X(p.x) + '" y="' + Y(p.z + p.dz) + '" width="' + n1(p.dx) + '" height="' + n1(p.dz) + '" fill="' + shade(intCor, 0.95) + '" stroke="' + shade(intCor, 0.6) + '" stroke-width="0.5" vector-effect="non-scaling-stroke"/>');
         if (p.nome === 'Contrafrente' || p.nome === 'Frente gaveta interna') s.push('<rect x="' + X(p.x - (p.nome === 'Contrafrente' ? spec.esp.gaveta : 0)) + '" y="' + Y(p.z + p.dz) + '" width="' + n1(p.dx + (p.nome === 'Contrafrente' ? 2 * spec.esp.gaveta : 0)) + '" height="' + n1(p.dz) + '" fill="' + shade(corMat(spec, 'gaveta'), 0.97) + '" stroke="' + shade(corMat(spec, 'gaveta'), 0.6) + '" stroke-width="0.6" vector-effect="non-scaling-stroke"/>');
@@ -783,7 +783,7 @@
     if (d.z0 > 0 || spec.base.tipo !== 'suspenso') s.push('<line x1="' + n1(ox - mg * 0.4) + '" y1="' + Y(0) + '" x2="' + n1(ox + L + mg * 0.4) + '" y2="' + Y(0) + '" stroke="#2b2b2b" stroke-width="' + n1(lw * 2.2) + '"/>');
     var vis = M.pecas.filter(function (p) {
       if (p.grupo === 'frente' || p.grupo === 'led') return false;
-      if (p.grupo === 'ferragem') return /^Dobradiça|^Corrediça|^Cesto|^Aba do cesto|aramado|^Varão|^Borda|^Travessa do cesto|^Tubo|^Espelho|^Barra da sapateira|^Coifa|^Duto/.test(p.nome);
+      if (p.grupo === 'ferragem') return /^Dobradiça|^Corrediça|^Cesto|^Aba do cesto|aramado|^Varão|^Borda|^Travessa do cesto|^Tubo|^Suporte do cabideiro|^Espelho|^Barra da sapateira|^Coifa|^Duto/.test(p.nome);
       return p.dx > 0.4 && p.dz > 0.4;
     });
     // de trás para a frente: o que está mais ao fundo é pintado primeiro

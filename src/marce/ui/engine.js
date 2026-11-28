@@ -1047,23 +1047,29 @@
       return b;
     }
 
-    function dobradicasVisuais(px, pw, pz, ph, lado, nd, conj, refs) {
+    // Dobradiça de caneco como a peça real: caneco Ø35 embutido na porta (vai com a porta) e, presos na
+    // lateral (fixos), a base (calço) com furos a 37 mm da frente e o braço até o caneco.
+    // (A dobradiça .skp da biblioteca entra só no nome e na lista: o desenho é sempre este, que não solta da lateral.)
+    function dobradicasVisuais(px, pw, pz, ph, lado, nd, conj, refs, xLat) {
       if (estilo === 'vidro') return; // porta de vidro usa dobradiça própria do perfil de alumínio
+      var nomeD = bibDob ? 'Dobradiça ' + bibDob.nome : 'Dobradiça';
+      if (!isNum(xLat)) xLat = lado === 'esq' ? px + T / 2 : px + pw - T / 2;
       for (var k = 0; k < nd; k++) {
-        var zz = nd === 1 ? pz + ph / 2 : pz + 90 + (ph - 180) * k / (nd - 1);
+        // com travessa da cava no alto, a dobradiça de cima desce para não bater nela
+        var mTop = temTravCava && pz + ph > zTop - 120 ? 140 : 90;
+        var zz = nd === 1 ? pz + ph / 2 : pz + 90 + (ph - 90 - mTop) * k / (nd - 1);
         var xc = lado === 'esq' ? px + 22 : px + pw - 22 - 35;
         var yBack = embutida ? Tf : 0;
-        if (bibDob) {
-          // dobradiça da biblioteca, no tamanho real: o braço (medida maior) entra no móvel a partir do caneco
-          var mdD = bibDob.medidas.map(Number), lD = bibDob.deitar ? mdD[1] : mdD[2], aD = bibDob.deitar ? mdD[2] : mdD[1];
-          fab.objeto({ nome: 'Dobradiça ' + bibDob.nome, grupo: 'ferragem', mat: 'metal', x: xc + 17.5 - lD / 2, y: yBack, z: zz - aD / 2, dx: lD, dy: mdD[0], dz: aD, conj: conj, vao: refs.vao, col: refs.col, secao: refs.secao,
-            biblio: bibDe(bibDob, { longo: 'y', virar: lado === 'esq' ? !!bibDob.virar : !bibDob.virar, mover: { tipo: 'dobradica', eixo: 'y', parede: 'max' } }),
-            previa: { x: xc, y: yBack - 11, z: zz - 17.5, dx: 35, dy: 12.5, dz: 35 } });
-          continue;
-        }
+        var r0 = { vao: refs.vao, col: refs.col, secao: refs.secao };
         var circ = [];
         for (var kc = 0; kc < 24; kc++) { var ac = kc * Math.PI / 12; circ.push([r1(17.5 + 17.5 * Math.cos(ac)), r1(17.5 + 17.5 * Math.sin(ac))]); }
-        fab.objeto({ nome: 'Dobradiça (caneco)', grupo: 'ferragem', mat: 'metal', x: xc, y: yBack - 11, z: zz - 17.5, dx: 35, dy: 12.5, dz: 35, conj: conj, vao: refs.vao, col: refs.col, secao: refs.secao, forma: spec.leve ? null : { plano: 'xz', pts: circ } });
+        fab.objeto(Object.assign({ nome: nomeD + ' (caneco)', grupo: 'ferragem', mat: 'metal', x: xc, y: yBack - 11, z: zz - 17.5, dx: 35, dy: 12.5, dz: 35, conj: conj, forma: spec.leve ? null : { plano: 'xz', pts: circ } }, r0));
+        if (spec.leve) continue;
+        var eB = 10; // base (calço) saindo 10 mm da lateral
+        var xB = lado === 'esq' ? xLat : xLat - eB;
+        fab.objeto(Object.assign({ nome: nomeD + ' (base na lateral)', grupo: 'ferragem', mat: 'metal', x: xB, y: yBack + 17, z: zz - 25, dx: eB, dy: 40, dz: 50, obs: 'Parafusada na lateral · furos a 37 mm da frente' }, r0));
+        var xa0 = lado === 'esq' ? xLat + eB : xc + 17.5, xa1 = lado === 'esq' ? xc + 17.5 : xLat - eB;
+        if (xa1 - xa0 > 1) fab.objeto(Object.assign({ nome: nomeD + ' (braço)', grupo: 'ferragem', mat: 'metal', x: xa0, y: yBack + 1.5, z: zz - 7, dx: xa1 - xa0, dy: 10, dz: 14 }, r0));
       }
     }
 
@@ -1212,9 +1218,20 @@
             if (fx[1] - fx[0] > 800) vaosLargosPrat.push(colIdx0);
           });
         }
+        // tubo oval 30 × 15 mm entre dois suportes (flanges) parafusados nas laterais: nada solto no ar
+        function tuboCabideiro(zt, obs) {
+          var yc = (yInt + profUtil) / 2, fl = 3, oval = [];
+          for (var ko = 0; ko < 16; ko++) { var ao = ko * Math.PI / 8; oval.push([r1(7.5 + 7.5 * Math.cos(ao)), r1(15 + 15 * Math.sin(ao))]); }
+          var r0 = { vao: vi, col: colIdx0, secao: j };
+          fab.objeto(Object.assign({ nome: 'Tubo cabideiro oval', grupo: 'ferragem', mat: 'metal', x: vm.il + fl, y: yc - 7.5, z: zt - 30, dx: vm.largInt - 2 * fl, dy: 15, dz: 30, forma: spec.leve ? null : { plano: 'yz', pts: oval }, obs: obs + ' · tubo oval 30 × 15 mm' }, r0));
+          [vm.il, vm.ir - fl].forEach(function (xs) {
+            fab.objeto(Object.assign({ nome: 'Suporte do cabideiro', grupo: 'ferragem', mat: 'metal', x: xs, y: yc - 22, z: zt - 45, dx: fl, dy: 44, dz: 60, obs: 'Flange parafusada na lateral (2 parafusos)' }, r0));
+          });
+          if (vm.largInt > 1000) info(rot + ': cabideiro com ' + fmtCm(vm.largInt) + ' de vão: ponha um suporte central de teto no meio (o tubo enverga com peso).', ref);
+        }
         function cabideiro() {
           var zt = sm.it - 60;
-          fab.objeto({ nome: 'Tubo cabideiro', grupo: 'ferragem', mat: 'metal', x: vm.il, y: (yInt + profUtil) / 2 - 12.5, z: zt - 15, dx: vm.largInt, dy: 25, dz: 15, vao: vi, col: colIdx0, secao: j });
+          tuboCabideiro(zt, 'Cabideiro');
           cont.cabideiroMm += vm.largInt; cont.suportesCabideiro += 2;
           if (sm.altInt < 900) aviso(rot + ': cabideiro com ' + fmtCm(sm.altInt) + ' de altura interna (camisas pedem ~100 cm; vestidos longos ~150 cm).', ref);
           if (profUtil < 520) aviso(rot + ': profundidade útil de ' + fmtCm(profUtil) + ' é pouca para cabides (ideal ≥ 55 cm).', ref);
@@ -1313,13 +1330,13 @@
               var zs = z0 + q * passoS;
               if (q > 0) fab.chapa(Object.assign({ nome: 'Prateleira', grupo: 'caixa', mat: matInt, eixoEsp: 'z', x: vm.il + spec.prateleiras.folga, y: yInt + spec.prateleiras.recuo, z: zs - T, dx: vm.largInt - 2 * spec.prateleiras.folga, dy: pd, dz: T,
                 veio: 'x', fitas: ['x'], obs: 'Sapateira (4 pinos)' }, r0));
-              fab.objeto(Object.assign({ nome: 'Barra da sapateira', grupo: 'ferragem', mat: 'metal', x: vm.il, y: yInt + spec.prateleiras.recuo + 30, z: zs + 35, dx: vm.largInt, dy: 10, dz: 10 }, r0));
+              fab.objeto(Object.assign({ nome: 'Barra da sapateira', grupo: 'ferragem', mat: 'metal', x: vm.il + 12, y: yInt + spec.prateleiras.recuo + 30, z: zs + 35, dx: vm.largInt - 24, dy: 10, dz: 10, obs: 'Fixa nas prateleiras, livre das dobradiças' }, r0));
             }
             cont.sapateiras = (cont.sapateiras || 0) + ns;
             if (passoS < 150) aviso(rot + ': sapateira com ' + fmtCm(passoS) + ' por nível. Por quê: abaixo de 15 cm só cabe rasteirinha; tênis e botinhas pedem 18 a 20 cm.', ref);
           } else if (m.tipo === 'cabideiro') {
             var zt = z1 - 60;
-            fab.objeto(Object.assign({ nome: 'Tubo cabideiro', grupo: 'ferragem', mat: 'metal', x: vm.il, y: (yInt + profUtil) / 2 - 12.5, z: zt - 15, dx: vm.largInt, dy: 25, dz: 15, obs: 'Cabideiro ' + USOS_CABIDEIRO[m.uso].nome }, r0));
+            tuboCabideiro(zt, 'Cabideiro ' + USOS_CABIDEIRO[m.uso].nome);
             cont.cabideiroMm += vm.largInt; cont.suportesCabideiro += 2;
             var rec = USOS_CABIDEIRO[m.uso].altura;
             if (h < rec - 80) aviso(rot + ': cabideiro ' + m.uso + ' com ' + fmtCm(h) + ' de altura livre (recomendado ' + fmtCm(rec) + '). Por quê: a roupa encosta embaixo e amassa.', ref);
@@ -1413,7 +1430,7 @@
               obs: 'De abrir, dobradiça ' + nomeHinge[th] + ' à ' + (lado === 'esq' ? 'esquerda' : 'direita') + ' (' + nd + ' un)' + (vm.cuba ? ' · lado da cuba abaixo do fundo dela' : ''),
               meta: { tipo: 'porta', dobradica: lado, nDobradicas: nd, hinge: th } });
             aplicarPuxador(porta, { x: pp.x, z: reg.z0, w: pp.w, h: regH, y0: reg.y0, vidro: !porta && estilo === 'vidro', conj: cj, tipoFrente: 'porta', lado: lado, vao: vi, col: pp.col, secao: j });
-            dobradicasVisuais(pp.x, pp.w, reg.z0, regH, lado, nd, cj, { vao: vi, col: pp.col, secao: j });
+            dobradicasVisuais(pp.x, pp.w, reg.z0, regH, lado, nd, cj, { vao: vi, col: pp.col, secao: j }, lado === 'esq' ? vm.il : vm.ir);
             if (interno) erro(rot + ': sem divisória entre as portas, a ' + (k + 1) + 'ª porta não tem onde fixar a dobradiça. Por quê: a dobradiça precisa de uma lateral ou divisória. Use divisórias "cada par"/"cada porta" ou, ao mesclar o interno, deixe no máximo 2 portas no vão (uma abre para cada lado).', ref);
             if (pp.w > 600) aviso(rot + ': porta com ' + fmtCm(pp.w) + ' de largura passa do recomendado (até 60 cm). Por quê: o peso e a alavanca forçam as dobradiças, a porta cai com o tempo e abre muito sobre a circulação. Divida em duas portas ou aumente o número de colunas.', ref);
             if (regH > 2200) aviso(rot + ': porta com ' + fmtCm(regH) + ' de altura. Por quê: porta alta empena com a umidade e o próprio peso. Use ' + nd + ' dobradiças, endireitador de porta (ou puxador perfil, que trava) e, se possível, MDF de 25 mm.', ref);

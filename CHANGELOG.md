@@ -1,5 +1,11 @@
 # Novidades da planê.mob
 
+## 1.22.5
+- Dobradiça como a de verdade: a base fica parafusada na lateral (não abre junto) e só o caneco vai com a porta; a de cima desce quando há travessa da cava
+- A dobradiça .skp da biblioteca não é mais desenhada solta: o nome e a marca vão para a lista, e o desenho é sempre o da planê.mob
+- Cabideiro de tubo oval 30 × 15 mm com suporte (flange) parafusado em cada lateral; aviso de suporte central em vão acima de 1 m
+- Barra da sapateira livre das dobradiças
+
 ## 1.22.4
 - Prévia 3D refeita com profundidade por pixel: nenhuma peça aparece por cima de outra que está mais perto (portas e gavetas abertas não parecem mais se atravessar)
 - Clique numa porta ou gaveta abre; duplo clique leva para editar a coluna (sem abrir a porta antes)

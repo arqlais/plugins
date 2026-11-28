@@ -2,6 +2,6 @@
 module ArqLais
   module Marce
     remove_const(:VERSAO) if const_defined?(:VERSAO, false)
-    VERSAO = '1.22.4'.freeze
+    VERSAO = '1.22.5'.freeze
   end
 end

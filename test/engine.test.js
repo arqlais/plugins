@@ -163,6 +163,10 @@ function permitido(a, b) {
   if ((folhaC(a) && b.conj && !folhaC(b)) || (folhaC(b) && a.conj && !folhaC(a))) return true;
   if (um(/^Quadro de alumínio da folha|folha de correr\)$/) && um(/^Trilho|^Guia inferior/)) return true;
   if (um(/^Folha de correr/) && um(/^Trilho|^Guia inferior/)) return true; // folha encaixada no trilho/guia
+  if (/^Dobradiça .*\(caneco\)/.test(a.nome) && /^Porta/.test(b.nome)) return true;
+  if (/^Dobradiça .*\(caneco\)/.test(b.nome) && /^Porta/.test(a.nome)) return true;
+  // base da dobradiça presa na lateral: em vão com prateleira/calço na mesma altura, a peça leva rebaixo (ou a dobradiça muda de altura)
+  if (um(/^Dobradiça.*\(base na lateral\)|^Dobradiça.*\(braço\)/) && um(/^Prateleira|^Calço|^Divisória interna|^Lateral gaveta|^Corrediça|^Tubo cabideiro|^Suporte do cabideiro/)) return true;
   if (/^Dobradiça /.test(a.nome) && a.biblio && /^Lateral|^Divisória|^Porta/.test(b.nome)) return true; // dobradiça do fabricante: caneco no furo e calço na lateral
   if (/^Dobradiça /.test(b.nome) && b.biblio && /^Lateral|^Divisória|^Porta/.test(a.nome)) return true;
   if (um(/^Perfil LED/) && um(/^Base|^Prateleira/)) return true; // perfil de LED embutido em rasgo // caneco embutido no furo de 35 mm da porta
@@ -268,13 +272,13 @@ test('ferragens da minha biblioteca: viram peças com "biblio" no lugar das dese
     assert.ok(m.ok, 'gera sem erro');
     const pux = m.pecas.filter((p) => p.biblio && /^Puxador/.test(p.nome));
     const cor = m.pecas.filter((p) => p.biblio && /^Corrediça/.test(p.nome));
-    const dob = m.pecas.filter((p) => p.biblio && /^Dobradiça/.test(p.nome));
+    const dob = m.pecas.filter((p) => /^Dobradiça reta/.test(p.nome)); // desenho fixo com o nome do modelo
     assert.ok(pux.length > 0 && cor.length > 0 && dob.length > 0, corr + ': puxador, corrediça e dobradiça da biblioteca');
     assert.ok(!m.pecas.some((p) => /perfil (fixo|interno|intermediário)|trilho/.test(p.nome)), 'não desenha a corrediça genérica junto');
     pux.forEach((p) => { assert.strictEqual(p.biblio.longo, 'x'); assert.ok(p.dx <= 600); assert.strictEqual(p.dy, 40); });
     cor.forEach((p) => { assert.strictEqual(p.biblio.longo, 'y'); assert.ok(p.biblio.mover && p.biblio.mover.movel && p.biblio.mover.meio, 'corrediça do fabricante abre com a gaveta'); });
     assert.ok(m.conjuntos.some((c) => c.segue && c.curso < 0), 'perfil intermediário segue a gaveta voltando a metade');
-    dob.forEach((p) => assert.strictEqual(p.biblio.mover.tipo, 'dobradica'));
+
     assert.ok(m.ferragens.some((f) => /Leo M13/.test(f.item)), 'lista de ferragens cita o puxador');
   }
   // sem modelo escolhido: volta para alça e avisa
@@ -368,7 +372,7 @@ test('interior por módulos: gavetas internas com calço, cabideiro na altura re
   assert.ok(Math.abs(mods[1].z1 - mods[1].z0 - 1050) < 1, 'cabideiro médio 105 cm');
   assert.strictEqual(m.pecas.filter((p) => p.nome === 'Frente gaveta interna').length, 2);
   assert.strictEqual(m.pecas.filter((p) => p.nome === 'Calço da gaveta interna').length, 2);
-  assert.ok(m.pecas.some((p) => p.nome === 'Tubo cabideiro'));
+  assert.ok(m.pecas.some((p) => /^Tubo cabideiro/.test(p.nome)));
   assert.strictEqual(m.pecas.filter((p) => p.nome === 'Prateleira fixa').length, 2, 'prateleira fixa entre os módulos');
   // cada combinação pronta gera sem erro e sem peça atravessando outra
   for (const k of Object.keys(E.INTERNOS_PRONTOS)) {
@@ -574,4 +578,21 @@ test('portas abertas não batem umas nas outras nem nas gavetas abertas', () => 
       for (const g of gavetas) if (raiz(g.conj) !== raiz(portas[i].conj) && sobrepoe(portas[i], g, 0.6)) assert.fail(nome + ': porta aberta bate em ' + g.nome + ' aberta');
     }
   }
+});
+
+test('dobradiça: base fixa na lateral (não abre junto), caneco na porta; cabideiro com suportes nas laterais', () => {
+  const m = E.calcular(E.specPadrao('roupeiro'));
+  const bases = m.pecas.filter((p) => /\(base na lateral\)/.test(p.nome));
+  const canecos = m.pecas.filter((p) => /\(caneco\)/.test(p.nome));
+  assert.ok(bases.length > 0 && bases.length === canecos.length, 'uma base para cada caneco');
+  bases.forEach((b) => assert.ok(!b.conj, 'base não se move com a porta'));
+  canecos.forEach((c) => assert.ok(c.conj, 'caneco vai com a porta'));
+  const vaos = m.vaos;
+  bases.forEach((b) => assert.ok(vaos.some((v) => Math.abs(b.x - v.il) < 0.6 || Math.abs(b.x + b.dx - v.ir) < 0.6), 'base encostada na face da lateral/divisória'));
+  const tubos = m.pecas.filter((p) => /^Tubo cabideiro/.test(p.nome));
+  assert.ok(tubos.length > 0);
+  tubos.forEach((tb) => {
+    const sup = m.pecas.filter((p) => p.nome === 'Suporte do cabideiro' && Math.abs(p.z + p.dz / 2 - (tb.z + tb.dz / 2)) < 20 && p.col === tb.col);
+    assert.strictEqual(sup.length, 2, 'dois suportes por tubo');
+  });
 });
