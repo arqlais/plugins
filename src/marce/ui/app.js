@@ -15,7 +15,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: true, relatorioJunto: true,
-    padroes: null, projeto: {}, versao: '1.8.0', gerando: false, atualizacao: null, atualizando: false
+    padroes: null, projeto: {}, versao: '1.9.0', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -514,14 +514,15 @@
     var pr = st.spec.prancha || {};
     var pj = st.projeto || {};
     var es = (st.padroes && st.padroes.escritorio) || {};
-    var h = '<div class="grupo"><h4>Relatório executivo' + aj('relatorio') + '</h4><p class="ajuda amb">Sai em pranchas com carimbo: resumo com perspectiva, vista frontal e planta cotadas em escala, detalhes, especificação, conferência técnica, lista de peças, estimativa e plano de corte, verificações e checklist de entrega.</p>';
+    var h = '<div class="grupo"><h4>Relatório executivo' + aj('relatorio') + '</h4><p class="ajuda amb">Sai em pranchas com carimbo: detalhamento com isométricas, vistas e cortes montados na mesma escala (o marcê junta o máximo de vistas por prancha), detalhes construtivos, especificação, conferência técnica, lista de peças, plano de corte e checklist de entrega.</p>';
     h += '<label class="interruptor"><input type="checkbox" data-act-chk="relatorioJunto"' + (st.relatorioJunto ? ' checked' : '') + '><span class="trilho"></span><span class="txt">Salvar o relatório junto ao gerar o móvel</span></label>';
     h += '<div class="linha-botoes"><button class="botao" data-act="relatorio">Abrir relatório agora</button><button class="botao" data-act="csv">Exportar lista de peças (CSV)</button></div></div>';
     h += '<div class="grupo"><h4>Prancha' + aj('prancha') + '</h4><div class="campo"><label>Tamanho da folha (deitada)</label></div>' + pilulas('prancha.folha', [['A4', 'A4'], ['A3', 'A3'], ['A2', 'A2'], ['A1', 'A1'], ['A0', 'A0']], true);
     h += '<div class="campo"><label>Visual</label></div>' + pilulas('prancha.visual', [['marce', 'Identidade marcê'], ['neutro', 'Neutro']], true);
     h += '<div class="campo"><label>Código do móvel</label><input type="text" data-path="codigo" value="' + esc(st.spec.codigo || 'M01') + '" placeholder="M01" maxlength="8" style="max-width:90px"></div><p class="ajuda">O código aparece no selo da isométrica e no topo de cada prancha (M01, M02...), como na planta de marcenaria do projeto.</p>';
     h += '<div class="campo"><label>Unidade das cotas</label></div>' + pilulas('prancha.unidade', [['cm', 'cm (80,0)'], ['m', 'Metros'], ['mm', 'mm']], true);
-    h += '<div class="campo"><label>Cor da cota</label><input type="color" data-path="prancha.corCota" value="' + esc(pr.corCota || '#c0392b') + '" style="width:44px;height:28px;border:0;background:none"></div>';
+    h += '<div class="campo"><label>Cor da linha da cota</label><input type="color" data-path="prancha.corCota" value="' + esc(pr.corCota || '#c0392b') + '" style="width:44px;height:28px;border:0;background:none"></div>';
+    h += '<div class="campo"><label>Cor do número da cota</label><input type="color" data-path="prancha.corNumero" value="' + esc(pr.corNumero || pr.corCota || '#c0392b') + '" style="width:44px;height:28px;border:0;background:none"></div>';
     h += '<p class="ajuda">Dá para trocar tudo isso também na barra do relatório aberto.</p></div>';
     h += '<div class="grupo"><h4>Dados do projeto' + aj('projeto') + '</h4>' +
       campoTexto('Cliente', 'proj', 'cliente', pj.cliente, 'Ex.: Laura e Pedro') +

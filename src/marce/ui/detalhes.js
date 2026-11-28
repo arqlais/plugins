@@ -10,9 +10,9 @@
   var TX = '#3e4b57', INK = '#a88a80', TINT = '#f6ecea', MET = '#c3c8cd', METL = '#6f777e', LED = '#e0ad1f';
   var n = 0;
 
-  function Desenho(cor, corCota) {
+  function Desenho(cor, corCota, corTexto) {
     var id = 'md' + (++n), s = [];
-    var cFr = cor.frente || '#c9a27a', cCx = cor.caixa || '#d8c3a5', cGv = cor.gaveta || '#eeeeee', cc = corCota || '#c0392b';
+    var cFr = cor.frente || '#c9a27a', cCx = cor.caixa || '#d8c3a5', cGv = cor.gaveta || '#eeeeee', cc = corCota || '#c0392b', ct = corTexto || cc;
     s.push('<defs><pattern id="' + id + 'h" patternUnits="userSpaceOnUse" width="3.2" height="3.2" patternTransform="rotate(45)"><rect width="3.2" height="3.2" fill="' + TINT + '"/><line x1="0" y1="0" x2="0" y2="3.2" stroke="' + INK + '" stroke-width=".55"/></pattern>' +
       '<pattern id="' + id + 'p" patternUnits="userSpaceOnUse" width="7" height="7"><rect width="7" height="7" fill="#ecebe8"/><circle cx="2" cy="2" r=".55" fill="#9c9a94"/><circle cx="5.2" cy="4.6" r=".4" fill="#9c9a94"/><path d="M4.5 1.2l1.2 .9" stroke="#9c9a94" stroke-width=".35"/></pattern>' +
       '<linearGradient id="' + id + 'm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dfe3e6"/><stop offset="1" stop-color="' + MET + '"/></linearGradient>' +
@@ -48,13 +48,13 @@
       cotaH: function (x0, x1, y, t, embaixo) {
         s.push('<path d="M' + x0 + ' ' + y + 'H' + x1 + 'M' + (x0 - 1.2) + ' ' + (y + 1.2) + 'l2.4 -2.4M' + (x1 - 1.2) + ' ' + (y + 1.2) + 'l2.4 -2.4" stroke="' + cc + '" stroke-width=".45"/>');
         var curta = Math.abs(x1 - x0) < 8;
-        s.push(txt(curta ? x1 + 1.6 : (x0 + x1) / 2, embaixo ? y + 4.4 : y - 1.3, t, curta ? 'start' : 'middle', cc, 3.6));
+        s.push(txt(curta ? x1 + 1.6 : (x0 + x1) / 2, embaixo ? y + 4.4 : y - 1.3, t, curta ? 'start' : 'middle', ct, 3.6));
         return api;
       },
       cotaV: function (y0, y1, x, t, direita) {
         s.push('<path d="M' + x + ' ' + y0 + 'V' + y1 + 'M' + (x - 1.2) + ' ' + (y0 + 1.2) + 'l2.4 -2.4M' + (x - 1.2) + ' ' + (y1 + 1.2) + 'l2.4 -2.4" stroke="' + cc + '" stroke-width=".45"/>');
         var my = (y0 + y1) / 2, tx = direita ? x + 4 : x - 1.4;
-        s.push('<text x="' + tx + '" y="' + my + '" font-size="3.6" fill="' + cc + '" text-anchor="middle" font-family="Poppins,sans-serif" transform="rotate(-90 ' + tx + ' ' + my + ')">' + t + '</text>');
+        s.push('<text x="' + tx + '" y="' + my + '" font-size="3.6" fill="' + ct + '" text-anchor="middle" font-family="Poppins,sans-serif" transform="rotate(-90 ' + tx + ' ' + my + ')">' + t + '</text>');
         return api;
       },
       rotulo: function (x, y, t, anc) { s.push(txt(x, y, t, anc, '#8b939a', 3.4)); return api; },
@@ -272,17 +272,17 @@
     ripada: 'frente ripada', moldura: 'frente com moldura', vidro: 'porta de vidro canelado'
   };
 
-  function desenhar(chave, M, o, corCota) {
+  function desenhar(chave, M, o, corCota, corTexto) {
     var mats = M.spec.materiais || {};
-    var d = Desenho({ frente: (mats.frente || {}).cor, caixa: (mats.caixa || {}).cor, gaveta: (mats.gaveta || {}).cor }, corCota);
+    var d = Desenho({ frente: (mats.frente || {}).cor, caixa: (mats.caixa || {}).cor, gaveta: (mats.gaveta || {}).cor }, corCota, corTexto);
     D[chave](d, o || {});
     return d.svg();
   }
 
   // Detalhes que valem para este móvel, em ordem de importância
-  function doMovel(M, corCota) {
+  function doMovel(M, corCota, corTexto) {
     var sp = M.spec, out = [];
-    function add(chave, o) { if (D[chave] && !out.some(function (x) { return x.chave === chave; })) out.push({ chave: chave, titulo: TITULOS[chave], svg: desenhar(chave, M, o, corCota) }); }
+    function add(chave, o) { if (D[chave] && !out.some(function (x) { return x.chave === chave; })) out.push({ chave: chave, titulo: TITULOS[chave], svg: desenhar(chave, M, o, corCota, corTexto) }); }
     function tem(re) { return M.pecas.some(function (p) { return re.test(p.nome); }); }
     if (tem(/^Frente gaveta|^Frente porta-temperos|^Frente lixeira|^Frente fruteira/)) add(sp.gavetas && sp.gavetas.corredica === 'oculta' ? 'oculta' : 'telescopica');
     if (tem(/^Porta/)) add('dobradica', { dobradica: sp.frentes.montagem === 'embutida' ? 'superCurva' : 'reta' });

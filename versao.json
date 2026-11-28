@@ -1,18 +1,12 @@
 {
-  "versao": "1.8.0",
+  "versao": "1.9.0",
   "rbz": "dist/marce.rbz",
-  "sha256": "0c7756251b5386ad9e9a6897c0b58800690d35c3978564f008dd2cbf09584575",
+  "sha256": "3a624b5a62a6f20e017c2c8cf26feceff8ddb313ebc99dc678160432b83434a1",
   "notas": [
-    "Corrediça telescópica de verdade (46 × 12,7 mm): perfil fixo na lateral do móvel e perfil móvel na gaveta, com a folga de 12,5 mm aparecendo dos dois lados",
-    "Gaveta interna corrigida: fica presa nas laterais do móvel, atrás da frente do gavetão, abre junto com ele e para antes da frente (não atravessa mais o gavetão)",
-    "Porta-temperos e fruteira com quadro aramado, montantes, trilhos e cestos de varão com borda; lixeira com base aramada e cestos com aba",
-    "Detalhes construtivos com desenho próprio do marcê (D1, D2...): corrediças, dobradiça de caneco, todos os puxadores, LED, rodapé, pés, fixação suspensa, fundo em rasgo, prateleira em pino, porta-temperos, lixeira, ripado, moldura e vidro",
-    "Prancha nova \"detalhes construtivos\" com todos os detalhes do móvel",
-    "Nicho de geladeira: vai até o piso, sem base nem rodapé, com conferência das folgas (2 cm de cada lado e 5 cm em cima); composição \"torre de geladeira + torre quente\"",
-    "Chamadas escritas na vista interna: vão do sifão da cuba, nichos de forno, micro-ondas e geladeira, fita de LED",
-    "Planta de marcenaria: o marcê fotografa a planta do modelo e marca cada móvel com o código; planta de localização na prancha 01",
-    "Cada móvel novo recebe o próximo código livre (M01, M02...)",
-    "Móvel alto: vista frontal e vista interna lado a lado",
-    "Editar o móvel não acumula mais componentes velhos de aramado no arquivo"
+    "Pranchas de \"vistas e cortes\" montadas sozinhas: vista frontal, corte frontal, planta baixa, vista lateral e cortes A, B, C na mesma escala, juntando o máximo de vistas por prancha (a maior escala que couber)",
+    "Planta baixa com as linhas de corte A-A, B-B, C-C (traço-ponto, letras e setas)",
+    "Legenda de todas as vistas sempre no mesmo lugar: desenho centralizado e título logo abaixo, alinhado à esquerda do desenho",
+    "Cota com duas cores: a da linha e a do número (na aba Relatório e na barra do relatório aberto); unidade em cm, metros ou mm",
+    "Textos dentro de nichos estreitos diminuem para caber"
   ]
 }

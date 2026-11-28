@@ -1,5 +1,12 @@
 # Novidades do marcê
 
+## 1.9.0
+- Pranchas de "vistas e cortes" montadas sozinhas: vista frontal, corte frontal, planta baixa, vista lateral e cortes A, B, C na mesma escala, juntando o máximo de vistas por prancha (a maior escala que couber)
+- Planta baixa com as linhas de corte A-A, B-B, C-C (traço-ponto, letras e setas)
+- Legenda de todas as vistas sempre no mesmo lugar: desenho centralizado e título logo abaixo, alinhado à esquerda do desenho
+- Cota com duas cores: a da linha e a do número (na aba Relatório e na barra do relatório aberto); unidade em cm, metros ou mm
+- Textos dentro de nichos estreitos diminuem para caber
+
 ## 1.8.0
 - Corrediça telescópica de verdade (46 × 12,7 mm): perfil fixo na lateral do móvel e perfil móvel na gaveta, com a folga de 12,5 mm aparecendo dos dois lados
 - Gaveta interna corrigida: fica presa nas laterais do móvel, atrás da frente do gavetão, abre junto com ele e para antes da frente (não atravessa mais o gavetão)

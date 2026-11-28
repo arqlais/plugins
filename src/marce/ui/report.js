@@ -21,6 +21,7 @@
     return null;
   }
 
+  var ESC_PRANCHA = [10, 20, 25, 50, 75, 100, 200, 250, 500];
   var FOLHAS = { A4: [297, 210], A3: [420, 297], A2: [594, 420], A1: [841, 594], A0: [1189, 841] };
   var LACO = 'M17 79C18 62 18 46 21 38C25 27 37 27 41 38C44 47 44 62 43 71C42 80 35 82 34 75C33 66 43 40 52 32C60 25 71 28 73 40C75 52 74 65 75 74C76 83 83 85 89 77';
   function logoSvg(fundo, traco) { return '<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="' + fundo + '"/><path d="' + LACO + '" fill="none" stroke="' + traco + '" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>'; }
@@ -88,6 +89,9 @@
     '.md{background:#fbf7f5;border:calc(var(--k)*.25mm) solid var(--b);border-radius:calc(var(--k)*2.6mm);padding:calc(var(--k)*1.6mm) calc(var(--k)*2mm) calc(var(--k)*1.2mm);display:flex;flex-direction:column;gap:calc(var(--k)*.6mm);min-width:0}.md header{display:flex;align-items:center;gap:calc(var(--k)*1.5mm)}.md header span{flex:none;background:var(--t);color:#fff;border-radius:99px;padding:calc(var(--k)*.25mm) calc(var(--k)*1.6mm);font-size:calc(var(--k)*1.9mm);font-weight:600;letter-spacing:.04em}.md header b{font-size:calc(var(--k)*2.35mm);font-weight:600;text-transform:lowercase;line-height:1.15}.md svg{width:100%;height:auto;display:block}.md footer{display:flex;justify-content:space-between;font-size:calc(var(--k)*1.75mm);color:var(--m);text-transform:lowercase}.md footer i{font-style:normal;color:var(--ink)}',
     '.mapa{position:relative;margin:0 auto;max-width:100%}.mapa img{position:absolute;inset:0;width:100%;height:100%;display:block}.mapa svg{position:absolute;inset:0;width:100%;height:100%}',
     '.pm{flex:1;min-height:0;display:grid;grid-template-columns:1fr calc(var(--k)*62mm);gap:calc(var(--k)*5mm)}.pm .lado{display:flex;flex-direction:column;gap:calc(var(--k)*2mm)}.pm table{border-collapse:collapse;font-size:.9em;width:100%}.pm td{padding:calc(var(--k)*1mm) calc(var(--k)*1.2mm);border-top:calc(var(--k)*.2mm) solid #eee6e2}.pm td:first-child{width:calc(var(--k)*13mm)}.pm .cod{display:inline-block;background:#9a3b2f;color:#fff;border-radius:99px;padding:0 calc(var(--k)*1.6mm);font-weight:600;font-size:.86em}.pm tr.atual td{background:var(--tint);font-weight:600}.loc{margin-top:calc(var(--k)*1mm)}.loc h2{margin-bottom:calc(var(--k)*1mm)}',
+    '.vista{margin:0;display:flex;align-items:center;justify-content:center;min-height:0;min-width:0}.vw{display:flex;flex-direction:column;align-items:flex-start;max-width:100%;max-height:100%;min-height:0}.vw>svg,.vw>img{display:block;flex:none;max-width:100%}.vw .tv{margin-top:calc(var(--k)*1.4mm)}',
+    '.pk{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:space-evenly}.pk-l{display:flex;justify-content:space-evenly;align-items:flex-end;gap:calc(var(--k)*5mm)}.pk-l>.vista{flex:none}.pk-l .simb{align-self:center}',
+    '.tv small i{font-style:normal;text-transform:none;letter-spacing:0;color:var(--m);margin-left:calc(var(--k)*1.2mm)}',
     '.mds{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(var(--k)*4mm);align-content:start;flex:1;min-height:0}',
     '.dc{display:flex;flex-direction:column;align-items:center;gap:calc(var(--k)*.6mm)}.dc svg{width:calc(var(--k)*var(--dc)*1mm);height:calc(var(--k)*var(--dc)*1mm)}.dc.cx svg{width:100%;height:auto}.dc small{color:var(--m);font-size:calc(var(--k)*1.9mm);text-transform:lowercase}',
     '.sw{display:flex;flex-wrap:wrap;justify-content:center;gap:calc(var(--k)*2mm) calc(var(--k)*3mm)}.sw div{width:calc(var(--k)*17mm);text-align:center;font-size:calc(var(--k)*1.9mm);line-height:1.2}.sw span{display:block;width:calc(var(--k)*9mm);height:calc(var(--k)*9mm);border-radius:50%;margin:0 auto calc(var(--k)*.8mm);border:calc(var(--k)*.25mm) solid rgba(0,0,0,.25)}.sw .veio{background-image:repeating-linear-gradient(100deg,rgba(0,0,0,0) 0 2px,rgba(0,0,0,.1) 2px 3px,rgba(255,255,255,.07) 3px 5px)}.sw small{display:block;color:var(--m)}',
@@ -188,6 +192,7 @@
       it.push([sv('<rect x="5" y="4" width="20" height="12" fill="none" stroke="#4d6f99" stroke-width=".9" stroke-dasharray="2.4 1.4"/>'), 'cuba — projeção sob o tampo']);
       it.push([sv('<path d="M15 1V19" stroke="' + cor + '" stroke-width=".8" stroke-dasharray="4 1 .6 1"/>'), 'eixo hidráulico — centro da cuba e do sifão']);
     }
+    if (comCorte) it.push([sv('<path d="M15 2V18" stroke="' + t + '" stroke-width="1" stroke-dasharray="4 1 .7 1"/><path d="M15 3h-7" stroke="' + t + '" stroke-width="1.6"/><path d="M8 3l3 -2v4z" fill="' + t + '"/><circle cx="20" cy="4" r="3.4" fill="#fff" stroke="' + t + '" stroke-width=".8"/><text x="20" y="5.6" font-size="4.5" font-weight="600" text-anchor="middle" fill="' + t + '" font-family="Poppins,sans-serif">A</text>'), 'linha de corte na planta — a seta mostra para onde o corte olha']);
     if (comCorte) it.push([sv('<rect x="4" y="4" width="22" height="5" fill="#cfc6c0" stroke="' + t + '" stroke-width=".8"/><rect x="4" y="11" width="22" height="5" fill="#a89f99" stroke="' + t + '" stroke-width=".8"/>'), 'no corte: peça cortada preenchida (frente mais escura)']);
     return '<div class="simb"><h2>simbologia</h2><ul>' + it.map(function (i) { return '<li>' + i[0] + '<span>' + esc(i[1]) + '</span></li>'; }).join('') + '</ul></div>';
   }
@@ -227,7 +232,9 @@
     var neutro = est.visual === 'neutro';
     var paginas = [];
     var codigo = String(spec.codigo || 'M01');
-    function tv(titulo, escala, selo) { return '<div class="tv">' + (selo ? '<span class="n">' + esc(selo) + '</span>' : '') + '<div><b>' + esc(titulo) + '</b><small>' + (escala ? 'escala 1:' + escala : 'sem escala') + '</small></div></div>'; }
+    function tv(titulo, escala, selo, sub) { return '<div class="tv">' + (selo ? '<span class="n">' + esc(selo) + '</span>' : '') + '<div><b>' + esc(titulo) + '</b><small>' + (escala ? 'escala 1:' + escala : 'sem escala') + (sub ? '<i>' + esc(sub) + '</i>' : '') + '</small></div></div>'; }
+    function vfig(conteudo, titulo, escala, selo, sub, estilo) { return '<figure class="vista"' + (estilo ? ' style="' + estilo + '"' : '') + '><div class="vw">' + conteudo + tv(titulo, escala, selo, sub) + '</div></figure>'; }
+    var oc = { unidade: est.unidade, corCota: est.corCota, corCotaTexto: est.corNumero || est.corCota };
 
     function carimbo(num, total, escala) {
       var logo = escr.logo ? '<img src="' + esc(escr.logo) + '" alt="">' : logoSvg(neutro ? '#1f1f1f' : '#3e4b57', '#f5f1ee');
@@ -252,14 +259,16 @@
     var hBx = (areaH - 7 * k) * 0.5 - hTit;
     function peso(c) { return c.secoes.reduce(function (t, sm) { var cf = sm.cfg || {}; return t + 1 + (cf.tipo === 'gavetas' && cf.itens ? cf.itens.length * 2 : 0) + (cf.prateleiras || 0); }, 0) - (c.cuba ? 3 : 0); }
     var cPrinc = (M.colunas || []).slice().sort(function (a, b) { return peso(b) - peso(a) || a.idx - b.idx; })[0];
-    var cT1 = cPrinc ? R.corteTecnico(M, cPrinc.idx, { areaW: wEsq * 0.3, areaH: hBx, unidade: est.unidade, corCota: est.corCota, colorido: true }) : null;
-    var fT1 = R.frontalTecnico(M, { areaW: wEsq - (cT1 ? cT1.w : 0) - gap, areaH: hBx, unidade: est.unidade, corCota: est.corCota, colorido: true });
-    var isoF = img.iso ? '<img src="' + img.iso + '" alt="isométrica fechada">' : R.perspectiva(M, { aberto: false });
-    var isoA = img.aberto ? '<img src="' + img.aberto + '" alt="isométrica aberta">' : R.perspectiva(M, { aberto: true });
-    var topo = '<div class="dt-lin" style="min-height:0"><figure class="vista" style="flex:1">' + '<div class="img">' + isoF + '</div>' + tv('Isométrica fechada', 0, codigo) + '</figure><figure class="vista" style="flex:1"><div class="img">' + isoA + '</div>' + tv('Isométrica aberta') + '</figure></div>';
-    var baixo = '<div class="dt-lin" style="height:' + n1(hBx + hTit) + 'mm"><figure class="vista" style="flex:1"><div class="img">' + fT1.svg + '</div>' + tv('Vista Frontal', fT1.escala) + '</figure>' +
-      (cT1 ? '<figure class="vista"><div class="img">' + cT1.svg + '</div>' + tv('Vista Lateral Interna C' + (cPrinc.idx + 1), cT1.escala) + '</figure>' : '') + '</div>';
-    var dets = D ? D.doMovel(M, est.corCota) : [];
+    var cT1 = cPrinc ? R.corteTecnico(M, cPrinc.idx, { areaW: wEsq * 0.3, areaH: hBx, unidade: est.unidade, corCota: est.corCota, corCotaTexto: oc.corCotaTexto, colorido: true }) : null;
+    var fT1 = R.frontalTecnico(M, { areaW: wEsq - (cT1 ? cT1.w : 0) - gap, areaH: hBx, unidade: est.unidade, corCota: est.corCota, corCotaTexto: oc.corCotaTexto, colorido: true });
+    var hIso = areaH - 7 * k - (hBx + hTit) - 3 * k - hTit - 3 * k;
+    var tamIso = 'height:' + n1(hIso) + 'mm;width:auto;max-width:100%';
+    var isoF = img.iso ? '<img src="' + img.iso + '" alt="isométrica fechada" style="' + tamIso + ';object-fit:contain">' : R.perspectiva(M, { aberto: false }).replace('<svg ', '<svg style="' + tamIso + '" ');
+    var isoA = img.aberto ? '<img src="' + img.aberto + '" alt="isométrica aberta" style="' + tamIso + ';object-fit:contain">' : R.perspectiva(M, { aberto: true }).replace('<svg ', '<svg style="' + tamIso + '" ');
+    var topo = '<div class="dt-lin" style="min-height:0">' + vfig(isoF, 'Isométrica fechada', 0, codigo, null, 'flex:1') + vfig(isoA, 'Isométrica aberta', 0, null, null, 'flex:1') + '</div>';
+    var baixo = '<div class="dt-lin" style="height:' + n1(hBx + hTit) + 'mm">' + vfig(fT1.svg, 'Vista Frontal', fT1.escala, null, null, 'flex:1') +
+      (cT1 ? vfig(cT1.svg, 'Corte', cT1.escala, null, 'coluna C' + (cPrinc.idx + 1)) : '') + '</div>';
+    var dets = D ? D.doMovel(M, est.corCota, oc.corCotaTexto) : [];
     function cartaoMd(dt, i) { return '<div class="md"><header><span>D' + (i + 1) + '</span><b>' + esc(dt.titulo) + '</b></header>' + dt.svg + '<footer><span>sem escala</span><i>marcê</i></footer></div>'; }
     var mats = [['frentes', 'frente'], ['caixaria', 'caixa']];
     if (spec.caixaInternaBranca) mats.push(['interno', 'caixaInterna']);
@@ -286,35 +295,79 @@
     // planta de marcenaria (todos os móveis do marcê no arquivo, com código)
     if (img.mapa && img.mapa.itens && img.mapa.itens.length) {
       var itensM = img.mapa.itens.slice().sort(function (a, b) { return String(a.codigo).localeCompare(String(b.codigo)); });
-      pagina(cabeca('planta de marcenaria') + '<div class="pm"><figure class="vista" style="justify-content:center;align-items:center">' + mapaHtml(img.mapa, areaW - 67 * k, areaH - 26 * k, false) + tv('Planta Marcenaria', 0) + '</figure>' +
+      pagina(cabeca('planta de marcenaria') + '<div class="pm">' + vfig(mapaHtml(img.mapa, areaW - 67 * k, areaH - 26 * k, false), 'Planta Marcenaria', 0) +
         '<div class="lado"><h2>quadro de marcenaria</h2><table>' + itensM.map(function (it) { return '<tr' + (it.atual ? ' class="atual"' : '') + '><td><span class="cod">' + esc(it.codigo || '—') + '</span></td><td>' + esc(it.nome) + '</td></tr>'; }).join('') + '</table><p class="nota">Destaque: o móvel desta prancha. Os outros móveis do marcê no arquivo aparecem com o código de cada um.</p></div></div>');
     }
 
-    // 02 · vista frontal e vista frontal interna (mesma escala, uma sobre a outra)
-    var lado = d.H / d.L > 0.45; // móvel alto: vistas lado a lado
-    var hV = lado ? areaH - 22 * k : (areaH - 10 * k) / 2 - 11 * k;
-    var oF = { areaW: lado ? (areaW - 6 * k) / 2 : areaW, areaH: hV, unidade: est.unidade, corCota: est.corCota };
-    var escF = Math.max(R.frontalTecnico(M, oF).escala, R.frontalInterna(M, oF).escala);
-    var fT = R.frontalTecnico(M, Object.assign({}, oF, { escala: escF, colorido: true }));
-    var fI = R.frontalInterna(M, Object.assign({}, oF, { escala: escF }));
-    pagina(cabeca('<span style="text-transform:none">' + esc(codigo) + '</span> · vistas frontais') + '<div class="vistas2"' + (lado ? ' style="flex-direction:row;align-items:center"' : '') + '><figure class="vista"><div class="img">' + fT.svg + '</div>' + tv('Vista Frontal', escF) + '</figure>' +
-      '<figure class="vista"><div class="img">' + fI.svg + '</div>' + tv('Vista Frontal Interna', escF) + '</figure></div>', escF);
-
-    // 03 · vista lateral e vistas laterais internas (cortes) de cada tipo de coluna + simbologia
+    // vistas e cortes: o marcê monta na prancha o máximo de vistas na mesma escala (a maior que couber).
+    // Planta com as linhas de corte A, B, C...; cortes de cada tipo de coluna; simbologia no fim.
+    var letras = 'ABCDEFGH';
     var tipicas = R.colunasTipicas(M, est.folha === 'A4' ? 3 : 4);
-    var hSimb = 40 * k;
-    var hLat = areaH - hSimb - 12 * k - 11 * k;
-    var nL = tipicas.length + 1;
-    var wL = (areaW - 5 * k * (nL - 1)) / nL;
-    var oL = { areaW: wL, areaH: hLat, unidade: est.unidade, corCota: est.corCota };
-    var escL = R.lateralExterna(M, oL).escala;
-    tipicas.forEach(function (ci) { escL = Math.max(escL, R.corteTecnico(M, ci, oL).escala); });
-    var oL2 = Object.assign({}, oL, { escala: escL });
-    var lats = '<figure class="vista"><div class="img">' + R.lateralExterna(M, oL2).svg + '</div>' + tv('Vista Lateral', escL) + '</figure>' +
-      tipicas.map(function (ci) {
-        return '<figure class="vista"><div class="img">' + R.corteTecnico(M, ci, oL2).svg + '</div>' + tv('Vista Lateral Interna C' + (ci + 1), escL) + '</figure>';
-      }).join('');
-    pagina(cabeca('<span style="text-transform:none">' + esc(codigo) + '</span> · vistas laterais') + '<div class="lat">' + lats + '</div><div class="lat-simb" style="height:' + n1(hSimb) + 'mm">' + simbologia(M, est.corCota, tipicas.length > 0) + '</div>', escL);
+    var cortesP = tipicas.map(function (ci, ii) { var c = M.colunas[ci]; return { col: ci, letra: letras[ii], x: (c.x0 + c.x1) / 2 }; });
+    var hT = 9.5 * k, gapP = 4 * k, Wp = areaW - 2 * k, Hp = areaH - 9 * k;
+    var nSimb = 6 + (M.pecas.some(function (p) { return p.nome === 'Ripa'; }) ? 1 : 0) + (M.pecas.some(function (p) { return p.grupo === 'led'; }) ? 1 : 0) + (M.cuba ? 2 : 0) + (cortesP.length ? 1 : 0);
+    var simbItem = { html: '<div class="lat-simb" style="width:' + n1(Math.min(Wp, 190 * k)) + 'mm">' + simbologia(M, est.corCota, cortesP.length > 0) + '</div>', w: Math.min(Wp, 190 * k), h: 11 * k + Math.ceil(nSimb / 3) * 6.2 * k, simb: true };
+    function vistasEm(E) {
+      var o = Object.assign({}, oc, { escala: E });
+      var lst = [
+        { r: R.frontalTecnico(M, Object.assign({ colorido: true }, o)), t: 'Vista Frontal' },
+        { r: R.frontalInterna(M, o), t: 'Corte Frontal', sub: 'vista interna, sem as frentes' },
+        { r: R.plantaTecnica(M, Object.assign({ cortes: cortesP }, o)), t: 'Planta Baixa' },
+        { r: R.lateralExterna(M, o), t: 'Vista Lateral' }
+      ];
+      cortesP.forEach(function (ct) { lst.push({ r: R.corteTecnico(M, ct.col, Object.assign({ colorido: true }, o)), t: 'Corte ' + ct.letra, sub: 'coluna C' + (ct.col + 1) }); });
+      return lst.map(function (v) { return { html: vfig(v.r.svg, v.t, E, null, v.sub), w: Math.max(v.r.w, 42 * k), h: v.r.h + hT }; });
+    }
+    function empacotar(itens) {
+      var rows = [], row = null, ok = true;
+      itens.forEach(function (it) {
+        if (it.w > Wp) ok = false;
+        if (!row || row.w + gapP + it.w > Wp) { row = { itens: [], w: -gapP, h: 0 }; rows.push(row); }
+        row.itens.push(it); row.w += gapP + it.w; row.h = Math.max(row.h, it.h);
+      });
+      var tot = rows.reduce(function (a, r) { return a + r.h; }, 0) + gapP * (rows.length - 1);
+      return ok && tot <= Hp ? rows : null;
+    }
+    // escolhe a maior escala em que um grupo de vistas cabe numa prancha
+    function melhor(sel, comSimb, limite) {
+      for (var ie = 0; ie < ESC_PRANCHA.length; ie++) {
+        var E = ESC_PRANCHA[ie];
+        if (limite && E > limite) break;
+        var vs = vistasEm(E);
+        var its = sel.map(function (ix) { return vs[ix]; }).filter(Boolean);
+        if (comSimb) its.push(simbItem);
+        var rows = empacotar(its);
+        if (rows) return { E: E, rows: rows };
+      }
+      return null;
+    }
+    var nV = vistasEm(25).length, idx = [];
+    for (var iv = 0; iv < nV; iv++) idx.push(iv);
+    var folhasV = [];
+    var uma = melhor(idx, true, 50);
+    if (uma) folhasV.push(uma);
+    else {
+      // duas pranchas: testa divisões e fica com a de maior escala (desempate: menor soma)
+      var resto = idx.filter(function (ix) { return ix > 1; });
+      var semLat = resto.filter(function (ix) { return ix !== 3; });
+      var opcoes = [
+        [[0, 1], true, resto, false], [[0, 1], false, resto, true],
+        [[0, 1, 3], true, semLat, false], [[0, 1, 3], false, semLat, true]
+      ];
+      var melhorPar = null;
+      opcoes.forEach(function (op2) {
+        var a = melhor(op2[0], op2[1]), b = melhor(op2[2], op2[3]);
+        if (!a || !b) return;
+        var nota = Math.max(a.E, b.E) * 1000 + a.E + b.E;
+        if (!melhorPar || nota < melhorPar.nota) melhorPar = { nota: nota, fs: [a, b] };
+      });
+      if (melhorPar) folhasV = melhorPar.fs;
+      else idx.forEach(function (ix) { var aa = melhor([ix], ix === nV - 1); if (aa) folhasV.push(aa); });
+    }
+    folhasV.forEach(function (fv, nf) {
+      pagina(cabeca('<span style="text-transform:none">' + esc(codigo) + '</span> · vistas e cortes' + (folhasV.length > 1 ? ' · ' + (nf + 1) + '/' + folhasV.length : '')) +
+        '<div class="pk">' + fv.rows.map(function (r) { return '<div class="pk-l">' + r.itens.map(function (it) { return it.html; }).join('') + '</div>'; }).join('') + '</div>', fv.E);
+    });
 
     // detalhes construtivos (todos os que valem para o móvel), 6 por prancha
     for (var di = 0; di < dets.length; di += 6) {
@@ -340,12 +393,7 @@
       var bal = el.col === null || el.col === undefined ? '' : '<span class="bal">C' + (el.col + 1) + '</span>';
       return '<div class="det">' + detalhe(el) + '<div><h3>' + bal + esc(el.nome) + '</h3>' + t + '</div></div>';
     });
-    var porPagina = els.length === 4 ? 4 : 3;
-    var alturaPlanta = els.length ? areaH * 0.55 : areaH - 12 * k;
-    var pT = R.plantaTecnica(M, { areaW: areaW, areaH: alturaPlanta, unidade: est.unidade, corCota: est.corCota, escala: fT.escala <= 25 && els.length ? null : null });
-    pagina(cabeca('planta baixa' + (els.length ? ' e detalhes' : '')) + '<div class="planta-det"><div class="desenho-escala">' + pT.svg + '<div class="leg">planta baixa <small>escala 1/' + pT.escala + '</small></div></div>' +
-      (els.length ? '<div class="dets"' + (porPagina === 4 ? ' style="grid-template-columns:repeat(4,1fr)"' : '') + '>' + cards.slice(0, porPagina).join('') + '</div>' : '') + '</div>', pT.escala);
-    for (var ci = porPagina; ci < cards.length; ci += 6) pagina(cabeca('detalhamento dos elementos') + '<div class="dets">' + cards.slice(ci, ci + 6).join('') + '</div>');
+    for (var ci = 0; ci < cards.length; ci += 6) pagina(cabeca('detalhamento dos elementos' + (cards.length > 6 ? ' · ' + (ci / 6 + 1) + '/' + Math.ceil(cards.length / 6) : '')) + '<div class="dets">' + cards.slice(ci, ci + 6).join('') + '</div>');
 
     // 04 · especificação + conferência
     var pux = E.PUXADORES[spec.puxador.tipo] + (spec.puxador.tipo === 'alca' ? ' ' + spec.puxador.comprimento + ' mm' : '');
@@ -406,7 +454,8 @@
   // Monta e liga a barra (roda dentro do relatório aberto no navegador)
   function montar(dados) {
     var doc = root.document;
-    var est = Object.assign({ folha: 'A4', visual: 'marce', unidade: 'm', corCota: '#c0392b' }, dados.prancha || {});
+    var est = Object.assign({ folha: 'A4', visual: 'marce', unidade: 'cm', corCota: '#c0392b', corNumero: '' }, dados.prancha || {});
+    if (!est.corNumero) est.corNumero = est.corCota;
     function desenhar() {
       var dim = FOLHAS[est.folha];
       doc.body.className = est.visual === 'neutro' ? 'neutro' : '';
@@ -430,6 +479,8 @@
     });
     doc.getElementById('cor-cota').addEventListener('change', function (ev) { est.corCota = ev.target.value; desenhar(); });
     doc.getElementById('cor-cota').value = est.corCota;
+    doc.getElementById('cor-num').addEventListener('change', function (ev) { est.corNumero = ev.target.value; desenhar(); });
+    doc.getElementById('cor-num').value = est.corNumero;
     root.addEventListener('resize', ajustarZoom);
     desenhar();
   }
@@ -444,8 +495,9 @@
     var barra = '<div class="barra"><span class="marca">' + logoSvg('#3e4b57', '#f5f1ee') + '<span>marc<i>ê</i></span></span>' +
       grupo('folha', 'prancha', Object.keys(FOLHAS).map(function (f) { return [f, f]; })) +
       grupo('visual', 'visual', [['marce', 'identidade marcê'], ['neutro', 'neutro']]) +
-      grupo('unidade', 'cotas', [['m', 'metros'], ['cm', 'cm'], ['mm', 'mm']]) +
-      '<div class="grp"><span>cor da cota</span><input type="color" id="cor-cota" value="#c0392b"></div>' +
+      grupo('unidade', 'cotas', [['cm', 'cm'], ['m', 'metros'], ['mm', 'mm']]) +
+      '<div class="grp"><span>linha da cota</span><input type="color" id="cor-cota" value="#c0392b"></div>' +
+      '<div class="grp"><span>número</span><input type="color" id="cor-num" value="#c0392b"></div>' +
       '<button class="pri" onclick="window.print()">imprimir / salvar pdf</button><span class="dica" id="dica-papel"></span></div>';
     return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Relatório executivo · ' + esc(spec.nome) + '</title><style>' + CSS + '</style><style id="pagina"></style></head><body>' +
       barra + '<div id="pranchas"></div>' +
