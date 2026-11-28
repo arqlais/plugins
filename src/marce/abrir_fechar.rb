@@ -49,10 +49,26 @@ module ArqLais
         g.move!(movimento(g, fracao) * base(g))
       end
 
+      # conjunto do mesmo nível com este mov_id (ex.: o gavetão de uma gaveta interna)
+      def irmao(g, id)
+        return nil if id.to_s.empty? || !g.parent.respond_to?(:entities)
+        g.parent.entities.find { |e| e != g && movel?(e) && e.get_attribute(DICT, 'mov_id').to_s == id.to_s }
+      end
+
+      def dependentes(g)
+        id = g.get_attribute(DICT, 'mov_id').to_s
+        return [] if id.empty? || !g.parent.respond_to?(:entities)
+        g.parent.entities.select { |e| e != g && movel?(e) && e.get_attribute(DICT, 'mov_requer').to_s == id }
+      end
+
       def alternar(g, view = nil)
         return unless g && g.valid?
         return if @animando[g.entityID]
         abrir = !aberto?(g)
+        # gaveta interna: abre o gavetão junto; fechar o gavetão fecha a interna antes
+        req = irmao(g, g.get_attribute(DICT, 'mov_requer'))
+        alternar(req, view) if abrir && req && !aberto?(req)
+        dependentes(g).each { |d| alternar(d, view) if aberto?(d) } unless abrir
         de = abrir ? 0.0 : 1.0
         para = abrir ? 1.0 : 0.0
         eid = g.entityID

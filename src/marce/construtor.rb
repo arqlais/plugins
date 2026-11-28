@@ -60,6 +60,8 @@ module ArqLais
             g.set_attribute(DICT, 'mov_eixo', c['eixo']) if c['eixo']
             g.set_attribute(DICT, 'mov_angulo', c['angulo'].to_f)
             g.set_attribute(DICT, 'mov_curso', c['curso'].to_f)
+            g.set_attribute(DICT, 'mov_id', c['id'].to_s)
+            g.set_attribute(DICT, 'mov_requer', c['requer'].to_s) if c['requer']
             if c['pivot']
               g.set_attribute(DICT, 'mov_pivot', [c['pivot']['x'].to_f, c['pivot']['y'].to_f, c['pivot']['z'].to_f])
             end
@@ -110,7 +112,7 @@ module ArqLais
       def limpar_definicoes(model, defs)
         defs.each do |d|
           next unless d.valid? && d.instances.empty?
-          next unless d.get_attribute(DICT, 'corte') || d.name =~ /\A(Dobradiça|Corrediça|Puxador|Perfil|Pé|Tubo|Cesto|Grade|Quadro|Montante|Espelho|Pedra)/
+          next unless d.get_attribute(DICT, 'gerada') || d.get_attribute(DICT, 'corte') || d.name =~ /\A(Dobradiça|Corrediça|Puxador|Perfil|Pé|Tubo|Cesto|Grade|Quadro|Montante|Espelho|Pedra)/
           model.definitions.remove(d) if model.definitions.respond_to?(:remove)
         end
       rescue StandardError => e
@@ -145,6 +147,7 @@ module ArqLais
         defi = cache_def[k]
         unless defi
           defi = model.definitions.add(nome_def(p))
+          defi.set_attribute(DICT, 'gerada', true) # do marcê: pode ser limpa quando sair de uso
           begin
             desenhar(defi.entities, p, dx, dy, dz)
           rescue StandardError

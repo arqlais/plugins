@@ -1,5 +1,18 @@
 # Novidades do marcê
 
+## 1.8.0
+- Corrediça telescópica de verdade (46 × 12,7 mm): perfil fixo na lateral do móvel e perfil móvel na gaveta, com a folga de 12,5 mm aparecendo dos dois lados
+- Gaveta interna corrigida: fica presa nas laterais do móvel, atrás da frente do gavetão, abre junto com ele e para antes da frente (não atravessa mais o gavetão)
+- Porta-temperos e fruteira com quadro aramado, montantes, trilhos e cestos de varão com borda; lixeira com base aramada e cestos com aba
+- Detalhes construtivos com desenho próprio do marcê (D1, D2...): corrediças, dobradiça de caneco, todos os puxadores, LED, rodapé, pés, fixação suspensa, fundo em rasgo, prateleira em pino, porta-temperos, lixeira, ripado, moldura e vidro
+- Prancha nova "detalhes construtivos" com todos os detalhes do móvel
+- Nicho de geladeira: vai até o piso, sem base nem rodapé, com conferência das folgas (2 cm de cada lado e 5 cm em cima); composição "torre de geladeira + torre quente"
+- Chamadas escritas na vista interna: vão do sifão da cuba, nichos de forno, micro-ondas e geladeira, fita de LED
+- Planta de marcenaria: o marcê fotografa a planta do modelo e marca cada móvel com o código; planta de localização na prancha 01
+- Cada móvel novo recebe o próximo código livre (M01, M02...)
+- Móvel alto: vista frontal e vista interna lado a lado
+- Editar o móvel não acumula mais componentes velhos de aramado no arquivo
+
 ## 1.7.0
 - Prancha nova "vistas frontais": vista frontal colorida e vista frontal interna (sem as frentes), na mesma escala
 - A vista interna mostra prateleiras, caixas de gaveta, dobradiças, corrediças e cestos, com os vãos livres cotados por dentro

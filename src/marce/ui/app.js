@@ -15,7 +15,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: true, relatorioJunto: true,
-    padroes: null, projeto: {}, versao: '1.7.0', gerando: false, atualizacao: null, atualizando: false
+    padroes: null, projeto: {}, versao: '1.8.0', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -66,6 +66,7 @@
     espelho: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 28V12a7 7 0 0 1 14 0v16z"/><path d="M13 14l4-4M13 19l7-7"/></svg>',
     painel: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="4" width="20" height="24" rx="1"/><path d="M10 4v24M14 4v24M18 4v24M22 4v24"/></svg>',
     forno: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="6" width="22" height="20" rx="1.5"/><rect x="8" y="12" width="16" height="11" rx="1"/><path d="M9 9h2M13 9h2"/></svg>',
+    geladeira: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="8" y="3" width="16" height="26" rx="1.5"/><path d="M8 12h16M11 7v3M11 15v4"/></svg>',
     micro: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="9" width="24" height="14" rx="1.5"/><rect x="7" y="12" width="13" height="8" rx="1"/><path d="M23 13v1M23 17v1"/></svg>',
     // puxadores
     cava: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 26V9h12l4-4v21z"/><path d="M20 9l4-4"/></svg>',
@@ -398,6 +399,12 @@
     if (sec.tipo === 'lixeira') h += '<div class="campo"><label>Cestos' + aj('lixeira') + '</label></div>' + pil('baldes', [[1, '1 cesto'], [2, '2 cestos (seletiva)']]);
     if (sec.tipo === 'forno') h += '<p class="ajuda">Nicho para forno de embutir: interno ~56–57 × 59–60 cm, profundidade ≥ 55 cm.</p>';
     if (sec.tipo === 'micro') h += '<p class="ajuda">Nicho para micro-ondas: interno ≥ 50 × 38–46 cm, com ventilação.</p>';
+    if (sec.tipo === 'geladeira') {
+      if (!sec.eletro) sec.eletro = { largura: 700, altura: 1800, profundidade: 700 };
+      h += '<div class="campo"><label>Medidas da geladeira' + aj('geladeira') + '</label></div>' +
+        campoNum('Largura', base + 'eletro.largura', 'mm') + campoNum('Altura', base + 'eletro.altura', 'mm') + campoNum('Profundidade', base + 'eletro.profundidade', 'mm') +
+        '<p class="ajuda">O nicho vai até o piso (sem base nem rodapé). O marcê confere 2 cm de folga de cada lado e 5 cm em cima. Use a medida do manual do modelo escolhido.</p>';
+    }
     if (sec.tipo === 'espelho') h += '<p class="ajuda">Espelho 4 mm recortado em arco, colado no fundo do nicho.</p>';
     if (sec.tipo === 'painel') h += '<p class="ajuda">Faixa aberta com painel de fundo no material das frentes (ex.: entre balcão e aéreo, ou painel de TV).</p>';
     return h;
@@ -868,6 +875,7 @@
               if (spec.elevacao > 600 && tipo === 'balcao') { spec = aplicarPadroes(E.aplicarTipo(spec, 'aereo'), st.padroes); spec.nome = E.TIPOS.aereo.nome; }
             }
             if (msg.cuba) { spec.cuba = Object.assign(spec.cuba, msg.cuba, { ativa: true, origem: 'modelo' }); }
+            if (msg.codigo) spec.codigo = msg.codigo;
             spec.colunas = E.autoColunas(spec);
           }
           st.spec = spec;

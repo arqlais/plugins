@@ -138,6 +138,16 @@
     (M.vaos || []).forEach(function (vm) {
       vm.secoes.forEach(function (sm) {
         var t = sm.cfg.tipo;
+        if (t === 'geladeira') {
+          var gel = sm.cfg.eletro || { largura: 700, altura: 1800 };
+          s.push('<rect x="' + X(vm.il) + '" y="' + Y(sm.it) + '" width="' + n1(vm.largInt) + '" height="' + n1(sm.it) + '" fill="' + shade(intCor, 0.8) + '"/>');
+          var gw = Math.min(gel.largura, vm.largInt), gh = Math.min(gel.altura, sm.it), gx0 = vm.il + (vm.largInt - gw) / 2;
+          s.push('<rect x="' + X(gx0) + '" y="' + Y(gh) + '" width="' + n1(gw) + '" height="' + n1(gh) + '" rx="' + n1(fs * 0.4) + '" fill="#c9ccd0" stroke="#8a8f94" vector-effect="non-scaling-stroke"/>');
+          s.push('<line x1="' + X(gx0) + '" y1="' + Y(gh * 0.62) + '" x2="' + X(gx0 + gw) + '" y2="' + Y(gh * 0.62) + '" stroke="#8a8f94" vector-effect="non-scaling-stroke"/>');
+          s.push('<rect x="' + X(gx0 + gw * 0.08) + '" y="' + Y(gh * 0.9) + '" width="' + n1(fs * 0.35) + '" height="' + n1(gh * 0.18) + '" fill="#8a8f94"/><rect x="' + X(gx0 + gw * 0.08) + '" y="' + Y(gh * 0.55) + '" width="' + n1(fs * 0.35) + '" height="' + n1(gh * 0.2) + '" fill="#8a8f94"/>');
+          s.push('<text class="rotulo" x="' + X(vm.il + vm.largInt / 2) + '" y="' + Y(gh * 0.3) + '" font-size="' + n1(fs * 0.8) + '" text-anchor="middle">geladeira</text>');
+          return;
+        }
         if (t === 'nicho' || t === 'arco' || t === 'espelho' || t === 'painel' || t === 'forno' || t === 'micro') {
           s.push('<rect x="' + X(vm.il) + '" y="' + Y(sm.it) + '" width="' + n1(vm.largInt) + '" height="' + n1(sm.altInt) + '" fill="' + shade(intCor, 0.8) + '"/>');
           if (t === 'forno' || t === 'micro') {
@@ -540,11 +550,27 @@
     var d = M.dims, L = d.L, un = o.unidade || 'mm', cor = o.corCota || '#c0392b', spec = M.spec;
     var pedra = M.pecas.filter(function (p) { return p.grupo === 'pedra'; })[0];
     var topoZ = pedra ? pedra.z + pedra.dz : d.H;
+    var chamadas = [];
+    (M.vaos || []).forEach(function (vm) {
+      if (vm.cuba) chamadas.push({ x: vm.il + vm.largInt / 2, z: vm.secoes[0] ? vm.secoes[0].ib + 120 : d.z0 + 120, t: ['vão para sifão da cuba', 'sem fundo e sem prateleira'] });
+      vm.secoes.forEach(function (sm) {
+        var t = sm.cfg && sm.cfg.tipo;
+        if (t === 'forno') chamadas.push({ x: vm.il + vm.largInt * 0.8, z: sm.ib + sm.altInt / 2, t: ['nicho forno', 'tomada 20 A ao lado'] });
+        if (t === 'micro') chamadas.push({ x: vm.il + vm.largInt * 0.8, z: sm.ib + sm.altInt / 2, t: ['nicho micro-ondas', 'ventilação atrás'] });
+        if (t === 'geladeira') chamadas.push({ x: vm.il + vm.largInt * 0.8, z: sm.it * 0.75, t: ['nicho geladeira', 'sem base · até o piso'] });
+      });
+    });
+    var ledP = M.pecas.filter(function (p) { return p.grupo === 'led'; })[0];
+    if (ledP) chamadas.push({ x: ledP.x + ledP.dx * 0.85, z: ledP.z, t: ['fita de LED ' + spec.led.temperatura + 'K', spec.led.tipo === 'embutido' ? 'perfil embutido' : 'perfil sobreposto'] });
+    // mesma chamada em vários vãos: um texto só, com uma linha para cada ponto
+    var grupos = {};
+    chamadas = chamadas.filter(function (c) { var g = grupos[c.t[0]]; if (g) { g.pts.push({ x: c.x, z: c.z }); return false; } c.pts = [{ x: c.x, z: c.z }]; grupos[c.t[0]] = c; return true; });
+    var papelTxt = chamadas.length ? 34 : 0;
     var mPapel = 15;
-    var E = o.escala || escolherEscala(L, topoZ, o.areaW || 260, o.areaH || 150, mPapel);
+    var E = o.escala || escolherEscala(L, topoZ, (o.areaW || 260) - papelTxt, o.areaH || 150, mPapel);
     var fs = 2.1 * E, lw = 0.16 * E, tq = 1.1 * E, mg = mPapel * E;
     var xMin = pedra ? Math.min(0, pedra.x) : 0, xMax = pedra ? Math.max(L, pedra.x + pedra.dx) : L;
-    var W = xMax - xMin + 2 * mg, Ht = topoZ + 2 * mg;
+    var W = xMax - xMin + 2 * mg + papelTxt * E, Ht = topoZ + 2 * mg;
     var ox = mg - xMin, oy = mg + topoZ;
     function X(x) { return n1(ox + x); }
     function Y(z) { return n1(oy - z); }
@@ -553,7 +579,7 @@
     if (d.z0 > 0 || spec.base.tipo !== 'suspenso') s.push('<line x1="' + n1(ox - mg * 0.4) + '" y1="' + Y(0) + '" x2="' + n1(ox + L + mg * 0.4) + '" y2="' + Y(0) + '" stroke="#2b2b2b" stroke-width="' + n1(lw * 2.2) + '"/>');
     var vis = M.pecas.filter(function (p) {
       if (p.grupo === 'frente' || p.grupo === 'led') return false;
-      if (p.grupo === 'ferragem') return /^Dobradiça|^Corrediça|^Cesto|^Quadro aramado|^Montante|^Grade|^Tubo|^Espelho/.test(p.nome);
+      if (p.grupo === 'ferragem') return /^Dobradiça|^Corrediça|^Cesto|^Aba do cesto|aramado|^Varão|^Borda|^Travessa do cesto|^Tubo|^Espelho/.test(p.nome);
       return p.dx > 0.4 && p.dz > 0.4;
     });
     // de trás para a frente: o que está mais ao fundo é pintado primeiro
@@ -570,6 +596,20 @@
       else s.push('<rect x="' + X(p.x) + '" y="' + Y(p.z + p.dz) + '" width="' + n1(p.dx) + '" height="' + n1(p.dz) + '" fill="' + fill + '" stroke="' + st + '" stroke-width="' + n1(sw) + '"/>');
     });
     var op = { cor: cor, lw: lw, fs: fs, tique: tq };
+    // chamadas escritas numa coluna à direita do desenho: marcador no ponto, linha e texto
+    if (chamadas.length) {
+      chamadas.sort(function (a, b) { return b.z - a.z; });
+      var xTxt = ox + L + mg * 0.75, passo = fs * 2.6, yPrev = -1e9;
+      chamadas.forEach(function (c) {
+        var ty = Math.max(Number(Y(c.z)), yPrev + passo);
+        yPrev = ty;
+        c.pts.forEach(function (pt) {
+          var px = ox + pt.x, py = Number(Y(pt.z));
+          s.push('<path d="M' + n1(px) + ' ' + n1(py) + 'L' + n1(xTxt - fs) + ' ' + n1(ty) + 'H' + n1(xTxt - fs * 0.3) + '" fill="none" stroke="#a88a80" stroke-width="' + n1(lw * 0.9) + '"/><circle cx="' + n1(px) + '" cy="' + n1(py) + '" r="' + n1(0.6 * E) + '" fill="#a88a80" stroke="#fff" stroke-width="' + n1(lw * 0.6) + '"/>');
+        });
+        c.t.forEach(function (lt, k) { s.push('<text x="' + n1(xTxt) + '" y="' + n1(ty + fs * 0.35 + k * fs * 1.15) + '" font-size="' + n1(fs * (k ? 0.82 : 0.92)) + '" fill="' + (k ? '#66717b' : '#3e4b57') + '"' + (k ? '' : ' font-weight="500"') + '>' + esc(lt) + '</text>'); });
+      });
+    }
     // vãos livres: largura interna embaixo de cada vão e alturas livres entre prateleiras
     var yc = Y(0) + mg * 0.32;
     (M.vaos || []).forEach(function (vm) {
@@ -577,6 +617,12 @@
       vm.secoes.forEach(function (sm) {
         var t = sm.cfg && sm.cfg.tipo;
         if (t === 'gavetas' || t === 'lixeira' || t === 'temperos' || t === 'fruteira') return;
+        if (t === 'geladeira') {
+          var xg = ox + vm.il + vm.largInt / 2;
+          s.push('<text x="' + n1(xg) + '" y="' + Y(sm.it / 2) + '" font-size="' + n1(fs) + '" text-anchor="middle" fill="#5a5a5a">NICHO GELADEIRA</text>');
+          s.push(cotaT(ox + vm.il + vm.largInt * 0.25, Y(sm.it), ox + vm.il + vm.largInt * 0.25, Y(0), fmtUn(sm.it, un), op));
+          return;
+        }
         var nivs = [sm.ib];
         M.pecas.forEach(function (p) {
           if (!/^Prateleira/.test(p.nome)) return;
@@ -675,6 +721,15 @@
     (M.vaos || []).forEach(function (vm) {
       vm.secoes.forEach(function (sm) {
         var t = sm.cfg.tipo;
+        if (t === 'geladeira') {
+          var ge = sm.cfg.eletro || { largura: 700, altura: 1800 };
+          s.push(ret(vm.il, 0, vm.largInt, sm.it, lw, { fill: cIn }));
+          var gx = vm.il + Math.max(0, (vm.largInt - ge.largura) / 2);
+          s.push(ret(gx, 0, Math.min(ge.largura, vm.largInt), Math.min(ge.altura, sm.it), lw, { dash: n1(2 * E) + ' ' + n1(1.2 * E) }));
+          s.push('<text x="' + X(vm.il + vm.largInt / 2) + '" y="' + Y(Math.min(ge.altura, sm.it) / 2) + '" font-size="' + n1(fs) + '" text-anchor="middle" fill="' + fina + '">NICHO GELADEIRA</text>');
+          s.push('<text x="' + X(vm.il + vm.largInt / 2) + '" y="' + n1(Number(Y(Math.min(ge.altura, sm.it) / 2)) + fs * 1.4) + '" font-size="' + n1(fs * 0.8) + '" text-anchor="middle" fill="' + fina + '">aparelho ' + fmtUn(ge.largura, un) + ' × ' + fmtUn(ge.altura, un) + '</text>');
+          return;
+        }
         if (t === 'nicho' || t === 'arco' || t === 'espelho' || t === 'painel' || t === 'forno' || t === 'micro') {
           s.push(ret(vm.il, sm.ib, vm.largInt, sm.altInt, lw, { fill: cIn }));
           if (t === 'forno' || t === 'micro') {

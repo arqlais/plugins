@@ -1,150 +1,301 @@
-/* marcê — detalhes em círculo (seções típicas, sem escala) para a prancha de detalhamento.
-   Cada desenho fica num viewBox 100 × 100, recortado por um círculo tracejado, como nos
-   detalhamentos de marcenaria feitos à mão: puxador, frente, iluminação. */
+/* marcê — detalhes construtivos (desenhos próprios, sem escala).
+   Linguagem visual do marcê: peças cortadas com hachura no tom "ink" sobre rosé claro,
+   ferragens em cinza metálico, notas com marcador redondo e linha fina, cotas na cor
+   escolhida para a prancha. Cada detalhe é um SVG 120 × 90. */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
   else root.MarceDetalhes = factory();
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
+  var TX = '#3e4b57', INK = '#a88a80', TINT = '#f6ecea', MET = '#c3c8cd', METL = '#6f777e', LED = '#e0ad1f';
   var n = 0;
-  var T = '#2b2b2b', COTA = '#c0392b', LED = '#d9a400', METAL = '#c9cdd1';
 
-  function hach(id) {
-    return '<pattern id="' + id + '" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="4" stroke="#9a9a9a" stroke-width=".6"/></pattern>';
+  function Desenho(cor, corCota) {
+    var id = 'md' + (++n), s = [];
+    var cFr = cor.frente || '#c9a27a', cCx = cor.caixa || '#d8c3a5', cGv = cor.gaveta || '#eeeeee', cc = corCota || '#c0392b';
+    s.push('<defs><pattern id="' + id + 'h" patternUnits="userSpaceOnUse" width="3.2" height="3.2" patternTransform="rotate(45)"><rect width="3.2" height="3.2" fill="' + TINT + '"/><line x1="0" y1="0" x2="0" y2="3.2" stroke="' + INK + '" stroke-width=".55"/></pattern>' +
+      '<pattern id="' + id + 'p" patternUnits="userSpaceOnUse" width="7" height="7"><rect width="7" height="7" fill="#ecebe8"/><circle cx="2" cy="2" r=".55" fill="#9c9a94"/><circle cx="5.2" cy="4.6" r=".4" fill="#9c9a94"/><path d="M4.5 1.2l1.2 .9" stroke="#9c9a94" stroke-width=".35"/></pattern>' +
+      '<linearGradient id="' + id + 'm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dfe3e6"/><stop offset="1" stop-color="' + MET + '"/></linearGradient>' +
+      '<linearGradient id="' + id + 'l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + LED + '" stop-opacity=".55"/><stop offset="1" stop-color="' + LED + '" stop-opacity="0"/></linearGradient></defs>');
+    function txt(x, y, t, anc, cor, tam, peso) { return '<text x="' + x + '" y="' + y + '" font-size="' + (tam || 3.9) + '" fill="' + (cor || TX) + '" text-anchor="' + (anc || 'start') + '" font-family="Poppins,sans-serif"' + (peso ? ' font-weight="' + peso + '"' : '') + '>' + t + '</text>'; }
+    var api = {
+      corte: function (x, y, w, h) { s.push('<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="url(#' + id + 'h)" stroke="' + TX + '" stroke-width=".6"/>'); return api; },
+      vista: function (x, y, w, h, qual) { var f = qual === 'frente' ? cFr : qual === 'gaveta' ? cGv : cCx; s.push('<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="' + f + '" stroke="' + TX + '" stroke-width=".6"/>'); return api; },
+      frente: function (x, y, w, h) { return api.vista(x, y, w, h, 'frente'); },
+      poli: function (pts, qual) {
+        var f = qual === 'corte' ? 'url(#' + id + 'h)' : qual === 'frente' ? cFr : qual === 'metal' ? 'url(#' + id + 'm)' : qual === 'plastico' ? '#7b7f84' : cCx;
+        s.push('<path d="M' + pts.map(function (p) { return p[0] + ' ' + p[1]; }).join('L') + 'Z" fill="' + f + '" stroke="' + (qual === 'metal' ? METL : TX) + '" stroke-width=".6" stroke-linejoin="round"/>'); return api;
+      },
+      metal: function (x, y, w, h) { s.push('<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx=".6" fill="url(#' + id + 'm)" stroke="' + METL + '" stroke-width=".5"/>'); return api; },
+      vidro: function (x, y, w, h) { s.push('<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="#dce9ee" stroke="#6f8fb6" stroke-width=".5"/>'); return api; },
+      parede: function (x, y, w, h) { s.push('<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="url(#' + id + 'p)" stroke="' + TX + '" stroke-width=".6"/>'); return api; },
+      piso: function (x0, x1, y) { s.push('<path d="M' + x0 + ' ' + y + 'H' + x1 + '" stroke="' + TX + '" stroke-width="1.1"/>'); for (var x = x0 + 2; x < x1; x += 4) s.push('<path d="M' + x + ' ' + (y + .6) + 'l-2.5 3" stroke="' + TX + '" stroke-width=".35"/>'); return api; },
+      luz: function (x, y, abre, alt) { s.push('<path d="M' + x + ' ' + y + 'L' + (x - abre) + ' ' + (y + alt) + 'H' + (x + abre) + 'Z" fill="url(#' + id + 'l)"/>'); return api; },
+      fita: function (x, y, w) { s.push('<rect x="' + x + '" y="' + y + '" width="' + w + '" height="1.4" rx=".5" fill="' + LED + '"/>'); return api; },
+      linha: function (d, cor, w, tr) { s.push('<path d="' + d + '" fill="none" stroke="' + (cor || TX) + '" stroke-width="' + (w || 0.6) + '"' + (tr ? ' stroke-dasharray="' + tr + '"' : '') + ' stroke-linecap="round" stroke-linejoin="round"/>'); return api; },
+      seta: function (x, y, dx, dy) {
+        var l = Math.sqrt(dx * dx + dy * dy), ux = dx / l, uy = dy / l, ex = x + dx, ey = y + dy;
+        s.push('<path d="M' + x + ' ' + y + 'L' + ex + ' ' + ey + '" stroke="' + INK + '" stroke-width=".7"/><path d="M' + ex + ' ' + ey + 'L' + (ex - ux * 3 - uy * 1.6) + ' ' + (ey - uy * 3 + ux * 1.6) + 'L' + (ex - ux * 3 + uy * 1.6) + ' ' + (ey - uy * 3 - ux * 1.6) + 'Z" fill="' + INK + '"/>'); return api;
+      },
+      // nota: marcador redondo no ponto, linha em cotovelo e texto (1 ou 2 linhas) para o lado indicado
+      nota: function (px, py, tx, ty, linhas, lado) {
+        linhas = [].concat(linhas); lado = lado || (tx < px ? 'e' : 'd');
+        var fim = lado === 'e' ? 4 : 116;
+        s.push('<path d="M' + px + ' ' + py + 'L' + tx + ' ' + ty + 'H' + fim + '" fill="none" stroke="' + INK + '" stroke-width=".45"/><circle cx="' + px + '" cy="' + py + '" r="1.05" fill="' + INK + '" stroke="#fff" stroke-width=".45"/>');
+        linhas.forEach(function (t, i) { s.push(txt(fim, i ? ty + 4.4 : ty - 1.3, t, lado === 'e' ? 'start' : 'end', i ? '#66717b' : TX, i ? 3.5 : 3.9, i ? null : 500)); });
+        return api;
+      },
+      cotaH: function (x0, x1, y, t, embaixo) {
+        s.push('<path d="M' + x0 + ' ' + y + 'H' + x1 + 'M' + (x0 - 1.2) + ' ' + (y + 1.2) + 'l2.4 -2.4M' + (x1 - 1.2) + ' ' + (y + 1.2) + 'l2.4 -2.4" stroke="' + cc + '" stroke-width=".45"/>');
+        var curta = Math.abs(x1 - x0) < 8;
+        s.push(txt(curta ? x1 + 1.6 : (x0 + x1) / 2, embaixo ? y + 4.4 : y - 1.3, t, curta ? 'start' : 'middle', cc, 3.6));
+        return api;
+      },
+      cotaV: function (y0, y1, x, t, direita) {
+        s.push('<path d="M' + x + ' ' + y0 + 'V' + y1 + 'M' + (x - 1.2) + ' ' + (y0 + 1.2) + 'l2.4 -2.4M' + (x - 1.2) + ' ' + (y1 + 1.2) + 'l2.4 -2.4" stroke="' + cc + '" stroke-width=".45"/>');
+        var my = (y0 + y1) / 2, tx = direita ? x + 4 : x - 1.4;
+        s.push('<text x="' + tx + '" y="' + my + '" font-size="3.6" fill="' + cc + '" text-anchor="middle" font-family="Poppins,sans-serif" transform="rotate(-90 ' + tx + ' ' + my + ')">' + t + '</text>');
+        return api;
+      },
+      rotulo: function (x, y, t, anc) { s.push(txt(x, y, t, anc, '#8b939a', 3.4)); return api; },
+      svg: function () { return '<svg viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg" class="md-svg">' + s.join('') + '</svg>'; }
+    };
+    return api;
   }
-  function circulo(conteudo, cor) {
-    var id = 'dc' + (++n);
-    return '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="det-circ"><defs><clipPath id="' + id + 'c"><circle cx="50" cy="50" r="45"/></clipPath>' + hach(id + 'h') + '</defs>' +
-      '<g clip-path="url(#' + id + 'c)">' + conteudo.replace(/HACH/g, 'url(#' + id + 'h)').replace(/MDF/g, cor || '#e6dcd2') + '</g>' +
-      '<circle cx="50" cy="50" r="45" fill="none" stroke="' + T + '" stroke-width=".7" stroke-dasharray="4 2.5"/></svg>';
-  }
-  function txt(x, y, t, anc) { return '<text x="' + x + '" y="' + y + '" font-size="5.2" fill="#555" font-family="Poppins,sans-serif"' + (anc ? ' text-anchor="' + anc + '"' : '') + '>' + t + '</text>'; }
-  function cota(x0, x1, y, t) { return '<path d="M' + x0 + ' ' + y + 'H' + x1 + 'M' + (x0 - 1.5) + ' ' + (y + 1.5) + 'l3 -3M' + (x1 - 1.5) + ' ' + (y + 1.5) + 'l3 -3" stroke="' + COTA + '" stroke-width=".6"/>' + '<text x="' + (x0 + x1) / 2 + '" y="' + (y - 2) + '" font-size="5" text-anchor="middle" fill="' + COTA + '" font-family="Poppins,sans-serif">' + t + '</text>'; }
-  function mdf(x, y, w, h) { return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="MDF" stroke="' + T + '" stroke-width=".8"/>'; }
-  function cortado(x, y, w, h) { return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="HACH" stroke="' + T + '" stroke-width=".8"/>'; }
 
-  // Corte lateral no topo de uma frente, mostrando como a mão abre a porta/gaveta
-  var DES = {
-    cava: function () {
-      // tampo/caixa em cima, travessa recuada, frente com chanfro de 45° no topo
-      return cortado(8, 18, 90, 10) + cortado(40, 28, 10, 26) +
-        '<path d="M14 82V40L22 32H30V82Z" fill="MDF" stroke="' + T + '" stroke-width=".8"/>' +
-        '<path d="M14 40L22 32" stroke="' + COTA + '" stroke-width=".6" stroke-dasharray="2 1.4"/>' + txt(32, 46, '45°') + txt(56, 46, 'travessa') + txt(56, 53, 'recuada');
-    },
-    perfil: function () {
-      return cortado(8, 18, 90, 10) + mdf(16, 40, 16, 50) +
-        '<path d="M14 40H34V34H16V30" fill="' + METAL + '" stroke="#6b6b6b" stroke-width=".8"/>' + txt(38, 38, 'perfil de') + txt(38, 45, 'alumínio');
-    },
-    passante: function () {
-      // prateleira/caixa passa à frente e a porta para abaixo dela: a mão entra pelo vão
-      return cortado(8, 22, 90, 10) + mdf(18, 44, 16, 50) +
-        '<path d="M18 38H34" stroke="' + COTA + '" stroke-width=".5" stroke-dasharray="2 1.4"/>' +
-        '<path d="M40 32V44" stroke="' + COTA + '" stroke-width=".6"/>' + txt(44, 41, 'vão para a mão') + txt(44, 60, 'porta') + txt(44, 67, 'passante');
-    },
-    alca: function () {
-      return mdf(30, 6, 16, 90) + '<path d="M30 32H20V62H30" fill="none" stroke="#6b6b6b" stroke-width="3" stroke-linejoin="round"/>' + txt(50, 50, 'puxador') + txt(50, 57, 'aparente');
-    },
-    barra: function () { return DES.alca(); },
-    botao: function () {
-      return mdf(30, 6, 16, 90) + '<path d="M30 46H24V54H30" fill="#6b6b6b"/><circle cx="20" cy="50" r="6" fill="' + METAL + '" stroke="#6b6b6b"/>' + txt(50, 52, 'botão');
-    },
-    testeira: function () {
-      return cortado(8, 18, 90, 10) + mdf(16, 40, 16, 50) +
-        '<path d="M14 40V32H34L38 28" fill="none" stroke="#6b6b6b" stroke-width="2.4" stroke-linejoin="round"/>' + txt(40, 44, 'perfil 45°') + txt(40, 51, '(testeira)');
-    },
-    toque: function () {
-      return cortado(54, 6, 10, 90) + mdf(30, 6, 16, 90) +
-        '<rect x="46" y="44" width="8" height="12" fill="' + METAL + '" stroke="#6b6b6b"/><path d="M40 50H28" stroke="' + COTA + '" stroke-width=".6"/><path d="M28 50l4 -2.4v4.8z" fill="' + COTA + '"/>' + txt(66, 48, 'fecho') + txt(66, 55, 'toque');
-    },
-    led: function (o) {
-      var emb = o.montagem !== 'sobreposto';
-      var s = '';
-      if (emb) s += '<path d="M4 34H96V50H60V40H46V50H4Z" fill="HACH" stroke="' + T + '" stroke-width=".8"/><rect x="47.5" y="41.5" width="11" height="7" fill="' + METAL + '" stroke="#6b6b6b" stroke-width=".6"/><rect x="47.5" y="48" width="11" height="2" fill="#fff6dc" stroke="' + LED + '" stroke-width=".6"/>';
-      else s += cortado(4, 34, 92, 16) + '<rect x="46" y="50" width="14" height="6" fill="' + METAL + '" stroke="#6b6b6b" stroke-width=".6"/><rect x="46" y="55" width="14" height="2" fill="#fff6dc" stroke="' + LED + '" stroke-width=".6"/>';
-      var y = emb ? 50 : 57;
-      s += '<path d="M53 ' + y + 'L26 96H80Z" fill="' + LED + '" opacity=".2"/>';
-      s += txt(50, 28, 'prateleira / base', 'middle') + txt(53, 82, (o.temperatura || 4000) + 'K', 'middle');
-      if (emb) s += cota(46, 60, 64, '12');
-      return s;
-    },
-    ripada: function (o) {
-      // planta (vista de cima) da frente com ripas coladas
-      var r = o.ripa || { largura: 20, espaco: 10, espessura: 9 };
-      var esc = 1.6, w = r.largura * esc / 2, e = r.espaco * esc / 2, h = Math.max(4, r.espessura * esc / 2);
-      var s = mdf(4, 56, 92, 12);
-      for (var x = 8; x + w < 96; x += w + e) s += '<rect x="' + x + '" y="' + (56 - h) + '" width="' + w + '" height="' + h + '" fill="MDF" stroke="' + T + '" stroke-width=".7"/>';
-      return s + cota(8, 8 + w, 40, r.largura) + cota(8 + w, 8 + w + e, 32, r.espaco) + txt(50, 80, 'frente (vista de cima)', 'middle');
-    },
-    moldura: function () {
-      return mdf(30, 6, 14, 90) + mdf(44, 6, 6, 18) + mdf(44, 76, 6, 18) + txt(54, 18, 'quadro') + txt(54, 25, 'aplicado') + txt(54, 52, 'almofada');
-    },
-    rodape: function (o) {
-      return mdf(20, 10, 16, 40) + cortado(10, 50, 86, 10) + cortado(10 + Math.min(30, (o.recuo || 50) / 3), 60, 8, 26) +
-        '<path d="M2 86H98" stroke="' + T + '" stroke-width="1.4"/>' + cota(10, 10 + Math.min(30, (o.recuo || 50) / 3), 78, o.recuo || 50) + txt(46, 74, 'rodapé') + txt(46, 81, 'recuado');
-    },
-    pes: function () {
-      return mdf(20, 10, 16, 40) + cortado(10, 50, 86, 10) + '<rect x="40" y="60" width="10" height="20" fill="' + METAL + '" stroke="#6b6b6b"/><rect x="36" y="80" width="18" height="5" fill="#6b6b6b"/>' +
-        '<path d="M2 86H98" stroke="' + T + '" stroke-width="1.4"/>' + txt(58, 72, 'pé regulável');
-    },
-    suspenso: function () {
-      return cortado(84, 0, 12, 100) + cortado(10, 50, 74, 10) + mdf(10, 60, 16, 30) +
-        '<path d="M84 46H70V50" fill="none" stroke="#6b6b6b" stroke-width="2.4"/>' + txt(40, 40, 'suporte oculto') + txt(40, 47, 'na parede');
-    },
-    vidro: function () {
-      return '<rect x="34" y="6" width="10" height="20" fill="' + METAL + '" stroke="#6b6b6b"/><rect x="34" y="74" width="10" height="20" fill="' + METAL + '" stroke="#6b6b6b"/><rect x="37" y="26" width="4" height="48" fill="#dfeaee" stroke="#6f8fb6" stroke-width=".7"/>' + txt(48, 18, 'perfil de alumínio') + txt(48, 52, 'vidro canelado') + txt(48, 59, '4 mm temperado');
-    }
+  // ------------------------------------------------------------------ desenhos
+  var D = {};
+
+  // corrediça telescópica: corte transversal pela lateral do móvel e da gaveta
+  D.telescopica = function (d) {
+    d.corte(8, 10, 10.8, 72).rotulo(13.4, 88, 'lateral', 'middle');
+    d.metal(18.8, 36, 3.7, 27.6).metal(22.5, 39, 3.8, 21.6);
+    d.vista(26.3, 24, 9, 50, 'gaveta').corte(35.3, 66, 28, 3.6).vista(35.3, 24, 28, 3, 'gaveta');
+    d.cotaH(18.8, 26.3, 19, '12,5').cotaV(36, 63.6, 46, '46', true);
+    d.nota(31, 30, 70, 16, ['lateral da gaveta'], 'd');
+    d.nota(20.6, 44, 70, 34, ['perfil fixo', 'na lateral do móvel'], 'd');
+    d.nota(24.4, 56, 70, 54, ['perfil móvel', 'na gaveta'], 'd');
+    d.nota(52, 67.8, 70, 76, ['fundo em rasgo'], 'd');
+    return d;
   };
-
-  // Detalhe com linhas de chamada (moldura tracejada): parede, fundo do armário, driver, fiação e perfil de LED
-  function caixaLed(o) {
-    var id = 'dl' + (++n), emb = o.montagem !== 'sobreposto', temp = o.temperatura || 4000;
-    var pos = o.posicao || 'fundo';
-    var s = '<defs><pattern id="' + id + 'c" patternUnits="userSpaceOnUse" width="6" height="6"><circle cx="1.5" cy="1.5" r=".5" fill="#9a9a9a"/><path d="M4 4l1.4 -1.4" stroke="#9a9a9a" stroke-width=".4"/></pattern>' + hach(id + 'h') + '</defs>';
-    s += '<rect x="2" y="2" width="116" height="86" fill="none" stroke="#a8433a" stroke-width=".7" stroke-dasharray="4 2.5"/>';
-    // parede (à esquerda), caixa do armário à direita da parede
-    s += '<rect x="54" y="6" width="14" height="80" fill="url(#' + id + 'c)" stroke="' + T + '" stroke-width=".7"/>';
-    var bx = 68, by = 50, bw = 48, bh = 5;
-    s += '<path d="M' + bx + ' 12H' + (bx + bw) + 'V' + (by + bh) + 'H' + bx + '" fill="none" stroke="#7a5230" stroke-width="1.6"/>';
-    s += '<path d="M' + bx + ' 30H' + (bx + bw) + '" stroke="#7a5230" stroke-width="1.2"/>';
-    var lx = pos === 'fundo' ? bx + 3 : (pos === 'frente' ? bx + bw - 12 : bx + bw / 2 - 4);
-    if (emb) s += '<rect x="' + lx + '" y="' + (by + 1) + '" width="7" height="' + (bh - 1) + '" fill="' + METAL + '" stroke="#6b6b6b" stroke-width=".5"/>';
-    else s += '<rect x="' + lx + '" y="' + (by + bh) + '" width="7" height="3" fill="' + METAL + '" stroke="#6b6b6b" stroke-width=".5"/>';
-    var ly = by + bh + (emb ? 0 : 3);
-    s += '<rect x="' + lx + '" y="' + (ly - 1) + '" width="7" height="1.2" fill="' + LED + '"/>';
-    s += '<path d="M' + (lx + 3.5) + ' ' + ly + 'L' + (lx - 6) + ' 84H' + (lx + 18) + 'Z" fill="' + LED + '" opacity=".35"/>';
-    // driver dentro do armário e fiação até o perfil
-    s += '<rect x="' + (bx + 2) + '" y="' + (by - 8) + '" width="8" height="8" fill="#b9bec3" stroke="#6b6b6b" stroke-width=".5"/>';
-    s += '<path d="M' + (bx + 6) + ' ' + by + 'C' + (bx + 6) + ' ' + (by + 3) + ' ' + (lx + 3) + ' ' + (by + 1) + ' ' + (lx + 3.5) + ' ' + (by + 2) + '" fill="none" stroke="#555" stroke-width=".5"/>';
-    function cham(px, py, ty, t1, t2) {
-      return '<circle cx="' + px + '" cy="' + py + '" r=".9" fill="#a8433a"/><path d="M' + px + ' ' + py + 'L50 ' + ty + 'H6" fill="none" stroke="#a8433a" stroke-width=".45"/>' +
-        '<text x="6" y="' + (ty - 1.6) + '" font-size="4.3" fill="#333" font-family="Poppins,sans-serif">' + t1 + '</text>' + (t2 ? '<text x="6" y="' + (ty + 4.4) + '" font-size="4.3" fill="#333" font-family="Poppins,sans-serif">' + t2 + '</text>' : '');
+  D.oculta = function (d) {
+    d.corte(8, 10, 10.8, 72).rotulo(13.4, 88, 'lateral', 'middle');
+    d.vista(21.8, 26, 9, 40, 'gaveta').corte(30.8, 58, 32, 3.6).vista(30.8, 26, 32, 3, 'gaveta');
+    d.metal(21.8, 66, 16, 5).metal(18.8, 63, 3, 10);
+    d.cotaH(18.8, 21.8, 20, '5');
+    d.nota(26, 34, 70, 30, ['amortecimento', 'integrado'], 'd');
+    d.nota(30, 68.5, 70, 70, ['corrediça oculta', 'sob a gaveta'], 'd');
+    return d;
+  };
+  // dobradiça de caneco: planta (corte horizontal) na altura da dobradiça
+  D.dobradica = function (d, o) {
+    var tipo = o.dobradica || 'reta';
+    var px = tipo === 'superCurva' ? 20.8 : (tipo === 'curva' ? 15.4 : 10);
+    d.corte(10, 8, 10.8, 50).rotulo(15.4, 6, 'lateral', 'middle');
+    d.frente(px, 58, 46, 10.8);
+    var cx = px + 2.6;
+    d.poli([[cx, 58], [cx + 21, 58], [cx + 21, 64.4], [cx, 64.4]], 'metal');
+    d.metal(20.8, 38, 2.4, 14).poli([[23.2, 43], [cx + 15, 53], [cx + 15, 58], [cx + 8, 58], [23.2, 48.5]], 'metal');
+    d.cotaH(cx, cx + 21, 74, 'Ø 35', true).cotaH(px, cx, 82, '3 a 6', true);
+    d.nota(22, 41, 70, 26, ['calço na lateral'], 'd');
+    d.nota(cx + 12, 61, 70, 50, ['caneco furado', 'na porta'], 'd');
+    d.rotulo(116, 88, { reta: 'sobreposta · reta', curva: 'sobre divisória · curva', superCurva: 'embutida · super curva' }[tipo], 'end');
+    return d;
+  };
+  // puxadores: corte vertical no topo da frente
+  D.cava = function (d) {
+    d.corte(6, 14, 108, 9).rotulo(8, 11, 'tampo ou travessa');
+    d.corte(50, 23, 10.8, 22).poli([[30, 84], [30, 34], [37, 27], [41, 27], [41, 84]], 'frente');
+    d.linha('M30 34L37 27', '#c0392b', 0.5, '1.6 1');
+    d.cotaV(23, 27, 26, '25').cotaH(30, 41, 89, '18');
+    d.nota(33.5, 30.5, 22, 50, ['cava 45°', 'na frente'], 'e');
+    d.nota(55, 38, 70, 52, ['travessa recuada'], 'd');
+    return d;
+  };
+  D.perfil = function (d) {
+    d.corte(6, 14, 108, 9).frente(36, 38, 11, 48);
+    d.poli([[34, 38], [49, 38], [49, 34], [36.5, 34], [36.5, 29], [34, 29]], 'metal');
+    d.nota(42, 36, 70, 46, ['perfil de alumínio', 'no topo da frente'], 'd');
+    return d;
+  };
+  D.passante = function (d) {
+    d.corte(6, 18, 108, 10).frente(36, 40, 11, 46);
+    d.linha('M41.5 28V40', '#c0392b', 0.45, '1.4 1');
+    d.cotaV(28, 40, 56, '25', true);
+    d.nota(36, 34, 24, 52, ['vão para', 'a mão'], 'e');
+    d.nota(41.5, 64, 70, 64, ['porta passante'], 'd');
+    return d;
+  };
+  D.alca = function (d, o) {
+    var b = o.tipo === 'barra', y0 = b ? 18 : 32, y1 = b ? 74 : 60;
+    d.frente(40, 6, 11, 80);
+    d.poli([[40, y0], [30, y0], [30, y1], [40, y1], [40, y1 - 3], [33, y1 - 3], [33, y0 + 3], [40, y0 + 3]], 'metal');
+    d.cotaV(y0 + 3, y1 - 3, 22, b ? 'barra' : 'entre furos');
+    d.nota(31.5, 46, 70, 46, [b ? 'puxador barra' : 'puxador alça', 'parafusado por trás'], 'd');
+    return d;
+  };
+  D.barra = function (d) { return D.alca(d, { tipo: 'barra' }); };
+  D.botao = function (d) {
+    d.frente(40, 6, 11, 80).metal(34, 44, 6, 4).poli([[26, 40.5], [34, 40.5], [34, 51.5], [26, 51.5]], 'metal');
+    d.nota(30, 46, 70, 46, ['puxador botão', 'Ø 25 a 30 mm'], 'd');
+    return d;
+  };
+  D.testeira = function (d) {
+    d.corte(6, 14, 108, 9).frente(36, 40, 11, 46);
+    d.poli([[34, 40], [49, 40], [49, 36], [53, 31], [51, 29.6], [46.5, 35.5], [34, 35.5]], 'metal');
+    d.nota(49, 36, 70, 48, ['perfil 45°', 'a mão puxa por cima'], 'd');
+    return d;
+  };
+  D.toque = function (d) {
+    d.frente(30, 6, 11, 80).metal(41, 40, 11, 12).corte(52, 6, 10.8, 80);
+    d.seta(10, 46, 16, 0);
+    d.nota(46.5, 46, 70, 36, ['fecho toque', 'preso na lateral'], 'd');
+    d.rotulo(4, 58, 'empurra');
+    d.rotulo(4, 62.5, 'e abre');
+    return d;
+  };
+  // iluminação: corte pelo fundo do armário, junto à parede
+  D.led = function (d, o) {
+    var emb = o.montagem !== 'sobreposto', pos = o.posicao || 'fundo';
+    d.parede(4, 6, 12, 80).rotulo(10, 89, 'parede', 'middle');
+    d.corte(16, 12, 4, 32);
+    var by = 44;
+    var lx = pos === 'fundo' ? 26 : pos === 'frente' ? 96 : 60;
+    if (emb) d.poli([[16, by], [116, by], [116, by + 10.8], [lx + 7, by + 10.8], [lx + 7, by + 4.8], [lx, by + 4.8], [lx, by + 10.8], [16, by + 10.8]], 'corte');
+    else d.corte(16, by, 100, 10.8);
+    var ly = emb ? by + 10.8 : by + 14;
+    if (emb) d.metal(lx + 0.3, by + 5, 6.4, 5.6); else d.metal(lx, by + 10.8, 7, 3.2);
+    d.fita(lx + 0.6, ly - 1.4, 5.8).luz(lx + 3.5, ly, 14, 31);
+    d.metal(46, by - 9, 12, 9).linha('M52 ' + by + 'C52 ' + (by + 3) + ' ' + (lx + 3.5) + ' ' + (by + 1) + ' ' + (lx + 3.5) + ' ' + (by + 5), '#555', 0.45);
+    d.nota(52, by - 4.5, 70, 24, ['driver no armário', 'acesso pela porta'], 'd');
+    d.nota(lx + 3.5, ly - 0.6, 70, 74, ['fita ' + (o.temperatura || 4000) + 'K', emb ? 'perfil embutido' : 'perfil sobreposto'], 'd');
+    if (pos === 'fundo') d.cotaH(16, lx, by - 13, '20');
+    return d;
+  };
+  // base
+  D.rodape = function (d, o) {
+    var r = Math.min(30, (o.recuo || 50) / 2);
+    d.frente(10, 6, 9, 40).corte(19, 36, 90, 9.6);
+    d.corte(19 + r, 45.6, 9, 32).piso(4, 116, 77.6);
+    d.cotaH(19, 19 + r, 86, o.recuo || 50, false).cotaV(45.6, 77.6, 66, o.altura || 100, true);
+    d.nota(23.5 + r, 62, 70, 58, ['rodapé recuado'], 'd');
+    return d;
+  };
+  D.pes = function (d, o) {
+    d.frente(10, 6, 9, 40).corte(19, 36, 90, 9.6);
+    d.metal(40, 45.6, 9, 24).metal(36, 69.6, 17, 6).piso(4, 116, 75.6);
+    d.cotaV(45.6, 75.6, 30, o.altura || 100);
+    d.nota(44.5, 58, 70, 56, ['pé regulável', 'com saia na frente'], 'd');
+    return d;
+  };
+  D.suspenso = function (d) {
+    d.parede(104, 4, 12, 82).corte(16, 50, 88, 9.6).frente(8, 50, 8, 34).corte(16, 59.6, 9.6, 24);
+    d.metal(94, 38, 10, 4).metal(94, 42, 3, 8);
+    d.nota(98, 40, 40, 26, ['suporte oculto', 'na parede'], 'e');
+    d.rotulo(18, 89, 'móvel suspenso');
+    return d;
+  };
+  // fundo encaixado em rasgo (planta)
+  D.fundo = function (d) {
+    d.poli([[20, 8], [30.8, 8], [30.8, 70], [28.2, 70], [28.2, 82], [20, 82]], 'corte');
+    d.corte(23.8, 30, 4.4, 44);
+    d.linha('M30.8 70H108', TX, 0.6);
+    d.cotaH(28.2, 30.8, 87, '10').cotaH(23.8, 28.2, 26, '6');
+    d.nota(26, 50, 70, 46, ['fundo HDF 6 mm', 'em rasgo'], 'd');
+    d.rotulo(36, 66, 'lateral (planta)');
+    return d;
+  };
+  // prateleira regulável em pinos
+  D.prateleira = function (d, o) {
+    d.corte(16, 8, 10.8, 76);
+    for (var y = 16; y < 80; y += 8) d.linha('M27 ' + y + 'h2', TX, 0.5);
+    d.vista(26.8, 44, 76, 10.8);
+    d.metal(26.8, 54.8, 5, 2.6);
+    d.cotaH(92.8, 102.8, 40, o.recuo || 20);
+    d.nota(29, 56, 70, 68, ['pino metálico', 'furos a cada 32 mm'], 'd');
+    d.nota(64, 49, 70, 28, ['prateleira recuada'], 'd');
+    return d;
+  };
+  // porta-temperos / fruteira: vista lateral do aramado de correr
+  D.temperos = function (d, o) {
+    var nc = Math.max(1, Math.min(4, o.cestos || 3));
+    d.frente(8, 6, 8, 80).rotulo(12, 4.5, 'frente', 'middle');
+    d.metal(18, 10, 2.6, 68).metal(60, 10, 2.6, 68).metal(18, 10, 44.6, 2.6);
+    for (var k = 0; k < nc; k++) {
+      var y = nc === 1 ? 70 : 72 - k * (52 / (nc - 1));
+      d.linha('M22 ' + y + 'H58', METL, 1).linha('M22 ' + (y - 6) + 'H58', METL, 0.6).linha('M22 ' + y + 'V' + (y - 9) + 'M58 ' + y + 'V' + (y - 9), METL, 0.7);
     }
-    s += cham(bx + 6, by - 4, 32, 'Driver da fita de LED', 'dentro do armário');
-    s += cham(bx + 8, by + 1.5, 50, 'Fiação', '');
-    s += cham(lx + 3.5, ly, 66, 'Fita de LED ' + temp + 'K', 'em perfil ' + (emb ? 'embutido' : 'sobreposto'));
-    if (pos === 'fundo') s += '<path d="M' + bx + ' 59H' + lx + 'M' + bx + ' 57v4M' + lx + ' 57v4" stroke="' + COTA + '" stroke-width=".5"/><path d="M' + (lx + 1) + ' 46H' + (bx + 26) + '" stroke="' + COTA + '" stroke-width=".35"/><text x="' + (bx + 27) + '" y="47.5" font-size="4.3" fill="' + COTA + '" font-family="Poppins,sans-serif">2 cm</text>';
-    return '<svg viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg" class="det-caixa">' + s + '</svg>';
-  }
+    d.metal(18, 78, 44, 3);
+    d.nota(61.3, 30, 70, 20, ['quadro e cestos', 'aramado cromado'], 'd');
+    d.nota(40, 79.5, 70, 74, ['corrediça', 'extração total'], 'd');
+    return d;
+  };
+  D.fruteira = D.temperos;
+  D.lixeira = function (d) {
+    d.frente(8, 6, 8, 80);
+    d.poli([[22, 24], [58, 24], [56, 74], [24, 74]], 'plastico');
+    d.linha('M20 24H60', '#555', 1.6);
+    d.metal(18, 76, 44, 3);
+    d.nota(40, 48, 70, 40, ['cesto com aba', 'apoiado no quadro'], 'd');
+    d.nota(40, 77.5, 70, 74, ['corrediça', 'extração total'], 'd');
+    return d;
+  };
+  D.ripada = function (d, o) {
+    var r = o.ripa || { largura: 20, espaco: 10, espessura: 9 };
+    var k = 1.4, w = r.largura * k / 2, e = r.espaco * k / 2, h = Math.max(3, r.espessura * k / 2);
+    d.frente(6, 52, 108, 9);
+    for (var x = 10; x + w < 112; x += w + e) d.frente(x, 52 - h, w, h);
+    d.cotaH(10, 10 + w, 52 - h - 4, r.largura).cotaH(10 + w, 10 + w + e, 52 - h - 11, r.espaco);
+    d.nota(60, 56.5, 70, 74, ['frente com', 'ripas coladas'], 'd');
+    d.rotulo(6, 88, 'planta');
+    return d;
+  };
+  D.moldura = function (d) {
+    d.frente(40, 6, 11, 80).frente(51, 6, 6, 16).frente(51, 70, 6, 16);
+    d.nota(54, 14, 70, 22, ['quadro aplicado'], 'd');
+    d.nota(45, 46, 70, 54, ['almofada lisa'], 'd');
+    return d;
+  };
+  D.vidro = function (d) {
+    d.metal(40, 6, 10, 22).metal(40, 64, 10, 22).vidro(43, 28, 4, 36);
+    d.nota(45, 16, 70, 22, ['perfil de alumínio'], 'd');
+    d.nota(45, 46, 70, 54, ['vidro canelado', '4 mm temperado'], 'd');
+    return d;
+  };
 
   var TITULOS = {
+    telescopica: 'corrediça telescópica', oculta: 'corrediça oculta', dobradica: 'dobradiça de caneco',
     cava: 'puxador cava 45°', perfil: 'puxador perfil', passante: 'porta passante', alca: 'puxador alça', barra: 'puxador barra',
-    botao: 'puxador botão', testeira: 'perfil 45° (testeira)', toque: 'abertura por toque',
-    led: 'perfil de LED', rodape: 'rodapé recuado', pes: 'pés reguláveis', suspenso: 'fixação suspensa', ripada: 'frente ripada', moldura: 'frente com moldura', vidro: 'porta de vidro canelado'
+    botao: 'puxador botão', testeira: 'perfil 45° (testeira)', toque: 'abertura por toque', led: 'iluminação em LED',
+    rodape: 'rodapé recuado', pes: 'pés reguláveis', suspenso: 'fixação suspensa', fundo: 'fundo encaixado',
+    prateleira: 'prateleira regulável', temperos: 'porta-temperos', fruteira: 'fruteira', lixeira: 'lixeira embutida',
+    ripada: 'frente ripada', moldura: 'frente com moldura', vidro: 'porta de vidro canelado'
   };
 
-  // Lista dos detalhes que valem para este móvel (máx. 3)
-  function doMovel(M) {
-    var spec = M.spec, out = [];
-    var cor = (spec.materiais.frente || {}).cor;
-    var pux = spec.puxador.tipo;
-    if (DES[pux]) out.push({ chave: pux, titulo: TITULOS[pux], svg: circulo(DES[pux]({}), cor) });
-    var est = (spec.frentes && spec.frentes.estilo) || 'lisa';
-    if (est !== 'lisa' && DES[est]) out.push({ chave: est, titulo: TITULOS[est], svg: circulo(DES[est]({ ripa: spec.frentes.ripa }), cor) });
-    if (spec.led && spec.led.ativo && M.pecas.some(function (p) { return p.grupo === 'led'; })) out.push({ chave: 'led', titulo: 'iluminação', caixa: true, svg: caixaLed({ montagem: spec.led.tipo, temperatura: spec.led.temperatura, posicao: spec.led.posicao }) });
-    var b = spec.base && spec.base.tipo;
-    if (DES[b]) out.push({ chave: b, titulo: TITULOS[b], svg: circulo(DES[b]({ recuo: spec.base.recuo }), cor) });
-    return out.slice(0, 3);
+  function desenhar(chave, M, o, corCota) {
+    var mats = M.spec.materiais || {};
+    var d = Desenho({ frente: (mats.frente || {}).cor, caixa: (mats.caixa || {}).cor, gaveta: (mats.gaveta || {}).cor }, corCota);
+    D[chave](d, o || {});
+    return d.svg();
   }
 
-  return { doMovel: doMovel, circulo: circulo, caixaLed: caixaLed, DES: DES, TITULOS: TITULOS };
+  // Detalhes que valem para este móvel, em ordem de importância
+  function doMovel(M, corCota) {
+    var sp = M.spec, out = [];
+    function add(chave, o) { if (D[chave] && !out.some(function (x) { return x.chave === chave; })) out.push({ chave: chave, titulo: TITULOS[chave], svg: desenhar(chave, M, o, corCota) }); }
+    function tem(re) { return M.pecas.some(function (p) { return re.test(p.nome); }); }
+    if (tem(/^Frente gaveta|^Frente porta-temperos|^Frente lixeira|^Frente fruteira/)) add(sp.gavetas && sp.gavetas.corredica === 'oculta' ? 'oculta' : 'telescopica');
+    if (tem(/^Porta/)) add('dobradica', { dobradica: sp.frentes.montagem === 'embutida' ? 'superCurva' : 'reta' });
+    add(sp.puxador.tipo, { tipo: sp.puxador.tipo });
+    var est = (sp.frentes && sp.frentes.estilo) || 'lisa';
+    if (est !== 'lisa') add(est, { ripa: sp.frentes.ripa });
+    if (sp.led && sp.led.ativo && M.pecas.some(function (p) { return p.grupo === 'led'; })) add('led', { montagem: sp.led.tipo, temperatura: sp.led.temperatura, posicao: sp.led.posicao });
+    (M.elementos || []).forEach(function (el) { if (el.tipo === 'temperos' || el.tipo === 'fruteira' || el.tipo === 'lixeira') add(el.tipo, { cestos: el.cestos }); });
+    if (sp.base) add(sp.base.tipo, { recuo: sp.base.recuo, altura: sp.base.altura });
+    if (tem(/^Fundo$/)) add('fundo');
+    if (tem(/^Prateleira$/)) add('prateleira', { recuo: sp.prateleiras && sp.prateleiras.recuo });
+    return out;
+  }
+
+  return { doMovel: doMovel, desenhar: desenhar, TITULOS: TITULOS, D: D };
 });

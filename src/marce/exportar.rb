@@ -101,6 +101,8 @@ module ArqLais
         vis = [camada && camada.visible?, camada_p && camada_p.visible?]
         model.start_operation('marcê: captura', true)
         begin
+          mapa = capturar_mapa(model, view, movel)
+          imagens['mapa'] = mapa if mapa
           # isola: esconde o resto do primeiro nível (desfeito no abort)
           model.entities.each { |e| e.hidden = true if e != movel && e.respond_to?(:hidden=) && !e.hidden? }
           bb = movel.bounds
@@ -143,10 +145,55 @@ module ArqLais
         imagens
       end
 
-      def capturar(view, nome)
+      # Próximo código livre (M01, M02...) entre os móveis do marcê no modelo
+      def proximo_codigo(model)
+        usados = Util.moveis_do_modelo(model).map do |g|
+          (Util.ler_json(g.get_attribute(DICT, 'spec') || '{}') || {})['codigo'].to_s
+        rescue StandardError
+          ''
+        end
+        n = 1
+        n += 1 while usados.include?(format('M%02d', n))
+        format('M%02d', n)
+      end
+
+      # Planta de marcenaria: o modelo visto de cima (ortogonal) e a posição de cada móvel do marcê
+      # (cantos projetados na imagem, de 0 a 1). O relatório desenha os códigos por cima.
+      def capturar_mapa(model, view, atual)
+        moveis = Util.moveis_do_modelo(model).select { |g| model.entities.include?(g) }
+        return nil if moveis.empty?
+        bb = model.bounds
+        c = bb.center
+        olho = Geom::Point3d.new(c.x, c.y, bb.max.z + bb.diagonal)
+        cam = Sketchup::Camera.new(olho, c, Geom::Vector3d.new(0, 1, 0), false)
+        view.camera = cam
+        view.zoom_extents
+        vw = view.vpwidth.to_f
+        vh = view.vpheight.to_f
+        return nil if vw < 10 || vh < 10
+        larg = 1600
+        alt = (larg * vh / vw).round
+        img = capturar(view, 'mapa', larg, alt)
+        return nil unless img
+        itens = moveis.map do |g|
+          spec = Util.ler_json(g.get_attribute(DICT, 'spec') || '{}') || {}
+          b = g.bounds
+          cantos = [0, 1, 3, 2].map do |i|
+            sc = view.screen_coords(b.corner(i))
+            [(sc.x / vw).round(4), (sc.y / vh).round(4)]
+          end
+          { 'codigo' => spec['codigo'].to_s, 'nome' => (spec['nome'] || g.name).to_s, 'cantos' => cantos, 'atual' => g == atual }
+        end
+        { 'img' => img, 'w' => larg, 'h' => alt, 'itens' => itens }
+      rescue StandardError => e
+        puts "marcê: planta de marcenaria não capturada: #{e.message}"
+        nil
+      end
+
+      def capturar(view, nome, largura = 1400, altura = 900)
         view.refresh if view.respond_to?(:refresh)
         arq = File.join(Sketchup.temp_dir, "marce_#{nome}_#{Time.now.to_i}.png")
-        ok = view.write_image(filename: arq, width: 1400, height: 900, antialias: true, transparent: false)
+        ok = view.write_image(filename: arq, width: largura, height: altura, antialias: true, transparent: false)
         return nil unless ok && File.exist?(arq)
         dados = 'data:image/png;base64,' + Util.base64(File.binread(arq))
         File.delete(arq) rescue nil

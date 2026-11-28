@@ -24,9 +24,19 @@ function embutir(html) {
   s.colunas[0].secoes = [E.novaSecao('temperos')]; s.colunas[0].largura = 250;
   s.colunas[3].secoes = [E.novaSecao('gavetas', { itens: [{ tipo: 'interna' }, { tipo: 'gaveta' }, { tipo: 'gaveta' }] })];
   s.colunas[5].secoes = [E.novaSecao('lixeira')];
+  if (process.argv[5] === 'torre') {
+    const t = E.specPadrao('personalizado'); t.nome = 'Torre geladeira'; t.L = 2400; t.D = 600; t.H = 2400; t.composicao = 'torre_geladeira'; t.colunas = E.autoColunas(t);
+    t.led.ativo = true; t.led.local = 'prateleiras'; Object.assign(s, t);
+  }
   if (process.argv[5] === 'detalhes') { s.frentes.estilo = 'ripada'; s.puxador.tipo = 'toque'; s.led.ativo = true; s.led.local = 'base'; s.led.posicao = 'fundo'; }
+  // planta de marcenaria simulada (no SketchUp vem da câmera de cima)
+  const plantaSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000"><rect width="1600" height="1000" fill="#fff"/><path d="M200 150H1400V850H200Z" fill="none" stroke="#555" stroke-width="18"/><path d="M800 150V600" stroke="#555" stroke-width="10"/></svg>';
+  const mapa = { img: 'data:image/svg+xml;base64,' + Buffer.from(plantaSvg).toString('base64'), w: 1600, h: 1000, itens: [
+    { codigo: 'M01', nome: s.nome, atual: true, cantos: [[0.14, 0.12], [0.48, 0.12], [0.48, 0.2], [0.14, 0.2]] },
+    { codigo: 'M02', nome: 'Aéreo cozinha', atual: false, cantos: [[0.52, 0.12], [0.85, 0.12], [0.85, 0.18], [0.52, 0.18]] },
+    { codigo: 'M03', nome: 'Painel TV', atual: false, cantos: [[0.14, 0.78], [0.4, 0.78], [0.4, 0.83], [0.14, 0.83]] }] };
   const html = embutir(REL.gerar(E.calcular(s), {
-    versao: 'teste', prancha: { folha, visual, unidade: 'cm', corCota: '#c0392b' },
+    imagens: { mapa }, versao: 'teste', prancha: { folha, visual, unidade: 'cm', corCota: '#c0392b' },
     projeto: { cliente: 'Laura e Pedro', obra: 'Apto 1203 · Integrada', etapa: 'Detalhamento de marcenaria', revisao: 'R00' },
     escritorio: { nome: 'Estúdio Exemplo', responsavel: 'Arq. Fulana', registro: 'CAU A000000', email: 'contato@exemplo.com', contato: '@estudio' }
   }));

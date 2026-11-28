@@ -168,7 +168,7 @@ module Sketchup
     attr_reader :itens, :extrusoes, :bb, :parent
     def initialize(parent = nil); @itens = []; @extrusoes = []; @bb = Geom::BoundingBox.new; @parent = parent; end
     def each(&b); @itens.each(&b); end
-    def add_group; g = Group.new; @itens << g; g; end
+    def add_group; g = Group.new; g.instance_variable_set(:@pai, self); @itens << g; g; end
     def add_instance(d, t); i = ComponentInstance.new(d, t); @itens << i; i; end
     def add_face(pts)
       raise 'face com pontos repetidos' if pts.uniq { |p| p.to_a.map { |v| v.round(6) } }.length != pts.length
@@ -214,6 +214,8 @@ module Sketchup
     attr_reader :entities
     def initialize; @entities = Entities.new(self); @transformation = Geom::Transformation.new; end
     def definition; @entities.parent; end
+    Pai = Struct.new(:entities)
+    def parent; Pai.new(@pai); end
     def make_unique; self; end
     def bounds; Geom::BoundingBox.new.add(Geom::Point3d.new(0, 0, 0), Geom::Point3d.new(1, 1, 1)); end
   end

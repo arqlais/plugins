@@ -85,6 +85,10 @@
     '.tv{display:flex;align-items:center;gap:calc(var(--k)*1.8mm);margin-top:calc(var(--k)*1.2mm)}.tv .n{flex:none;min-width:calc(var(--k)*8mm);height:calc(var(--k)*8mm);padding:0 calc(var(--k)*1mm);border:calc(var(--k)*.3mm) solid var(--t);border-radius:99px;display:grid;place-items:center;font-size:calc(var(--k)*2.6mm);font-weight:600;background:var(--tint)}.tv b{display:block;font-size:calc(var(--k)*3.3mm);font-weight:500;border-bottom:calc(var(--k)*.3mm) solid var(--t);padding:0 calc(var(--k)*8mm) calc(var(--k)*.2mm) 0;line-height:1.2;white-space:nowrap}.tv small{display:block;font-size:calc(var(--k)*2.1mm);font-style:italic;text-transform:uppercase;letter-spacing:.03em;margin-top:calc(var(--k)*.4mm)}',
     '.vistas2{flex:1;min-height:0;display:flex;flex-direction:column;gap:calc(var(--k)*2mm)}.vistas2 .vista{flex:1;justify-content:center;align-items:center}.vistas2 .vista .img,.lat .vista .img{flex:none}.vistas2 .tv{align-self:center}.lat{display:flex;gap:calc(var(--k)*5mm);align-items:center;justify-content:center;flex:1;min-height:0}.lat .vista{align-items:flex-start}.lat-simb{display:grid;grid-template-columns:1fr;gap:calc(var(--k)*3mm)}.lat-simb .simb ul{grid-template-columns:repeat(3,1fr)}',
     '.dt-dir{display:flex;flex-direction:column;gap:calc(var(--k)*2.2mm);min-height:0;border-left:calc(var(--k)*.25mm) solid var(--b);padding-left:calc(var(--k)*3.5mm)}.dt-dir h2{font-size:calc(var(--k)*2.2mm);text-transform:uppercase;letter-spacing:.05em;text-align:center;line-height:1.25}',
+    '.md{background:#fbf7f5;border:calc(var(--k)*.25mm) solid var(--b);border-radius:calc(var(--k)*2.6mm);padding:calc(var(--k)*1.6mm) calc(var(--k)*2mm) calc(var(--k)*1.2mm);display:flex;flex-direction:column;gap:calc(var(--k)*.6mm);min-width:0}.md header{display:flex;align-items:center;gap:calc(var(--k)*1.5mm)}.md header span{flex:none;background:var(--t);color:#fff;border-radius:99px;padding:calc(var(--k)*.25mm) calc(var(--k)*1.6mm);font-size:calc(var(--k)*1.9mm);font-weight:600;letter-spacing:.04em}.md header b{font-size:calc(var(--k)*2.35mm);font-weight:600;text-transform:lowercase;line-height:1.15}.md svg{width:100%;height:auto;display:block}.md footer{display:flex;justify-content:space-between;font-size:calc(var(--k)*1.75mm);color:var(--m);text-transform:lowercase}.md footer i{font-style:normal;color:var(--ink)}',
+    '.mapa{position:relative;margin:0 auto;max-width:100%}.mapa img{position:absolute;inset:0;width:100%;height:100%;display:block}.mapa svg{position:absolute;inset:0;width:100%;height:100%}',
+    '.pm{flex:1;min-height:0;display:grid;grid-template-columns:1fr calc(var(--k)*62mm);gap:calc(var(--k)*5mm)}.pm .lado{display:flex;flex-direction:column;gap:calc(var(--k)*2mm)}.pm table{border-collapse:collapse;font-size:.9em;width:100%}.pm td{padding:calc(var(--k)*1mm) calc(var(--k)*1.2mm);border-top:calc(var(--k)*.2mm) solid #eee6e2}.pm td:first-child{width:calc(var(--k)*13mm)}.pm .cod{display:inline-block;background:#9a3b2f;color:#fff;border-radius:99px;padding:0 calc(var(--k)*1.6mm);font-weight:600;font-size:.86em}.pm tr.atual td{background:var(--tint);font-weight:600}.loc{margin-top:calc(var(--k)*1mm)}.loc h2{margin-bottom:calc(var(--k)*1mm)}',
+    '.mds{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(var(--k)*4mm);align-content:start;flex:1;min-height:0}',
     '.dc{display:flex;flex-direction:column;align-items:center;gap:calc(var(--k)*.6mm)}.dc svg{width:calc(var(--k)*var(--dc)*1mm);height:calc(var(--k)*var(--dc)*1mm)}.dc.cx svg{width:100%;height:auto}.dc small{color:var(--m);font-size:calc(var(--k)*1.9mm);text-transform:lowercase}',
     '.sw{display:flex;flex-wrap:wrap;justify-content:center;gap:calc(var(--k)*2mm) calc(var(--k)*3mm)}.sw div{width:calc(var(--k)*17mm);text-align:center;font-size:calc(var(--k)*1.9mm);line-height:1.2}.sw span{display:block;width:calc(var(--k)*9mm);height:calc(var(--k)*9mm);border-radius:50%;margin:0 auto calc(var(--k)*.8mm);border:calc(var(--k)*.25mm) solid rgba(0,0,0,.25)}.sw .veio{background-image:repeating-linear-gradient(100deg,rgba(0,0,0,0) 0 2px,rgba(0,0,0,.1) 2px 3px,rgba(255,255,255,.07) 3px 5px)}.sw small{display:block;color:var(--m)}',
     '.obs{margin-top:auto;font-size:calc(var(--k)*1.95mm);color:var(--m);line-height:1.35}.obs b{color:var(--t);font-weight:600}',
@@ -188,6 +192,23 @@
     return '<div class="simb"><h2>simbologia</h2><ul>' + it.map(function (i) { return '<li>' + i[0] + '<span>' + esc(i[1]) + '</span></li>'; }).join('') + '</ul></div>';
   }
 
+  // planta com a posição dos móveis (imagem do SketchUp + códigos desenhados por cima)
+  function mapaHtml(mapa, maxW, maxH, so) {
+    var w = mapa.w || 1600, h = mapa.h || 1000;
+    var esc2 = Math.min(maxW / w, maxH / h);
+    var r = w * 0.016;
+    var sv = (mapa.itens || []).map(function (it) {
+      var pts = (it.cantos || []).map(function (c) { return [c[0] * w, c[1] * h]; });
+      if (pts.length < 3) return '';
+      var cx = pts.reduce(function (a, p) { return a + p[0]; }, 0) / pts.length, cy = pts.reduce(function (a, p) { return a + p[1]; }, 0) / pts.length;
+      var dest = so ? it.atual : true;
+      var cor = it.atual ? '#9a3b2f' : '#c98f84';
+      return '<polygon points="' + pts.map(function (p) { return n1(p[0]) + ',' + n1(p[1]); }).join(' ') + '" fill="' + (dest ? cor : '#ffffff') + '" fill-opacity="' + (dest ? 0.38 : 0.2) + '" stroke="' + cor + '" stroke-width="' + n1(w * 0.0022) + '"/>' +
+        (dest || !so ? '<circle cx="' + n1(cx) + '" cy="' + n1(cy) + '" r="' + n1(r) + '" fill="' + cor + '" stroke="#fff" stroke-width="' + n1(w * 0.002) + '"/><text x="' + n1(cx) + '" y="' + n1(cy + r * 0.36) + '" font-size="' + n1(r * 0.95) + '" font-weight="600" text-anchor="middle" fill="#fff" font-family="Poppins,sans-serif">' + esc(it.codigo || '') + '</text>' : '');
+    }).join('');
+    return '<div class="mapa" style="width:' + n1(w * esc2) + 'mm;height:' + n1(h * esc2) + 'mm"><img src="' + esc(mapa.img) + '" alt="planta"><svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">' + sv + '</svg></div>';
+  }
+
   function tr2(r, v) { return '<tr><td>' + esc(r) + '</td><td>' + v + '</td></tr>'; }
 
   // ------------------------------------------------------------ montagem das pranchas
@@ -238,7 +259,8 @@
     var topo = '<div class="dt-lin" style="min-height:0"><figure class="vista" style="flex:1">' + '<div class="img">' + isoF + '</div>' + tv('Isométrica fechada', 0, codigo) + '</figure><figure class="vista" style="flex:1"><div class="img">' + isoA + '</div>' + tv('Isométrica aberta') + '</figure></div>';
     var baixo = '<div class="dt-lin" style="height:' + n1(hBx + hTit) + 'mm"><figure class="vista" style="flex:1"><div class="img">' + fT1.svg + '</div>' + tv('Vista Frontal', fT1.escala) + '</figure>' +
       (cT1 ? '<figure class="vista"><div class="img">' + cT1.svg + '</div>' + tv('Vista Lateral Interna C' + (cPrinc.idx + 1), cT1.escala) + '</figure>' : '') + '</div>';
-    var dets = D ? D.doMovel(M) : [];
+    var dets = D ? D.doMovel(M, est.corCota) : [];
+    function cartaoMd(dt, i) { return '<div class="md"><header><span>D' + (i + 1) + '</span><b>' + esc(dt.titulo) + '</b></header>' + dt.svg + '<footer><span>sem escala</span><i>marcê</i></footer></div>'; }
     var mats = [['frentes', 'frente'], ['caixaria', 'caixa']];
     if (spec.caixaInternaBranca) mats.push(['interno', 'caixaInterna']);
     if (spec.materiais.gaveta && spec.materiais.gaveta.nome !== spec.materiais.caixa.nome) mats.push(['gavetas', 'gaveta']);
@@ -254,19 +276,28 @@
     });
     if (M.pecas.some(function (p) { return p.nome === 'Vidro canelado'; })) sw.push('<div><span style="background:#cfdde2"></span>Vidro canelado<small>temperado</small></div>');
     if (M.pecas.some(function (p) { return p.grupo === 'pedra'; })) sw.push('<div><span style="background:' + esc(R.corMat ? R.corMat(spec, 'pedra') : '#dcd9d2') + '"></span>Tampo em pedra<small>a definir</small></div>');
-    var dir = '<div class="dt-dir">' + dets.map(function (dt) { return '<div class="dc' + (dt.caixa ? ' cx' : '') + '" style="--dc:' + (dets.length > 2 ? 25 : 31) + '"><h2>detalhe ' + esc(dt.titulo) + '</h2>' + dt.svg + '<small>sem escala</small></div>'; }).join('') +
+    var dir = '<div class="dt-dir">' + dets.slice(0, 2).map(cartaoMd).join('') + (dets.length > 2 ? '<p class="nota" style="text-align:center;margin:0">+ ' + (dets.length - 2) + ' detalhes na prancha de detalhes construtivos</p>' : '') +
+      (img.mapa ? '<div class="loc"><h2>planta de localização</h2>' + mapaHtml(img.mapa, wDir - 4 * k, 34 * k, true) + '</div>' : '') +
       '<h2 style="margin-top:' + n1(1 * k) + 'mm">materiais</h2><div class="sw">' + sw.join('') + '</div>' +
       '<div class="obs"><b>' + cm(d.L) + ' × ' + cm(d.D) + ' × ' + cm(d.H) + ' cm</b> · ' + esc(amb.label.toLowerCase()) + ' · ' + M.resumo.pecas + ' peças<br>' + M.resumo.portas + ' portas · ' + M.resumo.gavetas + ' gavetas' +
       (spec.led && spec.led.ativo ? ' · LED ' + spec.led.temperatura + 'K' : '') + '<br>Conferir todas as medidas no local antes da execução. Cotas em ' + ({ m: 'metros', cm: 'centímetros', mm: 'milímetros' }[est.unidade]) + '.</div></div>';
     pagina('<p class="ey"><span style="text-transform:none">' + esc(codigo) + '</span> · detalhamento · ' + esc(tipoLabel.toLowerCase()) + '</p><div class="dt" style="grid-template-columns:1fr ' + n1(wDir) + 'mm"><div class="dt-esq">' + topo + baixo + '</div>' + dir + '</div>', fT1.escala);
 
+    // planta de marcenaria (todos os móveis do marcê no arquivo, com código)
+    if (img.mapa && img.mapa.itens && img.mapa.itens.length) {
+      var itensM = img.mapa.itens.slice().sort(function (a, b) { return String(a.codigo).localeCompare(String(b.codigo)); });
+      pagina(cabeca('planta de marcenaria') + '<div class="pm"><figure class="vista" style="justify-content:center;align-items:center">' + mapaHtml(img.mapa, areaW - 67 * k, areaH - 26 * k, false) + tv('Planta Marcenaria', 0) + '</figure>' +
+        '<div class="lado"><h2>quadro de marcenaria</h2><table>' + itensM.map(function (it) { return '<tr' + (it.atual ? ' class="atual"' : '') + '><td><span class="cod">' + esc(it.codigo || '—') + '</span></td><td>' + esc(it.nome) + '</td></tr>'; }).join('') + '</table><p class="nota">Destaque: o móvel desta prancha. Os outros móveis do marcê no arquivo aparecem com o código de cada um.</p></div></div>');
+    }
+
     // 02 · vista frontal e vista frontal interna (mesma escala, uma sobre a outra)
-    var hV = (areaH - 10 * k) / 2 - 11 * k;
-    var oF = { areaW: areaW, areaH: hV, unidade: est.unidade, corCota: est.corCota };
+    var lado = d.H / d.L > 0.45; // móvel alto: vistas lado a lado
+    var hV = lado ? areaH - 22 * k : (areaH - 10 * k) / 2 - 11 * k;
+    var oF = { areaW: lado ? (areaW - 6 * k) / 2 : areaW, areaH: hV, unidade: est.unidade, corCota: est.corCota };
     var escF = Math.max(R.frontalTecnico(M, oF).escala, R.frontalInterna(M, oF).escala);
     var fT = R.frontalTecnico(M, Object.assign({}, oF, { escala: escF, colorido: true }));
     var fI = R.frontalInterna(M, Object.assign({}, oF, { escala: escF }));
-    pagina(cabeca('<span style="text-transform:none">' + esc(codigo) + '</span> · vistas frontais') + '<div class="vistas2"><figure class="vista"><div class="img">' + fT.svg + '</div>' + tv('Vista Frontal', escF) + '</figure>' +
+    pagina(cabeca('<span style="text-transform:none">' + esc(codigo) + '</span> · vistas frontais') + '<div class="vistas2"' + (lado ? ' style="flex-direction:row;align-items:center"' : '') + '><figure class="vista"><div class="img">' + fT.svg + '</div>' + tv('Vista Frontal', escF) + '</figure>' +
       '<figure class="vista"><div class="img">' + fI.svg + '</div>' + tv('Vista Frontal Interna', escF) + '</figure></div>', escF);
 
     // 03 · vista lateral e vistas laterais internas (cortes) de cada tipo de coluna + simbologia
@@ -284,6 +315,12 @@
         return '<figure class="vista"><div class="img">' + R.corteTecnico(M, ci, oL2).svg + '</div>' + tv('Vista Lateral Interna C' + (ci + 1), escL) + '</figure>';
       }).join('');
     pagina(cabeca('<span style="text-transform:none">' + esc(codigo) + '</span> · vistas laterais') + '<div class="lat">' + lats + '</div><div class="lat-simb" style="height:' + n1(hSimb) + 'mm">' + simbologia(M, est.corCota, tipicas.length > 0) + '</div>', escL);
+
+    // detalhes construtivos (todos os que valem para o móvel), 6 por prancha
+    for (var di = 0; di < dets.length; di += 6) {
+      pagina(cabeca('<span style="text-transform:none">' + esc(codigo) + '</span> · detalhes construtivos' + (dets.length > 6 ? ' · ' + (di / 6 + 1) + '/' + Math.ceil(dets.length / 6) : '')) +
+        '<div class="mds">' + dets.slice(di, di + 6).map(function (dt, i) { return cartaoMd(dt, di + i); }).join('') + '</div>');
+    }
 
     // 03 · planta baixa + detalhes
     var els = (M.elementos || []).slice();

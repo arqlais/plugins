@@ -91,12 +91,17 @@ class TesteMarce < Minitest::Test
     contar.call(grupo.entities)
     assert_equal dados['modelo']['pecas'].length, total
     assert_equal dados['modelo']['conjuntos'].length, conj
-    # gaveta interna fica dentro do gavetão
-    interna = nil
-    achar = lambda { |ents| ents.each { |e| next unless e.is_a?(Sketchup::Group); interna = e if e.name.start_with?('Gaveta interna'); achar.call(e.entities) } }
-    achar.call(grupo.entities)
+    # gaveta interna: presa no móvel (mesmo nível do gavetão) e dependente dele
+    interna = grupo.entities.find { |e| e.is_a?(Sketchup::Group) && e.name.start_with?('Gaveta interna') }
     refute_nil interna
-    refute grupo.entities.include?(interna), 'gaveta interna deve estar aninhada'
+    gavetao = grupo.entities.find { |e| e.is_a?(Sketchup::Group) && e.get_attribute('marce', 'mov_id') == interna.get_attribute('marce', 'mov_requer') }
+    refute_nil gavetao, 'interna aponta para o gavetão'
+    M::AbrirFechar.alternar(interna)
+    assert M::AbrirFechar.aberto?(gavetao), 'abrir a interna abre o gavetão junto'
+    assert M::AbrirFechar.aberto?(interna)
+    M::AbrirFechar.alternar(gavetao)
+    refute M::AbrirFechar.aberto?(interna), 'fechar o gavetão fecha a interna'
+    refute M::AbrirFechar.aberto?(gavetao)
     # atributos para editar depois
     spec = JSON.parse(grupo.get_attribute('marce', 'spec'))
     assert_equal 3087, spec['L']

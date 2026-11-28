@@ -10,7 +10,7 @@ module ArqLais
       def abrir_novo(model)
         vol = Volume.ler(model)
         ctx = { modo: 'novo', volume: vol }
-        msg = { 'tipo' => 'init', 'modo' => 'novo', 'versao' => VERSAO, 'padroes' => Exportar.ler_padroes }
+        msg = { 'tipo' => 'init', 'modo' => 'novo', 'versao' => VERSAO, 'padroes' => Exportar.ler_padroes, 'codigo' => Exportar.proximo_codigo(model) }
         if vol
           msg['volume'] = { 'L' => vol[:L].round(1), 'D' => vol[:D].round(1), 'H' => vol[:H].round(1),
                             'elevacao' => vol[:elevacao].round, 'tipoSugerido' => Volume.tipo_sugerido(vol) }
