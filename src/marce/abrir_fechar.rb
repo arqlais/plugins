@@ -47,6 +47,16 @@ module ArqLais
 
       def aplicar(g, fracao)
         g.move!(movimento(g, fracao) * base(g))
+        seguidores(g).each { |c| c.move!(movimento(c, fracao) * base(c)) }
+      end
+
+      # peças que acompanham o conjunto (ex.: perfil intermediário da corrediça, que anda a metade)
+      def segue?(g)
+        g.get_attribute(DICT, 'mov_segue') ? true : false
+      end
+
+      def seguidores(g)
+        Util.entidades_de(g).select { |e| movel?(e) && segue?(e) }
       end
 
       # conjunto do mesmo nível com este mov_id (ex.: o gavetão de uma gaveta interna)
@@ -135,6 +145,7 @@ module ArqLais
         aplicar(g, de)
         model.start_operation(para > de ? 'planê.mob: abrir' : 'planê.mob: fechar', true)
         g.transformation = movimento(g, para) * base(g)
+        seguidores(g).each { |c| c.transformation = movimento(c, para) * base(c) }
         model.commit_operation
       rescue StandardError
         begin
@@ -172,7 +183,7 @@ module ArqLais
           ph.do_pick(x, y)
           ph.count.times do |i|
             caminho = ph.path_at(i) || []
-            idx = caminho.rindex { |e| AbrirFechar.movel?(e) }
+            idx = caminho.rindex { |e| AbrirFechar.movel?(e) && !AbrirFechar.segue?(e) }
             next unless idx
             tr = Geom::Transformation.new
             caminho[0...idx].each { |e| tr *= e.transformation if e.respond_to?(:transformation) }

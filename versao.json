@@ -1,9 +1,15 @@
 {
-  "versao": "1.15.0",
+  "versao": "1.16.0",
   "rbz": "dist/marce.rbz",
-  "sha256": "f1cbadff840620b07ff71ea8d32f364113e461469771d43f626b0e5a6a96a774",
+  "sha256": "f5d17353219a3c540de68e71c118f646da5b060ad1082c5f7ee83e35f740b004",
   "notas": [
-    "Antes de abrir o navegador, a planê.mob pergunta: \"abrir no navegador\" ou \"depois\"; a prancha fica salva e o botão \"Abrir prancha salva\" (aba Relatório) abre quando você quiser",
-    "Balcão novo vem com 3 gavetas no gaveteiro (4 só em balcões mais altos): a gaveta de cima não fica rasa demais com puxador cava"
+    "Primeiro o ambiente (cozinha, sala, quarto, escritório, banheiro, lavanderia, closet), depois só os móveis daquele ambiente; \"ver todos os tipos\" quando precisar",
+    "Móveis novos: rack, escrivaninha (vão livre para as pernas e travessa de fundo), criado-mudo e torre de geladeira",
+    "Corrediça telescópica com os 3 perfis reais em \"C\" (fixo na lateral, intermediário que anda a metade, interno na gaveta), encaixados sem se tocar e com 12,5 mm de folga",
+    "Corrediça oculta com trilho fixo em \"L\" e trilho móvel em \"U\" sob a gaveta; caneco da dobradiça redondo (Ø 35 mm)",
+    "Avisos com o porquê e o limite recomendado: gaveta abaixo de 30 cm ou acima de 90 cm, porta estreita ou larga, porta alta, basculante pesado, prateleira com vão grande, aéreo baixo ou fundo, balcão raso, guarda-roupa raso",
+    "Modo leve (aba Detalhes) para projetos grandes, sugerido sozinho acima de 600 peças",
+    "Fotos do relatório em JPEG: bem mais leves para a janela e para o arquivo",
+    "Prévia 3D mais fiel (peças não aparecem mais por cima de outras)"
   ]
 }

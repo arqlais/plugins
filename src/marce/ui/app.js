@@ -15,7 +15,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: true, relatorioJunto: true,
-    padroes: null, projeto: {}, versao: '1.15.0', gerando: false, atualizacao: null, atualizando: false
+    padroes: null, projeto: {}, versao: '1.16.0', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -52,6 +52,17 @@
     gaveteiro: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="7" y="6" width="18" height="21" rx="1.5"/><path d="M7 11.5h18M7 17h18M7 22h18M14 9h4M14 14h4M14 19.5h4M14 24.5h4"/></svg>',
     roupeiro: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="3" width="22" height="26" rx="1.5"/><path d="M5 9h22M16 9v20M14 17v3M18 17v3"/></svg>',
     estante: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="3" width="20" height="26" rx="1"/><path d="M6 10h20M6 16h20M6 22h20M16 3v26"/></svg>',
+    rack: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="15" width="26" height="9" rx="1"/><path d="M12 15v9M20 15v9M14 19h4M6 24v2M26 24v2"/><rect x="9" y="5" width="14" height="8" rx="1"/></svg>',
+    escrivaninha: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h26M5 11v15M27 11v15"/><rect x="18" y="11" width="9" height="10"/><path d="M21 14h3M21 18h3"/></svg>',
+    criado: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="10" width="16" height="14" rx="1"/><path d="M8 17h16M14 13.5h4M14 20.5h4M10 24v2M22 24v2"/></svg>',
+    geladeira: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="22" height="26" rx="1"/><rect x="8" y="10" width="13" height="19"/><path d="M5 10h22M18 18v4"/></svg>',
+    c_cozinha: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="16" width="24" height="11" rx="1"/><path d="M4 20h24M10 16v-3M8 13h4M20 9c0-2 3-2 3-4M25 9c0-2 3-2 3-4"/></svg>',
+    c_sala: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21v-5a3 3 0 013-3h14a3 3 0 013 3v5"/><rect x="3" y="19" width="26" height="6" rx="2"/><path d="M6 25v2M26 25v2"/></svg>',
+    c_quarto: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 25V10M28 25v-6M4 19h24M4 25h24"/><rect x="7" y="14" width="7" height="5" rx="1.5"/></svg>',
+    c_escritorio: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="5" width="18" height="12" rx="1"/><path d="M13 21h6M16 17v4M4 25h24"/></svg>',
+    c_banheiro: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16h24v3a6 6 0 01-6 6H10a6 6 0 01-6-6v-3zM8 16V7a2 2 0 014 0M10 25l-1 3M22 25l1 3"/></svg>',
+    c_lavanderia: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="20" height="24" rx="2"/><circle cx="16" cy="17" r="6"/><path d="M10 8h4"/></svg>',
+    c_closet: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 6a2 2 0 112 2c-1 0-2 .8-2 2v1l11 7H5l11-7"/><path d="M5 18h22"/></svg>',
     gabinete: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12h24"/><rect x="6" y="12" width="20" height="11" rx="1"/><path d="M11 9h10l-1 3h-8z M16 12v11"/></svg>',
     personalizado: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="4" width="22" height="24" rx="1"/><path d="M5 18h22M12 18V8a4 4 0 0 1 8 0v10M16 18v10"/></svg>',
     // seções
@@ -188,6 +199,13 @@
     $('#chips').innerHTML = c.join('');
   }
 
+  // "… Por quê: …" vira a explicação em linha própria, mais leve
+  function msgPorque(m) {
+    var i = String(m).indexOf(' Por quê: ');
+    if (i < 0) return esc(m);
+    return esc(m.slice(0, i)) + '<small class="porque"><b>por quê</b> ' + esc(m.slice(i + 10)) + '</small>';
+  }
+
   function renderConferencia() {
     var M = st.modelo, r = M.resumo;
     var cont = '';
@@ -197,7 +215,7 @@
     var ic = { erro: ILU.st_erro, aviso: ILU.st_aviso, info: ILU.st_info, dica: ILU.st_dica };
     var itens = M.avisos.map(function (a) {
       var cl = a.ref && a.ref.col !== undefined && a.ref.col !== null;
-      return '<li class="' + (cl ? 'clicavel' : '') + '"' + (cl ? ' data-act="irpara:' + a.ref.col + ':' + (a.ref.secao || 0) + '"' : '') + '><span class="ic-svg">' + ic[a.nivel] + '</span><span>' + esc(a.msg) + '</span></li>';
+      return '<li class="' + (cl ? 'clicavel' : '') + '"' + (cl ? ' data-act="irpara:' + a.ref.col + ':' + (a.ref.secao || 0) + '"' : '') + '><span class="ic-svg">' + ic[a.nivel] + '</span><span>' + msgPorque(a.msg) + '</span></li>';
     }).join('');
     var el = $('#conferencia');
     el.className = 'cartao conferencia' + (st.confAberta ? '' : ' fechada');
@@ -264,12 +282,22 @@
   // ---------- aba Móvel
   function abaMovel() {
     var s = st.spec;
-    var h = '<div class="grupo"><h4>Tipo de móvel' + aj('tipo') + '</h4><div class="grade-cards">';
-    Object.keys(E.TIPOS).forEach(function (k) {
-      h += '<button class="card-op' + (s.tipo === k ? ' ativo' : '') + '" data-act="tipo:' + k + '">' + IC[k] + '<span>' + E.TIPOS[k].label + '</span></button>';
+    var com = E.COMODOS[s.comodo] ? s.comodo : E.comodoDoTipo(s.tipo, s.ambiente);
+    // 1 · o cômodo decide quais móveis aparecem
+    var h = '<div class="grupo"><h4>Ambiente' + aj('comodo') + '</h4><div class="grade-cards comodos">';
+    Object.keys(E.COMODOS).forEach(function (k) {
+      h += '<button class="card-op' + (com === k ? ' ativo' : '') + '" data-act="comodo:' + k + '">' + (IC['c_' + k] || '') + '<span>' + E.COMODOS[k].label + '</span></button>';
     });
     h += '</div></div>';
-    h += '<div class="grupo"><h4>Ambiente' + aj('ambiente') + '</h4>' + pilulas('ambiente', Object.keys(E.AMBIENTES).map(function (k) { return [k, E.AMBIENTES[k].label]; })) +
+    // 2 · móveis daquele ambiente (ou todos)
+    var lista = st.todosTipos ? Object.keys(E.TIPOS) : E.COMODOS[com].tipos.slice();
+    if (lista.indexOf(s.tipo) < 0) lista.push(s.tipo);
+    h += '<div class="grupo"><h4>Móvel · ' + esc(E.COMODOS[com].label.toLowerCase()) + aj('tipo') + '</h4><div class="grade-cards">';
+    lista.forEach(function (k) {
+      h += '<button class="card-op' + (s.tipo === k ? ' ativo' : '') + '" data-act="tipo:' + k + '">' + (IC[k] || '') + '<span>' + E.TIPOS[k].label + '</span></button>';
+    });
+    h += '</div><p class="ajuda"><a href="#" data-act="todosTipos">' + (st.todosTipos ? 'mostrar só os móveis de ' + esc(E.COMODOS[com].label.toLowerCase()) : 'ver todos os tipos de móvel') + '</a></p></div>';
+    h += '<div class="grupo"><h4>Umidade do ambiente <span style="text-transform:none;letter-spacing:0;font-weight:400">(define os materiais)</span>' + aj('ambiente') + '</h4>' + pilulas('ambiente', Object.keys(E.AMBIENTES).map(function (k) { return [k, E.AMBIENTES[k].label]; }), true) +
       '<p class="ajuda amb">' + esc(E.AMBIENTES[s.ambiente].texto) + '</p></div>';
     if (s.tipo === 'personalizado') {
       h += '<div class="grupo"><h4>Composição <span style="text-transform:none;letter-spacing:0;font-weight:400">de cima para baixo</span>' + aj('composicao') + '</h4><div class="pilulas">' +
@@ -440,6 +468,7 @@
       '<div class="tres-campos" style="margin-top:8px"><div><label>Lateral gaveta</label><input type="number" data-path="esp.gaveta" data-tipo="num" value="' + s.esp.gaveta + '"></div><div><label>Fundo gaveta</label><input type="number" data-path="esp.fundoGaveta" data-tipo="num" value="' + s.esp.fundoGaveta + '"></div><div></div></div></div>';
     h += '<div class="grupo"><h4>Prateleiras' + aj('prateleiras') + '</h4>' + deslizante('Recuo frontal', 'prateleiras.recuo', 0, 60, 5, fmtMm) + '</div>';
     var led = s.led || {};
+    h += '<div class="grupo"><h4>Desempenho no SketchUp' + aj('leve') + '</h4>' + interruptor('Modo leve (ferragens simplificadas)', 'leve', 'Desenha corrediças, dobradiças e aramados de forma simples, com bem menos geometria. Use em projetos grandes; as pranchas e a lista de peças continuam iguais.') + '</div>';
     h += '<div class="grupo"><h4>Iluminação' + aj('iluminacao') + '</h4>' + interruptor('Fita de LED em perfil de alumínio', 'led.ativo');
     if (led.ativo) {
       h += '<div class="campo"><label>Onde</label></div>' + cartoes('led.local', [['base', 'Sob o móvel', 'led_fundo'], ['prateleiras', 'Nas prateleiras dos nichos', 'nicho_led']]);
@@ -528,9 +557,21 @@
       case 'aberto': st.aberto3d = p[1] === '1'; renderVisao(); return;
       case 'aba': st.aba = p[1]; renderPainel(); return;
       case 'conf': st.confAberta = !st.confAberta; renderConferencia(); return;
+      case 'comodo': {
+        var cm = E.COMODOS[p[1]];
+        if (!cm) return;
+        s.comodo = p[1];
+        if (cm.tipos.indexOf(s.tipo) < 0) { st.spec = E.aplicarTipo(Object.assign(s, { ambiente: cm.ambiente }), cm.tipos[0]); st.spec.nome = E.TIPOS[cm.tipos[0]].nome; st.sel = { col: 0, secao: 0 }; }
+        else s.ambiente = cm.ambiente;
+        st.spec.comodo = p[1]; st.spec.ambiente = cm.ambiente;
+        break;
+      }
+      case 'todosTipos': st.todosTipos = !st.todosTipos; renderPainel(); return;
       case 'tipo':
         if (p[1] === s.tipo) return;
+        var comAtual = s.comodo;
         st.spec = E.aplicarTipo(s, p[1]); st.spec.nome = E.TIPOS[p[1]].nome; st.sel = { col: 0, secao: 0 };
+        if (comAtual && E.COMODOS[comAtual] && E.COMODOS[comAtual].tipos.indexOf(p[1]) >= 0) { st.spec.comodo = comAtual; st.spec.ambiente = E.COMODOS[comAtual].ambiente; }
         break;
       case 'comp': s.composicao = p[1]; s.colunas = E.composicao(s, p[1]); st.sel = { col: 0, secao: 0 }; break;
       case 'set': {

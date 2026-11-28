@@ -404,7 +404,9 @@
       faces.sort(function (a, b) { return b.prof - a.prof; });
       var bb = [1e9, 1e9, 1e9, -1e9, -1e9, -1e9];
       P.forEach(function (q) { for (var k = 0; k < 3; k++) { bb[k] = Math.min(bb[k], q[k]); bb[k + 3] = Math.max(bb[k + 3], q[k]); } });
-      grupos.push({ faces: faces, bb: bb, prof: dot(centro, dir) });
+      var r2 = [1e9, 1e9, -1e9, -1e9];
+      P.forEach(function (q) { var X = dot(q, right), Y = -dot(q, sup); r2[0] = Math.min(r2[0], X); r2[1] = Math.min(r2[1], Y); r2[2] = Math.max(r2[2], X); r2[3] = Math.max(r2[3], Y); });
+      grupos.push({ faces: faces, bb: bb, r2: r2, prof: dot(centro, dir) });
     });
     // Ordem de pintura por peça: caixas separadas por um eixo têm ordem exata
     // (a de trás primeiro); as demais seguem a profundidade do centro.
@@ -417,7 +419,10 @@
       return 0;
     }
     var n = grupos.length, deps = grupos.map(function () { return 0; }), suc = grupos.map(function () { return []; });
+    // só ordena pares que se sobrepõem na imagem (menos relações = sem ciclos falsos)
+    function cruzam(A, B) { return A.r2[0] < B.r2[2] - 0.01 && B.r2[0] < A.r2[2] - 0.01 && A.r2[1] < B.r2[3] - 0.01 && B.r2[1] < A.r2[3] - 0.01; }
     for (var i = 0; i < n; i++) for (var j = i + 1; j < n; j++) {
+      if (!cruzam(grupos[i], grupos[j])) continue;
       var r = atras(grupos[i], grupos[j]);
       if (r === 1) { suc[i].push(j); deps[j]++; } else if (r === -1) { suc[j].push(i); deps[i]++; }
     }
@@ -425,7 +430,8 @@
     for (var passo = 0; passo < n; passo++) {
       var esc = -1;
       for (var g = 0; g < n; g++) if (!feito[g] && deps[g] === 0 && (esc < 0 || grupos[g].prof > grupos[esc].prof)) esc = g;
-      if (esc < 0) for (g = 0; g < n; g++) if (!feito[g] && (esc < 0 || grupos[g].prof > grupos[esc].prof)) esc = g; // ciclo: quebra pelo mais fundo
+      // ciclo: quebra pela peça com menos pendências (e, no empate, a mais funda)
+      if (esc < 0) for (g = 0; g < n; g++) if (!feito[g] && (esc < 0 || deps[g] < deps[esc] || (deps[g] === deps[esc] && grupos[g].prof > grupos[esc].prof))) esc = g;
       feito[esc] = true; ordem.push(esc);
       suc[esc].forEach(function (t) { deps[t]--; });
     }

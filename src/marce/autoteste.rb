@@ -137,7 +137,7 @@ module ArqLais
 
           if dados['captura'] && model.entities.include?(grupo)
             imgs = Exportar.capturar_imagens(model, grupo, operacao: false)
-            faltam = %w[iso aberto topo].reject { |k| imgs[k].is_a?(String) && imgs[k].start_with?('data:image/png') }
+            faltam = %w[iso aberto topo].reject { |k| imgs[k].is_a?(String) && imgs[k].start_with?('data:image/') }
             ok.call('fotos do móvel para o relatório (fechado, aberto, interior)', faltam.empty?, faltam.empty? ? 'ok' : 'faltou: ' + faltam.join(', '))
           end
         rescue StandardError => e

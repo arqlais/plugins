@@ -450,7 +450,7 @@
       tr2('portas', spec.frentes.montagem === 'embutida' ? 'Embutidas — dobradiça super curva' : 'Sobrepostas — reta na lateral externa, curva na divisória') +
       tr2('puxador', esc(pux)) + tr2('base', esc(base)) + tr2('ferragens', fer) +
       '</table><div><h2 style="margin-bottom:' + n1(2 * k) + 'mm">conferência técnica</h2><ul class="conf">' +
-      M.avisos.map(function (a) { return '<li><span class="ic ' + a.nivel + '">' + (ICONE[a.nivel] || ICONE.info) + '</span><span>' + esc(a.msg) + '</span></li>'; }).join('') + '</ul></div></div>');
+      M.avisos.map(function (a) { return '<li><span class="ic ' + a.nivel + '">' + (ICONE[a.nivel] || ICONE.info) + '</span><span>' + (a.msg.indexOf(' Por quê: ') < 0 ? esc(a.msg) : esc(a.msg.slice(0, a.msg.indexOf(' Por quê: '))) + '<br><small style="color:var(--m)"><b>por quê:</b> ' + esc(a.msg.slice(a.msg.indexOf(' Por quê: ') + 10)) + '</small>') + '</span></li>'; }).join('') + '</ul></div></div>');
 
     secao = 'lista';
     // 05 · lista de peças (paginada)

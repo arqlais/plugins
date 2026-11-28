@@ -68,6 +68,7 @@ module ArqLais
             g.set_attribute(DICT, 'mov_curso', c['curso'].to_f)
             g.set_attribute(DICT, 'mov_id', c['id'].to_s)
             g.set_attribute(DICT, 'mov_requer', c['requer'].to_s) if c['requer']
+            g.set_attribute(DICT, 'mov_segue', true) if c['segue']
             if c['pivot']
               g.set_attribute(DICT, 'mov_pivot', [c['pivot']['x'].to_f, c['pivot']['y'].to_f, c['pivot']['z'].to_f])
             end

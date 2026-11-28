@@ -55,8 +55,29 @@
     roupeiro: { label: 'Guarda-roupa', nome: 'Guarda-roupa', L: 2700, D: 600, H: 2500, base: 'rodape', baseAltura: 100, topo: 'chapa', folgaTopo: 0, prateleiras: 2, larguraMax: 500 },
     estante: { label: 'Estante', nome: 'Estante', L: 1800, D: 350, H: 2000, base: 'rodape', baseAltura: 80, topo: 'chapa', folgaTopo: 0, prateleiras: 3, larguraMax: 600 },
     gabinete: { label: 'Gabinete banheiro', nome: 'Gabinete', L: 800, D: 480, H: 550, base: 'suspenso', baseAltura: 0, topo: 'travessas', folgaTopo: 3, prateleiras: 0, larguraMax: 600, elevacao: 300 },
+    rack: { label: 'Rack', nome: 'Rack', L: 1800, D: 450, H: 550, base: 'suspenso', baseAltura: 0, topo: 'chapa', folgaTopo: 0, prateleiras: 0, larguraMax: 600, elevacao: 250 },
+    escrivaninha: { label: 'Escrivaninha', nome: 'Escrivaninha', L: 1400, D: 600, H: 750, base: 'nenhum', baseAltura: 0, topo: 'chapa', folgaTopo: 0, prateleiras: 0, larguraMax: 900 },
+    criado: { label: 'Criado-mudo', nome: 'Criado-mudo', L: 500, D: 400, H: 450, base: 'suspenso', baseAltura: 0, topo: 'chapa', folgaTopo: 0, prateleiras: 0, larguraMax: 600, elevacao: 200 },
+    geladeira: { label: 'Torre de geladeira', nome: 'Torre de geladeira', L: 800, D: 600, H: 2300, base: 'rodape', baseAltura: 100, topo: 'chapa', folgaTopo: 0, prateleiras: 0, larguraMax: 900 },
     personalizado: { label: 'Personalizado', nome: 'Móvel personalizado', L: 3000, D: 500, H: 2500, base: 'rodape', baseAltura: 100, topo: 'chapa', folgaTopo: 0, prateleiras: 2, larguraMax: 900 }
   };
+
+  // Cômodo: decide quais móveis aparecem primeiro e a umidade (materiais) do ambiente
+  var COMODOS = {
+    cozinha: { label: 'Cozinha', ambiente: 'cozinha', tipos: ['balcao', 'aereo', 'torre', 'geladeira', 'gaveteiro', 'personalizado'] },
+    sala: { label: 'Sala', ambiente: 'seco', tipos: ['rack', 'estante', 'aereo', 'personalizado'] },
+    quarto: { label: 'Quarto', ambiente: 'seco', tipos: ['roupeiro', 'criado', 'gaveteiro', 'escrivaninha', 'estante', 'personalizado'] },
+    escritorio: { label: 'Escritório', ambiente: 'seco', tipos: ['escrivaninha', 'estante', 'aereo', 'gaveteiro', 'personalizado'] },
+    banheiro: { label: 'Banheiro', ambiente: 'banheiro', tipos: ['gabinete', 'aereo', 'torre', 'personalizado'] },
+    lavanderia: { label: 'Lavanderia', ambiente: 'lavanderia', tipos: ['balcao', 'aereo', 'torre', 'personalizado'] },
+    closet: { label: 'Closet', ambiente: 'seco', tipos: ['roupeiro', 'gaveteiro', 'estante', 'personalizado'] }
+  };
+  function comodoDoTipo(tipo, ambiente) {
+    if (ambiente === 'banheiro') return 'banheiro';
+    if (ambiente === 'lavanderia') return 'lavanderia';
+    if (ambiente === 'cozinha' || ['balcao', 'torre', 'geladeira'].indexOf(tipo) >= 0) return 'cozinha';
+    return { rack: 'sala', estante: 'sala', escrivaninha: 'escritorio', criado: 'quarto', roupeiro: 'quarto', gabinete: 'banheiro', gaveteiro: 'quarto' }[tipo] || 'sala';
+  }
 
   var AMBIENTES = {
     seco: { label: 'Seco', texto: 'Caixaria em MDP/MDF BP; portas em MDF (aceita laca e lâmina natural).',
@@ -82,7 +103,8 @@
     painel: 'Painel',
     forno: 'Forno',
     micro: 'Micro-ondas',
-    geladeira: 'Nicho geladeira'
+    geladeira: 'Nicho geladeira',
+    livre: 'Vão livre (até o piso)'
   };
   var TIPOS_ITEM_GAVETA = { gaveta: 'Gaveta', gavetao: 'Gavetão', interna: 'Gavetão c/ interna' };
 
@@ -165,13 +187,14 @@
   function specPadrao(tipo, ambiente) {
     tipo = TIPOS[tipo] ? tipo : 'balcao';
     var t = TIPOS[tipo];
-    ambiente = AMBIENTES[ambiente] ? ambiente : (tipo === 'balcao' || tipo === 'aereo' || tipo === 'torre' ? 'cozinha' : (tipo === 'gabinete' ? 'banheiro' : 'seco'));
+    ambiente = AMBIENTES[ambiente] ? ambiente : (tipo === 'balcao' || tipo === 'aereo' || tipo === 'torre' || tipo === 'geladeira' ? 'cozinha' : (tipo === 'gabinete' ? 'banheiro' : 'seco'));
     var spec = {
       versao: 2,
       nome: t.nome,
       tipo: tipo,
       composicao: tipo === 'personalizado' ? 'estante_balcao' : null,
       ambiente: ambiente,
+      comodo: comodoDoTipo(tipo, ambiente),
       L: t.L, D: t.D, H: t.H,
       elevacao: t.elevacao || 0,
       origemVolume: false,
@@ -204,7 +227,7 @@
 
   function aplicarTipo(spec, tipo) {
     var novo = specPadrao(tipo, spec.ambiente);
-    ['materiais', 'chapa', 'esp', 'puxador', 'caixaInternaBranca', 'prancha'].forEach(function (k) { if (spec[k] !== undefined) novo[k] = clone(spec[k]); });
+    ['materiais', 'chapa', 'esp', 'puxador', 'caixaInternaBranca', 'prancha', 'codigo'].forEach(function (k) { if (spec[k] !== undefined) novo[k] = clone(spec[k]); });
     novo.frentes.montagem = spec.frentes ? spec.frentes.montagem : novo.frentes.montagem;
     novo.frentes.veio = spec.frentes ? spec.frentes.veio : novo.frentes.veio;
     if (spec.origemVolume) {
@@ -272,6 +295,22 @@
         return cols;
       case 'estante':
         for (i = 0; i < n; i++) add([novaSecao('nicho', { prateleiras: P })]);
+        return cols;
+      case 'rack':
+        // porta de um lado, gavetas do outro e o meio aberto para os aparelhos
+        if (n <= 2) { for (i = 0; i < n; i++) add([i === 0 ? novaSecao('portas', { prateleiras: 1 }) : novaSecao('gavetas', { itens: itensGaveta(2) })]); return cols; }
+        for (i = 0; i < n; i++) add([i === Math.floor(n / 2) ? novaSecao('nicho', { prateleiras: 0 }) : (i < n / 2 ? novaSecao('portas', { prateleiras: 1 }) : novaSecao('gavetas', { itens: itensGaveta(2) }))]);
+        return cols;
+      case 'escrivaninha':
+        // gaveteiro de um lado e vão livre para as pernas (mínimo 60 cm)
+        add([novaSecao('gavetas', { itens: itensGaveta(3) })], Math.min(450, Math.max(350, Math.round(L * 0.32))));
+        add([novaSecao('livre')]);
+        return cols;
+      case 'criado':
+        add([novaSecao('gavetas', { itens: itensGaveta(H >= 520 ? 3 : 2) })]);
+        return cols;
+      case 'geladeira':
+        add([novaSecao('geladeira', { altura: Math.max(1500, Math.min(H - 350, 1900)) }), novaSecao('basculante', { prateleiras: 0, interior: 'vazio' })]);
         return cols;
       case 'personalizado':
         return composicao(spec, spec.composicao || 'estante_balcao');
@@ -432,7 +471,7 @@
     }
     function conjunto(o) {
       var c = { id: 'C' + (++seqC), nome: o.nome, tipo: o.tipo, pivot: o.pivot || null, eixo: o.eixo || null,
-        angulo: o.angulo || 0, curso: o.curso || 0, pai: o.pai || null, requer: o.requer || null, vao: o.vao, col: o.col, secao: o.secao };
+        angulo: o.angulo || 0, curso: o.curso || 0, pai: o.pai || null, requer: o.requer || null, segue: !!o.segue, vao: o.vao, col: o.col, secao: o.secao };
       conjuntos.push(c);
       return c.id;
     }
@@ -569,7 +608,7 @@
     // ================================================================
     var maxEmenda = spec.emendaAuto ? usavelC : 1e9;
     // nicho de geladeira (faixa de baixo): sem base, sem rodapé — o aparelho apoia no piso
-    var semBase = vaosM.filter(function (v) { return v.secoes[0] && v.secoes[0].cfg && v.secoes[0].cfg.tipo === 'geladeira'; }).map(function (v) { return [v.il, v.ir]; });
+    var semBase = vaosM.filter(function (v) { return v.secoes[0] && v.secoes[0].cfg && (v.secoes[0].cfg.tipo === 'geladeira' || v.secoes[0].cfg.tipo === 'livre'); }).map(function (v) { return [v.il, v.ir]; });
     function tirarSemBase(pedacos) {
       var out = [];
       pedacos.forEach(function (pc) {
@@ -634,13 +673,19 @@
         obs: adjCuba ? 'Recorte p/ cuba (2 cm de folga)' : '' });
     });
 
-    // Fundo
+    // Fundo (o vão livre das pernas fica sem fundo; leva uma travessa de fundo no alto que trava o móvel)
+    function vaoLivre(vm) { return vm.secoes[0] && vm.secoes[0].cfg && vm.secoes[0].cfg.tipo === 'livre'; }
+    vaosM.forEach(function (vm) {
+      if (!vaoLivre(vm)) return;
+      var hT2 = Math.min(250, Math.max(120, (zTop - z0) * 0.3));
+      fab.chapa({ nome: 'Travessa de fundo', grupo: 'caixa', mat: matInt, eixoEsp: 'y', x: vm.il, y: Dc - T, z: zTop - T - hT2, dx: vm.largInt, dy: T, dz: hT2, veio: 'x', fitas: ['x'], vao: vm.idx, obs: 'Trava o móvel no vão das pernas' });
+    });
     if (fundoTipo !== 'nenhum') {
       if (fundoTipo === 'sobreposto') {
         var runs = [], atual = null;
         var maxRun = Hc > usavelL ? usavelL : usavelC;
         vaosM.forEach(function (vm) {
-          if (vm.cuba) { atual = null; return; }
+          if (vm.cuba || vaoLivre(vm)) { atual = null; return; }
           var a = vm.idx === 0 ? 0 : vm.x0, b = vm.idx === nV - 1 ? L : vm.x1;
           if (atual && (b - atual[0]) <= maxRun && Math.abs(atual[1] - a) < 0.01) atual[1] = b;
           else { atual = [a, b]; runs.push(atual); }
@@ -652,7 +697,7 @@
       } else {
         var rasgo = spec.fundo.rasgo;
         vaosM.forEach(function (vm) {
-          if (vm.cuba) return;
+          if (vm.cuba || vaoLivre(vm)) return;
           var zb = z0 + T - rasgo, zt = topoTravessas ? zTop : zTop - T + rasgo;
           fab.chapa({ nome: 'Fundo', grupo: 'fundo', mat: 'fundo', eixoEsp: 'y',
             x: vm.il - rasgo, y: D - spec.fundo.recuoEncaixe - F, z: zb, dx: vm.largInt + 2 * rasgo, dy: F, dz: zt - zb,
@@ -775,20 +820,45 @@
         var zz = nd === 1 ? pz + ph / 2 : pz + 90 + (ph - 180) * k / (nd - 1);
         var xc = lado === 'esq' ? px + 22 : px + pw - 22 - 35;
         var yBack = embutida ? Tf : 0;
-        fab.objeto({ nome: 'Dobradiça (caneco)', grupo: 'ferragem', mat: 'metal', x: xc, y: yBack - 11, z: zz - 17.5, dx: 35, dy: 12.5, dz: 35, conj: conj, vao: refs.vao, col: refs.col, secao: refs.secao });
+        var circ = [];
+        for (var kc = 0; kc < 24; kc++) { var ac = kc * Math.PI / 12; circ.push([r1(17.5 + 17.5 * Math.cos(ac)), r1(17.5 + 17.5 * Math.sin(ac))]); }
+        fab.objeto({ nome: 'Dobradiça (caneco)', grupo: 'ferragem', mat: 'metal', x: xc, y: yBack - 11, z: zz - 17.5, dx: 35, dy: 12.5, dz: 35, conj: conj, vao: refs.vao, col: refs.col, secao: refs.secao, forma: spec.leve ? null : { plano: 'xz', pts: circ } });
       }
     }
 
-    // Corrediça telescópica de extração total (tipo 46 × 12,7 mm): o perfil fixo fica parafusado na
-    // lateral do móvel e o perfil móvel na lateral da gaveta; aberta, a ferragem aparece dos dois lados.
+    // Corrediça telescópica de extração total (46 × 12,7 mm, aço 1,2 mm), com os 3 perfis da peça real:
+    //  - perfil fixo (em "C"), parafusado na lateral do móvel;
+    //  - perfil intermediário, que corre dentro do fixo e anda metade do curso;
+    //  - perfil interno, parafusado na lateral da gaveta.
+    // Folga total de 12,5 mm entre a lateral do móvel e a lateral da gaveta.
+    function perfilC(w, h, t, abreParaMais) {
+      // seção em "C" no plano xz (x = espessura do conjunto, z = altura); abre para +x ou para −x
+      var pts = [[0, 0], [w, 0], [w, t], [t, t], [t, h - t], [w, h - t], [w, h], [0, h]];
+      return abreParaMais ? pts : pts.map(function (q) { return [r1(w - q[0]), q[1]]; });
+    }
     function corredicasVisuais(xL, xR, zc, y0, len, conj, refs, hMax) {
-      var h = Math.max(25, Math.min(45, hMax || 45));
+      var h = Math.max(27, Math.min(45, hMax || 45));
       var r = { vao: refs.vao, col: refs.col, secao: refs.secao };
+      if (spec.leve) {
+        // modo leve: um bloco fixo e um móvel por lado (bem menos geometria)
+        [[xL, 1], [xR, -1]].forEach(function (ld) {
+          fab.objeto(Object.assign({ nome: 'Corrediça telescópica (perfil fixo)', grupo: 'ferragem', mat: 'metal', x: ld[1] > 0 ? ld[0] : ld[0] - 6.2, y: y0, z: zc, dx: 6.2, dy: len, dz: h }, r));
+          fab.objeto(Object.assign({ nome: 'Corrediça telescópica (perfil interno)', grupo: 'ferragem', mat: 'metal', x: ld[1] > 0 ? ld[0] + 6.2 : ld[0] - 12.5, y: y0, z: zc + 5, dx: 6.3, dy: len, dz: h - 10, conj: conj }, r));
+        });
+        return;
+      }
+      var cj = fab.conjuntos.filter(function (c) { return c.id === conj; })[0];
+      // o intermediário segue a gaveta, voltando metade do curso: no fim anda só a metade
+      var meio = cj ? fab.conjunto({ nome: 'Corrediça (perfil intermediário)', tipo: 'corre', curso: -Math.round(cj.curso / 2), pai: conj, segue: true, vao: refs.vao, col: refs.col, secao: refs.secao }) : conj;
+      var t = 1.2;
+      // seções encaixadas (esquerda; a direita é espelhada): o metal de um perfil corre dentro do
+      // outro sem encostar — fixo x 0–6,4 · intermediário x 1,6–9,0 · interno x 3,6–12,5 (lado da gaveta)
       [[xL, 1], [xR, -1]].forEach(function (lado) {
-        var xf = lado[1] > 0 ? lado[0] : lado[0] - 6.2;
-        var xm = lado[1] > 0 ? lado[0] + 6.2 : lado[0] - 12.5;
-        fab.objeto(Object.assign({ nome: 'Corrediça telescópica (perfil fixo)', grupo: 'ferragem', mat: 'metal', x: xf, y: y0, z: zc, dx: 6.2, dy: len, dz: h }, r));
-        fab.objeto(Object.assign({ nome: 'Corrediça telescópica (perfil móvel)', grupo: 'ferragem', mat: 'metal', x: xm, y: y0, z: zc + 5, dx: 6.3, dy: len, dz: h - 10, conj: conj }, r));
+        var b = lado[0], sg = lado[1];
+        function px(a, w) { return sg > 0 ? b + a : b - a - w; }
+        fab.objeto(Object.assign({ nome: 'Corrediça telescópica (perfil fixo)', grupo: 'ferragem', mat: 'metal', x: px(0, 6.4), y: y0, z: zc, dx: 6.4, dy: len, dz: h, forma: { plano: 'xz', pts: perfilC(6.4, h, t, sg > 0) } }, r));
+        fab.objeto(Object.assign({ nome: 'Corrediça telescópica (perfil intermediário)', grupo: 'ferragem', mat: 'metal', x: px(1.6, 7.4), y: y0 + 8, z: zc + 3, dx: 7.4, dy: len - 16, dz: h - 6, conj: meio, forma: { plano: 'xz', pts: perfilC(7.4, h - 6, t, sg > 0) } }, r));
+        fab.objeto(Object.assign({ nome: 'Corrediça telescópica (perfil interno)', grupo: 'ferragem', mat: 'metal', x: px(3.6, 8.9), y: y0, z: zc + 6, dx: 8.9, dy: len - 4, dz: h - 12, conj: conj, forma: { plano: 'xz', pts: perfilC(8.9, h - 12, t, sg < 0) } }, r));
       });
     }
 
@@ -904,9 +974,9 @@
             aplicarPuxador(porta, { x: pp.x, z: reg.z0, w: pp.w, h: regH, y0: reg.y0, vidro: !porta && estilo === 'vidro', conj: cj, tipoFrente: 'porta', lado: lado, vao: vi, col: pp.col, secao: j });
             dobradicasVisuais(pp.x, pp.w, reg.z0, regH, lado, nd, cj, { vao: vi, col: pp.col, secao: j });
             if (interno) erro(rot + ': sem divisória entre as portas, a ' + (k + 1) + 'ª porta não tem onde fixar a dobradiça — use divisórias "cada par" ou "cada porta".', ref);
-            if (pp.w > 600) aviso(rot + ': porta com ' + fmtCm(pp.w) + ' de largura (acima de 60 cm pesa nas dobradiças e tende a cair).', ref);
-            if (regH > 2200) aviso(rot + ': porta com ' + fmtCm(regH) + ' de altura — use ' + nd + ' dobradiças e endireitador para evitar empeno.', ref);
-            if (pp.w < 150) aviso(rot + ': porta muito estreita (' + fmtCm(pp.w) + ').', ref);
+            if (pp.w > 600) aviso(rot + ': porta com ' + fmtCm(pp.w) + ' de largura passa do recomendado (até 60 cm). Por quê: o peso e a alavanca forçam as dobradiças, a porta cai com o tempo e abre muito sobre a circulação. Divida em duas portas ou aumente o número de colunas.', ref);
+            if (regH > 2200) aviso(rot + ': porta com ' + fmtCm(regH) + ' de altura. Por quê: porta alta empena com a umidade e o próprio peso. Use ' + nd + ' dobradiças, endireitador de porta (ou puxador perfil, que trava) e, se possível, MDF de 25 mm.', ref);
+            if (pp.w < 250) aviso(rot + ': porta com ' + fmtCm(pp.w) + ' de largura não é recomendada (mínimo 25 cm). Por quê: a dobradiça e o puxador quase se encontram, a porta abre pouco e o espaço interno fica difícil de usar. Use nicho, porta-temperos ou junte com a coluna ao lado.', ref);
           });
           if (vm.cuba && nTot) info(rot + ': portas sob a cuba — as dobradiças do lado da cuba ficam abaixo do fundo dela (2 cm de folga); redistribua na altura se o sifão invadir.', ref);
         }
@@ -922,8 +992,8 @@
             vao: vi, col: colIdx0, secao: j, conj: cjB, obs: 'Abre para cima · ' + ndB + ' dobradiças ' + nomeHinge[thB] + ' + pistão a gás',
             meta: { tipo: 'basculante', dobradica: 'topo', nDobradicas: ndB, hinge: thB } });
           aplicarPuxador(pb, { x: reg.x0, z: reg.z0, w: regW, h: regH, y0: reg.y0, vidro: !pb && estilo === 'vidro', conj: cjB, tipoFrente: 'basculante', vao: vi, col: colIdx0, secao: j });
-          if (regH > 500) aviso(rot + ': basculante com ' + fmtCm(regH) + ' de altura fica pesado para abrir — considere articulador ou portas de giro.', ref);
-          if (regW > 1000) aviso(rot + ': basculante com ' + fmtCm(regW) + ' de largura: use pistões reforçados ou divida em dois.', ref);
+          if (regH > 500) aviso(rot + ': basculante com ' + fmtCm(regH) + ' de altura passa do recomendado (até 50 cm). Por quê: o pistão tem de vencer o peso da porta, que abre para cima e pode bater na cabeça. Use articulador (tipo Aventos) ou portas de giro.', ref);
+          if (regW > 1000) aviso(rot + ': basculante com ' + fmtCm(regW) + ' de largura passa do recomendado (até 1 m). Por quê: a porta torce na abertura e um pistão de cada lado não segura. Use pistões reforçados ou divida em dois basculantes.', ref);
         }
 
         // ------------------------------------------------ GAVETAS
@@ -942,8 +1012,8 @@
           var lenC = compCorredica(profUtil - yBox - 10);
           if (!lenC) erro(rot + ': profundidade útil (' + fmtMm(profUtil - yBox) + ') não comporta corrediça (mínimo 250 mm).', ref);
           var bx0 = vm.il + clear, bx1 = vm.ir - clear, bW = bx1 - bx0;
-          if (vm.largInt < 200) aviso(rot + ': gaveteiro estreito (' + fmtCm(vm.largInt) + ' interno).', ref);
-          if (vm.largInt > 900) aviso(rot + ': gaveta com ' + fmtCm(vm.largInt) + ' interno — o fundo pode flexionar; use fundo de 15 mm ou corrediça reforçada.', ref);
+          if (vm.largInt < 300) aviso(rot + ': gaveta com ' + fmtCm(vm.largInt) + ' de vão interno não é recomendada (mínimo 30 cm). Por quê: a corrediça ocupa 2,5 cm e as laterais da caixa mais 3 cm, sobrando só ' + fmtCm(Math.max(0, vm.largInt - 25 - 2 * Tg)) + ' por dentro: não cabe talher nem utensílio e a gaveta fica instável. Para vãos de 15 a 30 cm use porta-temperos (aramado de correr) ou nicho.', ref);
+          if (vm.largInt > 900) aviso(rot + ': gaveta com ' + fmtCm(vm.largInt) + ' de vão interno passa do recomendado (até 90 cm). Por quê: o fundo de 6 mm enverga com o peso e as corrediças comuns (até 35 kg) ficam no limite. Use fundo de 15 mm, corrediça reforçada (45 kg ou mais) ou divida em duas colunas.', ref);
           if (vm.cuba) aviso(rot + ': gavetas no módulo da cuba precisam de recorte em "U" para o sifão — confirme com o marceneiro.', ref);
           var zf = reg.z0, fz = [];
           for (var q = 0; q < nG; q++) { fz.push([zf, zf + hs[q]]); zf += hs[q] + g; }
@@ -958,7 +1028,7 @@
               vao: vi, col: colIdx0, secao: j, conj: cjG, obs: nomeG,
               meta: { tipo: 'gaveta', ordem: k3, item: it3.tipo } });
             aplicarPuxador(fg, { x: reg.x0, z: f0, w: regW, h: fh, y0: reg.y0, conj: cjG, tipoFrente: 'gaveta', vao: vi, col: colIdx0, secao: j });
-            if (fh < 100) aviso(rot + ': frente de gaveta com ' + fmtCm(fh) + ' é muito baixa (mín. ~10 cm).', ref);
+            if (fh < 100) aviso(rot + ': frente de gaveta com ' + fmtCm(fh) + ' de altura não é recomendada (mínimo 10 cm). Por quê: sobra pouca caixa por dentro e não há altura para o puxador.', ref);
             if (k3 > 0 && pux.tipo === 'cava') {
               fab.chapa({ nome: 'Travessa entre gavetas', grupo: 'caixa', mat: matInt, eixoEsp: 'y', x: vm.il, y: yInt + 2, z: f0 - g / 2 - 20, dx: vm.largInt, dy: T, dz: 40, veio: 'x', fitas: [], vao: vi, col: colIdx0, secao: j });
               cont.travessasCava++;
@@ -969,7 +1039,7 @@
             var zBox = Math.max(f0 + (cavaTrav && k3 > 0 ? (oculta ? 32 : 21) : 20), sm.ib + 12);
             var lim = k3 === nG - 1 ? itCorre - folgaTopoCorre : fz[k3 + 1][0] - (cavaTrav ? 25 : -8);
             var hb = Math.min(fh - 40, lim - zBox);
-            if (hb < 60) { aviso(rot + ': ' + nomeG.toLowerCase() + ' com caixa de só ' + fmtMm(hb) + ' de altura.', ref); hb = Math.max(hb, 40); }
+            if (hb < 60) { aviso(rot + ': ' + nomeG.toLowerCase() + ' com caixa de só ' + fmtMm(hb) + ' de altura. Por quê: abaixo de 6 cm a gaveta não guarda quase nada (talher deitado já pede uns 6 cm). Aumente a frente ou use menos gavetas na coluna.', ref); hb = Math.max(hb, 40); }
             var obsG = nomeG + (vm.cuba ? ' · recorte p/ sifão' : '');
             var hI = 80, temInterna = it3.tipo === 'interna' && hb - hI - 25 >= 100;
             if (it3.tipo === 'interna' && !temInterna) aviso(rot + ': o gavetão não tem altura para gaveta interna (precisa de ~' + fmtCm(hI + 25 + 100 + 40) + ' de frente).', ref);
@@ -980,9 +1050,18 @@
             fab.chapa({ nome: 'Traseira gaveta', grupo: 'gaveta', mat: 'gaveta', eixoEsp: 'y', x: bx0 + Tg, y: yBox + lenC - Tg, z: zBox, dx: bW - 2 * Tg, dy: Tg, dz: hbG, veio: 'x', fitas: ['x'], vao: vi, col: colIdx0, secao: j, conj: cjG, obs: obsG });
             fab.chapa({ nome: 'Fundo gaveta', grupo: 'gaveta', mat: 'fundoGaveta', eixoEsp: 'z', x: bx0 + Tg - 8, y: yBox + Tg - 8, z: zBox + 10, dx: bW - 2 * Tg + 16, dy: lenC - 2 * Tg + 16, dz: Fg, fitas: [], vao: vi, col: colIdx0, secao: j, conj: cjG, obs: nomeG + ' · rasgo 8 mm' });
             if (oculta) {
-              // corrediça oculta fica sob a caixa da gaveta, alinhada às laterais
-              fab.objeto({ nome: 'Corrediça oculta', grupo: 'ferragem', mat: 'metal', x: bx0, y: yBox, z: zBox - 11, dx: Tg, dy: lenC, dz: 10, conj: cjG, vao: vi, col: colIdx0, secao: j });
-              fab.objeto({ nome: 'Corrediça oculta', grupo: 'ferragem', mat: 'metal', x: bx1 - Tg, y: yBox, z: zBox - 11, dx: Tg, dy: lenC, dz: 10, conj: cjG, vao: vi, col: colIdx0, secao: j });
+              // corrediça oculta (tipo Tandem): trilho fixo em "L" na lateral do móvel e trilho móvel em "U"
+              // sob a lateral da gaveta (folga de 5 mm de cada lado)
+              [[vm.il, 1], [vm.ir, -1]].forEach(function (ld) {
+                var lw = clear + Tg, sgo = ld[1];
+                var xF = sgo > 0 ? ld[0] : ld[0] - lw;
+                var ptsL = [[0, 0], [lw, 0], [lw, 1.5], [1.5, 1.5], [1.5, 12], [0, 12]];
+                if (sgo < 0) ptsL = ptsL.map(function (q) { return [r1(lw - q[0]), q[1]]; });
+                fab.objeto({ nome: 'Corrediça oculta (trilho fixo)', grupo: 'ferragem', mat: 'metal', x: xF, y: yBox, z: zBox - 12.5, dx: lw, dy: lenC, dz: 12, vao: vi, col: colIdx0, secao: j, forma: { plano: 'xz', pts: ptsL } });
+                var xM = sgo > 0 ? ld[0] + clear : ld[0] - clear - Tg;
+                fab.objeto({ nome: 'Corrediça oculta (trilho móvel)', grupo: 'ferragem', mat: 'metal', x: xM, y: yBox, z: zBox - 10.5, dx: Tg, dy: lenC, dz: 10, conj: cjG, vao: vi, col: colIdx0, secao: j,
+                  forma: { plano: 'xz', pts: [[0, 0], [Tg, 0], [Tg, 10], [r1(Tg - 1.2), 10], [r1(Tg - 1.2), 1.2], [1.2, 1.2], [1.2, 10], [0, 10]] } });
+              });
             } else corredicasVisuais(vm.il, vm.ir, zBox + Math.max(4, (hbG - Math.min(45, hbG - 10)) / 2), yBox, lenC, cjG, refs, hbG - 10);
 
             if (temInterna) {
@@ -1074,7 +1153,7 @@
                 // fundo: varões no sentido da profundidade, sobre duas travessas
                 fab.objeto(Object.assign({ nome: 'Travessa do cesto', x: cx0, y: cy0 + 10, z: zc2, dx: cW, dy: 5, dz: 5 }, rT));
                 fab.objeto(Object.assign({ nome: 'Travessa do cesto', x: cx0, y: cy1 - 15, z: zc2, dx: cW, dy: 5, dz: 5 }, rT));
-                for (var vv = 0; vv < nVar; vv++) fab.objeto(Object.assign({ nome: 'Varão do cesto', x: cx0 + 2 + (cW - 8) * vv / (nVar - 1), y: cy0, z: zc2 + 5, dx: 4, dy: cL, dz: 4 }, rT));
+                for (var vv = 0; vv < (spec.leve ? 0 : nVar); vv++) fab.objeto(Object.assign({ nome: 'Varão do cesto', x: cx0 + 2 + (cW - 8) * vv / (nVar - 1), y: cy0, z: zc2 + 5, dx: 4, dy: cL, dz: 4 }, rT));
                 // borda: grade baixa nas laterais, mais alta na frente e atrás (segura os frascos)
                 fab.objeto(Object.assign({ nome: 'Borda do cesto', x: cx0, y: cy0, z: zc2 + 5, dx: 5, dy: cL, dz: bordaC * 0.6 }, rT));
                 fab.objeto(Object.assign({ nome: 'Borda do cesto', x: cx1 - 5, y: cy0, z: zc2 + 5, dx: 5, dy: cL, dz: bordaC * 0.6 }, rT));
@@ -1139,6 +1218,14 @@
           if (profUtil < 550) aviso(rot + ': profundidade útil de ' + fmtCm(profUtil) + ' pode ser insuficiente para forno (≥ 55 cm).', ref);
           R.eletros.push({ tipo: 'Forno de embutir', col: colIdx0, largura: vm.largInt, altura: sm.altInt, prof: profUtil, recomendado: '560–570 × 590–600 × ≥ 550 mm', obs: 'Respiro atrás/abaixo; tomada 20 A ao lado do nicho' });
         }
+        else if (cfg.tipo === 'livre') {
+          if (j !== 0) erro(rot + ': o vão livre precisa ser a faixa de baixo da coluna (ele vai até o piso).', ref);
+          if (spec.tipo === 'escrivaninha') {
+            if (vm.largInt < 600) aviso(rot + ': vão para as pernas com ' + fmtCm(vm.largInt) + '. O recomendado é pelo menos 60 cm (ideal 80 cm), para a cadeira entrar e as pernas não baterem nas laterais.', ref);
+            if (sm.it < 650) aviso(rot + ': altura livre de ' + fmtCm(sm.it) + ' embaixo do tampo. Escrivaninha pede 65–70 cm livres para as pernas e o braço da cadeira.', ref);
+            if (H < 700 || H > 780) dica('Escrivaninha com ' + fmtCm(H) + ' de altura: o confortável para trabalhar é entre 72 e 76 cm (tampo pronto).');
+          }
+        }
         else if (cfg.tipo === 'geladeira') {
           var ge = cfg.eletro || { largura: 700, altura: 1800, profundidade: 700 };
           var livreH = sm.it; // vai até o piso
@@ -1163,7 +1250,7 @@
 
     if (vaosLargosPrat.length) {
       var uq = vaosLargosPrat.filter(function (v, k, a) { return a.indexOf(v) === k; });
-      aviso('Prateleira com vão livre acima de 80 cm (coluna ' + uq.map(function (v) { return v + 1; }).join(', ') + '): MDF 18 mm tende a flexionar — adicione divisória ou use 25 mm.');
+      aviso('Prateleira com vão livre acima de 80 cm (coluna ' + uq.map(function (v) { return v + 1; }).join(', ') + '). Por quê: MDF 18 mm com livros ou louça faz barriga com o tempo. Adicione divisória ou use 25 mm.');
     }
     if (temTravCava) {
       // só atrás das colunas que têm frente na faixa de cima (porta, gaveta, aramado...)
@@ -1286,12 +1373,12 @@
       else if (spec.pedra.ativa && (bancada < 850 || bancada > 950)) aviso('Altura final da bancada: ' + fmtCm(bancada) + ' (o confortável fica entre 85 e 95 cm).');
     }
     if (tipo === 'gabinete' && spec.pedra.ativa && (bancada < 780 || bancada > 950)) aviso('Altura final do tampo do banheiro: ' + fmtCm(bancada) + ' (usual 80–92 cm).');
-    if (tipo === 'balcao' && D < 500) aviso('Profundidade de ' + fmtCm(D) + ' é pouca para cooktop/cuba (padrão 55–60 cm).');
+    if (tipo === 'balcao' && D < 500) aviso('Balcão com ' + fmtCm(D) + ' de profundidade (recomendado 55–60 cm). Por quê: cooktop, cuba e eletros de embutir pedem 55 cm ou mais, e a bancada fica estreita para trabalhar.');
     if (tipo === 'aereo') {
-      if (D > 400) aviso('Aéreo com ' + fmtCm(D) + ' de profundidade: acima de 40 cm atrapalha a cabeça na bancada.');
-      if (spec.elevacao > 0 && spec.elevacao < 1400) aviso('Aéreo a ' + fmtCm(spec.elevacao) + ' do piso: fica a menos de 50 cm de uma bancada de 90 cm.');
+      if (D > 400) aviso('Aéreo com ' + fmtCm(D) + ' de profundidade (recomendado 30–35 cm). Por quê: acima de 40 cm a pessoa bate a cabeça ao usar a bancada e a luz do teto não chega nela.');
+      if (spec.elevacao > 0 && spec.elevacao < 1400) aviso('Aéreo a ' + fmtCm(spec.elevacao) + ' do piso (recomendado 145–155 cm). Por quê: fica a menos de 50 cm de uma bancada de 90 cm, sem espaço para cafeteira, liquidificador e para trabalhar.');
     }
-    if (tipo === 'roupeiro' && D < 550) aviso('Guarda-roupa com ' + fmtCm(D) + ' de profundidade: cabides pedem ≥ 55 cm (padrão 60 cm).');
+    if (tipo === 'roupeiro' && D < 550) aviso('Guarda-roupa com ' + fmtCm(D) + ' de profundidade (recomendado 60 cm). Por quê: o cabide tem uns 45 cm e a roupa precisa de folga para não amassar na porta.');
     if ((spec.ambiente === 'banheiro' || spec.ambiente === 'lavanderia' || spec.ambiente === 'cozinha') && fundoTipo === 'sobreposto' && cubaAtiva) dica('Área molhada: prefira fita de borda selada e MDF RU nos módulos próximos à água.');
 
     // mensagens de frentes / ferragens
@@ -1319,6 +1406,7 @@
       pc.emenda = !cabe;
       if (!cabe && pc.nome.indexOf('Base') !== 0 && longas.indexOf(pc.nome) < 0) longas.push(pc.nome);
     });
+    if (!spec.leve && fab.lista.length > 600) info('Móvel com ' + fab.lista.length + ' peças: para o SketchUp ficar leve, ligue o "modo leve" na aba Detalhes (ferragens simplificadas, mesmo detalhamento nas pranchas).');
     if (longas.length) aviso((longas.length === 1 ? longas[0] + ' também passa' : longas.join(', ') + ' também passam') + ' da chapa ' + fmtCm(spec.chapa.comprimento) + ' × ' + fmtCm(spec.chapa.largura) + ' — peças de chapa emendada.');
     // remove avisos repetidos idênticos
     var vistos = {};
@@ -1501,7 +1589,7 @@
 
   return {
     TIPOS: TIPOS, AMBIENTES: AMBIENTES, TIPOS_SECAO: TIPOS_SECAO, TIPOS_ITEM_GAVETA: TIPOS_ITEM_GAVETA,
-    PUXADORES: PUXADORES, COMPOSICOES: COMPOSICOES, ESTILOS_FRENTE: ESTILOS_FRENTE, TEMP_LED: TEMP_LED, CORREDICAS: CORREDICAS,
+    PUXADORES: PUXADORES, COMPOSICOES: COMPOSICOES, COMODOS: COMODOS, comodoDoTipo: comodoDoTipo, ESTILOS_FRENTE: ESTILOS_FRENTE, TEMP_LED: TEMP_LED, CORREDICAS: CORREDICAS,
     MATERIAIS_PADRAO: MATERIAIS_PADRAO, MATERIAIS_FIXOS: MATERIAIS_FIXOS,
     VERIFICACOES: VERIFICACOES, CHECKLIST: CHECKLIST,
     specPadrao: specPadrao, aplicarTipo: aplicarTipo, normalizar: normalizar,

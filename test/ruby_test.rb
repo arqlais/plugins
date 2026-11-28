@@ -299,3 +299,26 @@ class TestePranchaViva < Minitest::Test
     assert_nil M::Exportar.atualizar_prancha(@model, grupo, capturar: false)
   end
 end
+
+class TesteCorredica < Minitest::Test
+  M = ArqLais::Marce
+  def setup
+    Sketchup.reset!
+    @model = Sketchup.active_model
+  end
+
+  def test_intermediario_anda_a_metade_com_a_gaveta
+    grupo, = M::Construtor.gerar(@model, dados_do_motor('video'), {})
+    gav = grupo.entities.find { |e| e.is_a?(Sketchup::Group) && e.name.start_with?('Gaveta ') }
+    refute_nil gav
+    meio = gav.entities.find { |e| e.is_a?(Sketchup::Group) && e.get_attribute('marce', 'mov_segue') }
+    refute_nil meio, 'perfil intermediário fica dentro da gaveta, como seguidor'
+    M::AbrirFechar.alternar(gav)
+    dg = gav.transformation.to_a[13]
+    dm = meio.transformation.to_a[13]
+    assert_operator dg, :<, 0, 'gaveta abre para a frente'
+    assert_in_delta(-dg / 2.0, dm, 0.02 * dg.abs, 'intermediário volta a metade (anda metade do curso no total)')
+    M::AbrirFechar.alternar(gav)
+    assert_in_delta 0, meio.transformation.to_a[13], 1e-9, 'fecha junto'
+  end
+end

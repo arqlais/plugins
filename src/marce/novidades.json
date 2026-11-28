@@ -1,5 +1,18 @@
 [
   {
+    "versao": "1.16.0",
+    "notas": [
+      "Primeiro o ambiente (cozinha, sala, quarto, escritório, banheiro, lavanderia, closet), depois só os móveis daquele ambiente; \"ver todos os tipos\" quando precisar",
+      "Móveis novos: rack, escrivaninha (vão livre para as pernas e travessa de fundo), criado-mudo e torre de geladeira",
+      "Corrediça telescópica com os 3 perfis reais em \"C\" (fixo na lateral, intermediário que anda a metade, interno na gaveta), encaixados sem se tocar e com 12,5 mm de folga",
+      "Corrediça oculta com trilho fixo em \"L\" e trilho móvel em \"U\" sob a gaveta; caneco da dobradiça redondo (Ø 35 mm)",
+      "Avisos com o porquê e o limite recomendado: gaveta abaixo de 30 cm ou acima de 90 cm, porta estreita ou larga, porta alta, basculante pesado, prateleira com vão grande, aéreo baixo ou fundo, balcão raso, guarda-roupa raso",
+      "Modo leve (aba Detalhes) para projetos grandes, sugerido sozinho acima de 600 peças",
+      "Fotos do relatório em JPEG: bem mais leves para a janela e para o arquivo",
+      "Prévia 3D mais fiel (peças não aparecem mais por cima de outras)"
+    ]
+  },
+  {
     "versao": "1.15.0",
     "notas": [
       "Antes de abrir o navegador, a planê.mob pergunta: \"abrir no navegador\" ou \"depois\"; a prancha fica salva e o botão \"Abrir prancha salva\" (aba Relatório) abre quando você quiser",

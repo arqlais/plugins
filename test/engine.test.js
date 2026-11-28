@@ -142,6 +142,8 @@ function permitido(a, b) {
   if (um(/^Dobradiça \(caneco\)/) && um(/^Porta/)) return true;
   if (um(/^Perfil LED/) && um(/^Base|^Prateleira/)) return true; // perfil de LED embutido em rasgo // caneco embutido no furo de 35 mm da porta
   if (a.mat === 'aramado' && b.mat === 'aramado') return true; // arames soldados entre si
+  if (/^Corrediça oculta/.test(a.nome) && /^Corrediça oculta/.test(b.nome) && a.vao === b.vao && a.secao === b.secao) return true; // trilho móvel corre sobre o fixo
+  if (/^Corrediça telescópica/.test(a.nome) && /^Corrediça telescópica/.test(b.nome) && a.vao === b.vao && a.secao === b.secao) return true; // perfis encaixados um dentro do outro (seções em C que não se tocam)
   if (um(/^Pedra/)) return false;
   return false && n;
 }
@@ -197,17 +199,28 @@ test('com tudo aberto, nada que se move bate em outra peça que se move', () => 
   }
 });
 
-test('corrediça telescópica: perfil fixo no móvel e perfil móvel na gaveta, com folga de 12,5 mm', () => {
+test('corrediça telescópica: 3 perfis encaixados (fixo, intermediário que anda a metade, interno) e folga de 12,5 mm', () => {
   const s = E.specPadrao('gaveteiro');
   const m = E.calcular(s);
   const fixos = m.pecas.filter((p) => /perfil fixo/.test(p.nome));
-  const moveis = m.pecas.filter((p) => /perfil móvel/.test(p.nome));
-  assert.ok(fixos.length > 0 && fixos.length === moveis.length);
+  const meios = m.pecas.filter((p) => /perfil intermediário/.test(p.nome));
+  const internos = m.pecas.filter((p) => /perfil interno/.test(p.nome));
+  assert.ok(fixos.length > 0 && fixos.length === meios.length && fixos.length === internos.length);
   assert.ok(fixos.every((p) => !p.conj), 'perfil fixo não anda');
-  assert.ok(moveis.every((p) => p.conj), 'perfil móvel anda com a gaveta');
+  const cj = {}; m.conjuntos.forEach((c) => { cj[c.id] = c; });
+  assert.ok(internos.every((p) => p.conj && cj[p.conj].curso > 0), 'interno anda com a gaveta');
+  assert.ok(meios.every((p) => cj[p.conj].segue && cj[p.conj].pai && Math.abs(cj[p.conj].curso + cj[cj[p.conj].pai].curso / 2) <= 1), 'intermediário anda a metade');
   const lat = m.pecas.filter((p) => p.nome === 'Lateral gaveta');
   const v = m.vaos[0];
   assert.ok(lat.some((p) => Math.abs(p.x - (v.il + 12.5)) < 0.01), 'caixa a 12,5 mm da lateral');
+  // a seção dos 3 perfis de um lado não se cruza (pontos a cada 0,2 mm)
+  const dentro = (pt, poly) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, yi] = poly[i], [xj, yj] = poly[j]; if ((yi > pt[1]) !== (yj > pt[1]) && pt[0] < ((xj - xi) * (pt[1] - yi)) / (yj - yi) + xi) c = !c; } return c; };
+  const sec = (p) => p.forma.pts.map((q) => [p.x + q[0], p.z + q[1]]);
+  const tri = [fixos[0], meios[0], internos[0]].map(sec);
+  for (let x = v.il; x <= v.il + 12.5; x += 0.2) for (let z = fixos[0].z; z <= fixos[0].z + fixos[0].dz; z += 0.2) {
+    const n = tri.filter((poly) => dentro([x + 0.05, z + 0.05], poly)).length;
+    assert.ok(n <= 1, 'perfis se cruzam em x=' + x.toFixed(1) + ' z=' + z.toFixed(1));
+  }
 });
 
 test('torre de geladeira: nicho sem base nem rodapé e folgas conferidas', () => {

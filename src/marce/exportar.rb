@@ -235,10 +235,11 @@ module ArqLais
           vh = view.respond_to?(:vpheight) ? view.vpheight.to_f : 0
           altura = vw > 10 && vh > 10 ? (largura * vh / vw).round : 900
         end
-        arq = File.join(Sketchup.temp_dir, "marce_#{nome}_#{Time.now.to_i}.png")
-        ok = view.write_image(filename: arq, width: largura, height: altura, antialias: true, transparent: false)
+        # JPEG comprimido: a foto fica várias vezes menor que PNG e não pesa na janela nem no relatório
+        arq = File.join(Sketchup.temp_dir, "marce_#{nome}_#{Time.now.to_i}.jpg")
+        ok = view.write_image(filename: arq, width: largura, height: altura, antialias: true, compression: 0.85)
         return nil unless ok && File.exist?(arq)
-        dados = 'data:image/png;base64,' + Util.base64(File.binread(arq))
+        dados = 'data:image/jpeg;base64,' + Util.base64(File.binread(arq))
         File.delete(arq) rescue nil
         dados
       end
