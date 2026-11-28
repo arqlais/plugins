@@ -1,9 +1,9 @@
 {
-  "versao": "1.22.2",
+  "versao": "1.22.3",
   "rbz": "dist/marce.rbz",
-  "sha256": "79789a251ae42c0ad8348371029215f9308dcfb30875fb87e5798e50e720d428",
+  "sha256": "aa1f8edff5e870e2dc37894bf0f917580b3fd5a12fb5c53b5fc584cc35f0ee7b",
   "notas": [
-    "Guarda-roupa novo como é mais comum: portas na altura toda (sem o maleiro em cima), em pares, com gavetas embaixo e o interior variando de par em par (cabideiro + gavetas, vestidos longos com gavetas, gavetas + prateleiras)",
-    "O resumo conta as gavetas internas e as folhas de correr"
+    "Portas abertas não se cruzam mais: porta com a dobradiça numa divisória abre até 90°; só a porta da ponta abre 155° ou 170°. As gavetas internas passam ao lado das portas abertas",
+    "Número das cotas em cima da linha na prévia"
   ]
 }

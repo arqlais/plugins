@@ -67,7 +67,7 @@
   function cotaH(x0, x1, y, txt, fs, cls, acima) {
     if (Math.abs(x1 - x0) < 1) return '';
     var t = fs * 0.35;
-    var ty = acima ? y - fs * 0.45 : y + fs * 1.05;
+    var ty = acima === false ? y + fs * 1.05 : y - fs * 0.45; // número em cima da linha (norma)
     return '<g class="cota ' + (cls || '') + '">' +
       '<line x1="' + n1(x0) + '" y1="' + n1(y) + '" x2="' + n1(x1) + '" y2="' + n1(y) + '"/>' +
       '<line x1="' + n1(x0) + '" y1="' + n1(y - t) + '" x2="' + n1(x0) + '" y2="' + n1(y + t) + '"/>' +
@@ -332,7 +332,7 @@
     M.pecas.forEach(function (p) { if (p.meta && p.meta.tipo === 'porta') maxPorta = Math.max(maxPorta, p.dx); });
     var frenteExtra = Math.max(maxPorta * 0.75, 120);
     var fs = Math.max(L, D + frenteExtra) / (completo ? 60 : 48);
-    var mL = fs * 4, mR = fs * 3, mT = fs * (completo ? 6 : 3), mB = fs * 4.5;
+    var mL = fs * 4, mR = fs * 3, mT = fs * (completo ? 6 : 4.2), mB = fs * 4.5;
     var yMin = Math.min(fy, pedra ? pedra.y : fy) - frenteExtra;
     var W = L + mL + mR, Ht = (D - yMin) + mT + mB;
     var ox = mL, oy = mT + D; // svgY = oy - y  (parede em cima)

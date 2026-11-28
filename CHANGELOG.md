@@ -1,5 +1,9 @@
 # Novidades da planê.mob
 
+## 1.22.3
+- Portas abertas não se cruzam mais: porta com a dobradiça numa divisória abre até 90°; só a porta da ponta abre 155° ou 170°. As gavetas internas passam ao lado das portas abertas
+- Número das cotas em cima da linha na prévia
+
 ## 1.22.2
 - Guarda-roupa novo como é mais comum: portas na altura toda (sem o maleiro em cima), em pares, com gavetas embaixo e o interior variando de par em par (cabideiro + gavetas, vestidos longos com gavetas, gavetas + prateleiras)
 - O resumo conta as gavetas internas e as folhas de correr

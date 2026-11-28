@@ -540,3 +540,38 @@ test('tipo de frente por faixa: uma coluna de vidro no meio de portas com moldur
   const ps = caixas(m, false);
   for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) if (sobrepoe(ps[i], ps[j], 0.6) && !permitido(ps[i], ps[j])) assert.fail(ps[i].nome + ' atravessa ' + ps[j].nome);
 });
+
+// portas abertas de verdade (giradas): nenhuma porta bate em outra porta nem em gaveta aberta
+function caixaGirada(p, cj) {
+  const mapa = {}; cj.forEach((c) => { mapa[c.id] = c; });
+  const pts = [];
+  for (const x of [p.x, p.x + p.dx]) for (const y of [p.y, p.y + p.dy]) for (const z of [p.z, p.z + p.dz]) {
+    let q = [x, y, z], id = p.conj;
+    while (id) {
+      const c = mapa[id];
+      if (c.tipo === 'corre') q = c.eixo === 'x' ? [q[0] + c.curso, q[1], q[2]] : [q[0], q[1] - c.curso, q[2]];
+      else if (c.tipo === 'giro') {
+        const a = c.angulo * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a), pv = [c.pivot.x, c.pivot.y, c.pivot.z], r = [q[0] - pv[0], q[1] - pv[1], q[2] - pv[2]];
+        q = c.eixo === 'z' ? [pv[0] + r[0] * ca - r[1] * sa, pv[1] + r[0] * sa + r[1] * ca, q[2]] : [q[0], pv[1] + r[1] * ca - r[2] * sa, pv[2] + r[1] * sa + r[2] * ca];
+      }
+      id = c.pai;
+    }
+    pts.push(q);
+  }
+  const mn = [0, 1, 2].map((k) => Math.min(...pts.map((q) => q[k]))), mx = [0, 1, 2].map((k) => Math.max(...pts.map((q) => q[k])));
+  return { nome: p.nome, conj: p.conj, x: mn[0], y: mn[1], z: mn[2], dx: mx[0] - mn[0], dy: mx[1] - mn[1], dz: mx[2] - mn[2] };
+}
+test('portas abertas não batem umas nas outras nem nas gavetas abertas', () => {
+  const casos = [['roupeiro', E.specPadrao('roupeiro')], ['balcao', E.specPadrao('balcao')], ['aereo', E.specPadrao('aereo')]];
+  const r2 = E.specPadrao('roupeiro'); r2.frentes.anguloDobradica = 170; casos.push(['roupeiro 170°', r2]);
+  for (const [nome, s] of casos) {
+    const m = E.calcular(s);
+    const raiz = (id) => { const mp = {}; m.conjuntos.forEach((c) => { mp[c.id] = c; }); while (id && mp[id].pai) id = mp[id].pai; return id; };
+    const portas = m.pecas.filter((p) => p.meta && p.meta.tipo === 'porta').map((p) => caixaGirada(p, m.conjuntos));
+    const gavetas = m.pecas.filter((p) => /^Frente gaveta|^Lateral gaveta/.test(p.nome)).map((p) => caixaGirada(p, m.conjuntos));
+    for (let i = 0; i < portas.length; i++) {
+      for (let j = i + 1; j < portas.length; j++) if (sobrepoe(portas[i], portas[j], 0.6)) assert.fail(nome + ': duas portas abertas se cruzam');
+      for (const g of gavetas) if (raiz(g.conj) !== raiz(portas[i].conj) && sobrepoe(portas[i], g, 0.6)) assert.fail(nome + ': porta aberta bate em ' + g.nome + ' aberta');
+    }
+  }
+});

@@ -1382,7 +1382,7 @@
           // ângulo da dobradiça: escolhido (110°, 155°, 170°) ou automático (155° quando há gaveta interna atrás)
           var temGavInt = Array.isArray(cfg.interno) && cfg.interno.some(function (m) { return m.tipo === 'gavetas'; });
           var angDob = [110, 155, 170].indexOf(+fr.anguloDobradica) >= 0 ? +fr.anguloDobradica : (temGavInt ? 155 : 110);
-          if (temGavInt && angDob < 155) aviso(rot + ': gaveta interna atrás de porta com dobradiça de ' + angDob + '°. Por quê: a porta aberta a 95° fica na frente da gaveta; use dobradiça de 155° ou 165°.', ref);
+          if (temGavInt) info(rot + ': gavetas internas com calço de 25 mm de cada lado: passam pela porta aberta a 90° (portas que dividem a divisória abrem até 90° para não baterem uma na outra).', ref);
           cont.angulosDob = cont.angulosDob || {};
           portasLista.forEach(function (pp, k) {
             var lado;
@@ -1398,9 +1398,12 @@
             if (pesoP > 16) aviso(rot + ': porta de ~' + Math.round(pesoP) + ' kg. Por quê: passa do que as dobradiças comuns seguram bem por muito tempo; use ' + nd + ' dobradiças, MDF mais leve ou divida em duas portas.', ref);
             cont.dobradicas[th] += nd; cont.portas++; puxadorConta();
             var pivX = lado === 'esq' ? pp.x : pp.x + pp.w;
-            var abre = pp.canto ? 160 : { 110: 95, 155: 150, 170: 165 }[angDob]; // canto: 165° para abrir o vão todo
-            if (pp.canto) cont.angulosDob[165] = (cont.angulosDob[165] || 0) + 0;
-            cont.angulosDob[angDob] = (cont.angulosDob[angDob] || 0) + nd;
+            // Porta com a dobradiça numa divisória (a do vão vizinho gira no mesmo lugar): abre até 90°, quando as
+            // duas ficam paralelas sem se tocar. Só a porta da ponta (dobradiça na lateral de fora) abre mais.
+            var ponta = (lado === 'esq' && extEsq && pp.x <= reg.x0 + 1) || (lado === 'dir' && extDir && pp.x + pp.w >= reg.x1 - 1);
+            var angPorta = ponta ? (pp.canto ? 165 : angDob) : 110;
+            var abre = ponta ? (pp.canto ? 160 : { 110: 95, 155: 150, 170: 165 }[angPorta]) : 90;
+            cont.angulosDob[angPorta] = (cont.angulosDob[angPorta] || 0) + nd;
             var cj = fab.conjunto({ nome: 'Porta', tipo: 'giro', eixo: 'z', pivot: { x: pivX, y: reg.y0, z: reg.z0 }, angulo: lado === 'esq' ? -abre : abre, vao: vi, col: pp.col, secao: j });
             var cfgPorta = (spec.colunas[pp.col] && spec.colunas[pp.col].secoes[j]) || cfg;
             usarEstilo(cfgPorta);
