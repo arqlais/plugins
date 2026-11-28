@@ -1,5 +1,21 @@
 [
   {
+    "versao": "1.17.0",
+    "notas": [
+      "Menu lateral com as etapas na ordem (móvel, montagem, frentes, ferragens, acabamento, relatório) e a etapa Ferragens separada das Frentes",
+      "Minha biblioteca: anexe puxadores, corrediças, dobradiças, porta-temperos e lixeiras do fabricante (.skp), um arquivo, uma pasta inteira ou o componente selecionado no modelo; busca por nome, marca ou medida, e o móvel usa a peça real",
+      "Texturas próprias: anexe a imagem (ou uma pasta inteira) e ela vira um botão de pasta no seletor de materiais, com o tamanho real ajustável",
+      "Frentes com tela ou palhinha (quadro de MDF de 70 mm) e mais vidros: incolor, fumê, bronze, reflecta, jateado e espelho",
+      "Vista interna na prévia: veja prateleiras, divisórias, gavetas e o sifão sem as frentes",
+      "Prateleiras na altura que você escolher, divisória interna atrás das portas e fundo da cuba com furo para o sifão",
+      "Gavetas mostram a altura de cada frente e a faixa recomendada, com campo para fixar ou voltar para automática",
+      "Perfil puxador alinhado com a frente (a chapa desconta a altura do perfil), sem sobra para fora",
+      "Isométricas fechada e aberta na mesma posição, em projeção paralela",
+      "\"Gerar móvel\" e \"Gerar relatório\" são botões separados; a atualização só é procurada ao abrir a janela da planê.mob",
+      "Portas em par como padrão (divisória a cada par); a torre saiu do banheiro e da lavanderia"
+    ]
+  },
+  {
     "versao": "1.16.1",
     "notas": [
       "Pranchas sem texto encavalado: plano de corte com nome e medida que cabem em cada peça, chamadas com espaço entre as linhas, balões, cota da cuba e eixo hidráulico em faixas separadas",

@@ -138,7 +138,8 @@ module ArqLais
 
       def chave_def(p)
         forma = p['forma'] ? p['forma']['pts'].flatten.map { |v| v.to_f.round(1) }.join(',') : ''
-        [p['nome'], p['dx'].to_f.round(1), p['dy'].to_f.round(1), p['dz'].to_f.round(1), p['mat'], forma.hash].join('|')
+        furo = p['furo'] ? [p['furo']['x'], p['furo']['z'], p['furo']['d']].join(',') : ''
+        [p['nome'], p['dx'].to_f.round(1), p['dy'].to_f.round(1), p['dz'].to_f.round(1), p['mat'], forma.hash, furo].join('|')
       end
 
       def nome_def(p)
@@ -152,6 +153,16 @@ module ArqLais
         dy = p['dy'].to_f
         dz = p['dz'].to_f
         return if dx <= 0.05 || dy <= 0.05 || dz <= 0.05
+        if p['biblio']
+          # ferragem da minha biblioteca (.skp): mantém o material do fabricante
+          inst = Biblioteca.colocar(model, destino, p)
+          if inst
+            inst.name = p['nome'].to_s
+            inst.layer = Materiais.tag(model, p['grupo'], cache_tag)
+            inst.set_attribute(DICT, 'peca', p['nome'].to_s)
+            return inst
+          end
+        end
         k = chave_def(p)
         defi = cache_def[k]
         unless defi
@@ -159,6 +170,7 @@ module ArqLais
           defi.set_attribute(DICT, 'gerada', true) # da planê.mob: pode ser limpa quando sair de uso
           begin
             desenhar(defi.entities, p, dx, dy, dz)
+            furar(defi.entities, p) if p['furo']
           rescue StandardError
             model.definitions.remove(defi) if model.definitions.respond_to?(:remove)
             raise
@@ -194,6 +206,19 @@ module ArqLais
           pts = [[0, 0, 0], [dx, 0, 0], [dx, dy, 0], [0, dy, 0]].map { |q| Geom::Point3d.new(Util.mm(q[0]), Util.mm(q[1]), 0) }
           extrudar(ents, pts, Geom::Vector3d.new(0, 0, 1), Util.mm(dz))
         end
+      end
+
+      # furo redondo atravessando uma chapa em pé no eixo y (ex.: fundo da cuba, para o sifão).
+      # Se não der certo, a chapa fica inteira (o furo também está escrito na observação da peça).
+      def furar(ents, p)
+        f = p['furo']
+        r = Util.mm(f['d'].to_f / 2)
+        centro = Geom::Point3d.new(Util.mm(f['x']), 0, Util.mm(f['z']))
+        arestas = ents.add_circle(centro, Geom::Vector3d.new(0, -1, 0), r, 32)
+        disco = arestas.first.faces.min_by(&:area)
+        disco.pushpull(-Util.mm(p['dy'])) if disco && disco.area < r * r * 3.3
+      rescue StandardError => e
+        puts "planê.mob: furo não desenhado em #{p['nome']}: #{e.message}"
       end
 
       def extrudar(ents, pts, eixo, distancia)

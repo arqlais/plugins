@@ -39,8 +39,43 @@ const UI = path.join(__dirname, '..', 'src', 'marce', 'ui');
   if (alvos[3]) { await (await p.$$('.alvo'))[3].click(); await p.waitForTimeout(150); }
   await clica('[data-act="secTipo:gavetas"]');
   await foto('montagem-gavetas');
-  await clica('[data-act="aba:frentes"]'); await foto('detalhes-frente-puxador');
-  await p.evaluate(() => { const c = document.getElementById('conteudo'); c.scrollTop = c.scrollHeight; }); await foto('detalhes-iluminacao');
+  // vista interna com prateleiras na altura escolhida, divisória e fundo da cuba com furo do sifão
+  await p.evaluate(() => { const c = document.querySelector('[data-act="interno:1"]'); if (c) c.click(); });
+  await p.waitForTimeout(150);
+  const alvosI = await p.$$('.alvo');
+  if (alvosI.length > 1) { await alvosI[alvosI.length - 2].click(); await p.waitForTimeout(150); }
+  await clica('[data-act="secTipo:portas"]');
+  await p.evaluate(() => { const i = document.querySelector('input[data-path$="pratAlturas.0"]'); if (i) { i.value = '220'; i.dispatchEvent(new Event('change', { bubbles: true })); } });
+  await p.waitForTimeout(150);
+  await p.evaluate(() => { const i = document.querySelector('input[data-path$=".divOn"]'); if (i) { i.checked = true; i.dispatchEvent(new Event('change', { bubbles: true })); } });
+  await p.waitForTimeout(150);
+  await foto('vista-interna-prateleiras-divisoria');
+  await clica('[data-act="aba:movel"]');
+  await p.evaluate(() => { const b = document.querySelector('[data-path="cuba.fundo"][data-val="furo"]'); if (b) b.click(); });
+  await p.waitForTimeout(150);
+  await foto('vista-interna-sifao');
+  await p.evaluate(() => { const c = document.querySelector('[data-act="interno:0"]'); if (c) c.click(); });
+  await clica('[data-act="aba:frentes"]'); await foto('frentes');
+  await p.evaluate(() => { const c = document.getElementById('conteudo'); c.scrollTop = c.scrollHeight; }); await foto('frentes-iluminacao');
+  // ferragens com a minha biblioteca (miniaturas de exemplo)
+  await p.evaluate(() => {
+    const mini = (cor) => 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 60"><rect x="6" y="24" width="108" height="12" rx="3" fill="' + cor + '"/><rect x="10" y="27" width="100" height="6" fill="#fff" opacity=".5"/></svg>');
+    window.App.receber({ tipo: 'biblioteca', itens: [
+      { id: 'b1', nome: 'Perfil Leo M13', marca: 'Leo', categoria: 'puxador', medidas: [3000, 40, 18], encaixe: 'esticar', mini: mini('#a88a80'), existe: true },
+      { id: 'b5', nome: 'Puxador concha preto', marca: '', categoria: 'puxador', medidas: [96, 30, 22], encaixe: 'real', mini: mini('#3e4b57'), existe: true },
+      { id: 'b2', nome: 'Telescópica c/ amortecedor 350', marca: 'FGV', categoria: 'corredica', medidas: [350, 45, 12.7], encaixe: 'esticar', mini: mini('#9aa3ab'), existe: true },
+      { id: 'b3', nome: 'Corrediça invisível', marca: 'FGV', categoria: 'corredica', medidas: [450, 40, 12], encaixe: 'esticar', mini: mini('#7d8792'), existe: true },
+      { id: 'b4', nome: 'Dobradiça reta', marca: 'FGV', categoria: 'dobradica', medidas: [100, 45, 18], encaixe: 'real', mini: mini('#b9c0c6'), existe: true }
+    ] });
+  });
+  await clica('[data-act="aba:ferragens"]');
+  await clica('[data-act="set"][data-val="meu"]');
+  await clica('[data-act="bibUsar"][data-id="b1"]');
+  await foto('ferragens-puxador-biblioteca');
+  await p.evaluate(() => { const c = document.getElementById('conteudo'); c.scrollTop = 520; });
+  await clica('[data-act="bibUsar"][data-id="b2"]');
+  await foto('ferragens-corredica-dobradica');
+  await clica('[data-act="bibGerenciar"]'); await foto('minha-biblioteca'); await p.keyboard.press('Escape');
   await clica('[data-act="aba:acabamento"]'); await foto('acabamento');
   await clica('[data-act="picker:frente"]'); await foto('acabamento-catalogo'); await p.keyboard.press('Escape');
   await clica('[data-act="aba:relatorio"]'); await foto('aba-relatorio');

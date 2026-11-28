@@ -130,6 +130,75 @@ module ArqLais
           end
         end
 
+        # ---------------- minha biblioteca de ferragens (.skp)
+        d.add_action_callback('bibListar') { |_c, _j| enviar('tipo' => 'biblioteca', 'itens' => Biblioteca.para_janela) }
+
+        d.add_action_callback('bibAnexar') do |_c, j|
+          dados = Util.ler_json(j)
+          cat = dados['categoria']
+          begin
+            r = case dados['modo']
+                when 'selecao' then Biblioteca.anexar_selecao(cat)
+                when 'pasta'
+                  dir = UI.select_directory(title: 'Pasta com os arquivos .skp das ferragens')
+                  dir ? Biblioteca.anexar_pasta(dir, cat) : nil
+                when 'partes' then Biblioteca.anexar_partes(dados['arquivo'].to_s, dados['indices'] || [], cat)
+                else
+                  arq = UI.openpanel('Escolha o arquivo do SketchUp da ferragem', '', 'SketchUp|*.skp||')
+                  arq ? Biblioteca.anexar_arquivo(arq, cat) : nil
+                end
+            enviar('tipo' => 'biblioteca', 'itens' => Biblioteca.para_janela, 'anexo' => r) if r
+          rescue StandardError => e
+            puts "planê.mob: biblioteca: #{e.class}: #{e.message}"
+            enviar('tipo' => 'aviso', 'msg' => "Não foi possível anexar: #{e.message}")
+          end
+        end
+
+        # ---------------- minhas texturas (imagens)
+        d.add_action_callback('texListar') { |_c, _j| enviar('tipo' => 'texturas', 'itens' => Texturas.para_janela) }
+
+        d.add_action_callback('texAnexar') do |_c, j|
+          dados = Util.ler_json(j)
+          begin
+            novos = dados['modo'] == 'pasta' ? Texturas.anexar_pasta : Texturas.anexar_arquivo
+            enviar('tipo' => 'texturas', 'itens' => Texturas.para_janela, 'novos' => novos) if novos
+          rescue StandardError => e
+            enviar('tipo' => 'aviso', 'msg' => "Não foi possível anexar a textura: #{e.message}")
+          end
+        end
+
+        d.add_action_callback('texEditar') do |_c, j|
+          dados = Util.ler_json(j)
+          Texturas.editar(dados)
+          enviar('tipo' => 'texturas', 'itens' => Texturas.para_janela, 'silencioso' => dados['silencioso'] ? true : false)
+        end
+
+        d.add_action_callback('texRemover') do |_c, j|
+          Texturas.remover(Util.ler_json(j)['id'])
+          enviar('tipo' => 'texturas', 'itens' => Texturas.para_janela)
+        end
+
+        d.add_action_callback('bibEditar') do |_c, j|
+          Biblioteca.editar(Util.ler_json(j))
+          enviar('tipo' => 'biblioteca', 'itens' => Biblioteca.para_janela)
+        end
+
+        d.add_action_callback('bibRemover') do |_c, j|
+          Biblioteca.remover(Util.ler_json(j)['id'])
+          enviar('tipo' => 'biblioteca', 'itens' => Biblioteca.para_janela)
+        end
+
+        d.add_action_callback('pedirFotos') do |_c, _j|
+          grupo = @ctx && @ctx[:grupo]
+          imagens = nil
+          begin
+            imagens = Exportar.capturar_imagens(Sketchup.active_model, grupo) if grupo && grupo.valid?
+          rescue StandardError => e
+            puts "planê.mob: fotos do relatório: #{e.message}"
+          end
+          enviar('tipo' => 'fotos', 'imagens' => imagens)
+        end
+
         d.add_action_callback('abrirPrancha') do |_c, _j|
           grupo = @ctx && @ctx[:grupo]
           caminho = grupo && grupo.valid? ? grupo.get_attribute(DICT, 'relatorio').to_s : ''

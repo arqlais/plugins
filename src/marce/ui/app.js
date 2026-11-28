@@ -14,8 +14,8 @@
   var st = {
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
-    picker: null, marcaPicker: 'Todas', busca: '', confAberta: true, relatorioJunto: true,
-    padroes: null, projeto: {}, versao: '1.16.1', gerando: false, atualizacao: null, atualizando: false
+    picker: null, marcaPicker: 'Todas', busca: '', confAberta: true, relatorioJunto: false, bib: [], bibBusca: {}, bibFiltro: 'todos',
+    padroes: null, projeto: {}, versao: '1.17.0', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -26,7 +26,7 @@
   function getPath(o, p) { return p.split('.').reduce(function (a, k) { return a === undefined || a === null ? undefined : a[k]; }, o); }
   function setPath(o, p, v) {
     var ks = p.split('.'); var a = o;
-    for (var i = 0; i < ks.length - 1; i++) { if (a[ks[i]] === undefined) a[ks[i]] = {}; a = a[ks[i]]; }
+    for (var i = 0; i < ks.length - 1; i++) { if (a[ks[i]] === undefined || a[ks[i]] === null) a[ks[i]] = /^\d+$/.test(ks[i + 1]) ? [] : {}; a = a[ks[i]]; }
     a[ks[ks.length - 1]] = v;
   }
   function toast(msg) {
@@ -87,6 +87,13 @@
     botao: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="4" width="14" height="24" rx="1"/><circle cx="18.5" cy="16" r="2.4" fill="currentColor"/></svg>',
     testeira: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="8" width="14" height="20" rx="1"/><path d="M8 8l4-4h16l-5 4z" fill="#d6b3ab" fill-opacity=".5"/></svg>',
     alca: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="4" width="14" height="24" rx="1"/><path d="M19 10v10" stroke-width="2.5"/></svg>',
+    meu: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="4" width="14" height="24" rx="1"/><path d="M18 10h3v12h-3"/><path d="M4 26l4-4M4 22v4h4" stroke-width="1.3"/></svg>',
+    bibArq: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M12 11v6M9 14h6"/></svg>',
+    bibSel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 5h4M5 5v4M19 5h-4M19 5v4M5 19h4M5 19v-4M19 19h-4M19 19v-4"/><rect x="9" y="9" width="6" height="6"/></svg>',
+    bibPasta: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7h6l2 2h10v10H3z"/><path d="M12 12v5M9.5 14.5h5"/></svg>',
+    bibGer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h16M4 12h16M4 18h10"/></svg>',
+    lixo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13M10 11v6M14 11v6"/></svg>',
+    bibVazio: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M6 22l10 5 10-5V10L16 5 6 10z"/><path d="M6 10l10 5 10-5M16 15v12"/></svg>',
     toque: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="4" width="14" height="24" rx="1"/><path d="M14 16a2 2 0 1 1 4 0v5" /><path d="M12 13a4 4 0 0 1 8 0"/></svg>',
     nenhum: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="4" width="14" height="24" rx="1"/><path d="M6 6l20 20"/></svg>',
     // abas
@@ -94,6 +101,10 @@
     abaMontagem: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M9 4v16M15 4v16M15 10h6M15 15h6"/></svg>',
     abaFrentes: '<svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M15 10v4"/></svg>',
     abaAcab: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="9" cy="10" r="1.3"/><circle cx="14" cy="9" r="1.3"/><circle cx="15.5" cy="13.5" r="1.3"/></svg>',
+    abaFer: '<svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3.5"/><circle cx="8" cy="8" r="1"/><path d="M11 9.5l8 4M11 11l6.5 6"/><rect x="15" y="15" width="5" height="5" rx="1"/></svg>',
+    abaBib: '<svg viewBox="0 0 24 24"><path d="M4 19V5M8 19V5M12 19l3-14 4 1-3 14z"/><path d="M3 19h18"/></svg>',
+    abaGuia: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.5v.7M12 17h.01"/></svg>',
+    seta: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
     abaRel: '<svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7M9 7h4"/></svg>'
   };
 
@@ -149,7 +160,9 @@
     var M = st.modelo, el = $('#visao');
     var html = '';
     if (st.vista === 'frontal') {
-      html = '<div class="barra-visao"><span class="dica-clique">Clique numa frente para editar a coluna</span></div><div class="area-desenho">' + R.frontal(M, { clicavel: true, sel: st.sel }) + '</div>';
+      html = '<div class="barra-visao"><span class="dica-clique">' + (st.interno ? 'Vista interna: prateleiras, divisórias, gavetas e sifão · clique num vão para editar' : 'Clique numa frente para editar a coluna') + '</span>' +
+        '<div class="segmentado mini"><button data-act="interno:0" class="' + (!st.interno ? 'ativo' : '') + '">com frentes</button><button data-act="interno:1" class="' + (st.interno ? 'ativo' : '') + '">interno</button></div></div>' +
+        '<div class="area-desenho">' + R.frontal(M, { clicavel: true, sel: st.sel, interno: st.interno }) + '</div>';
     } else if (st.vista === 'planta') {
       html = '<div class="barra-visao"></div><div class="area-desenho">' + R.planta(M, {}) + '</div>';
     } else if (st.vista === '3d') {
@@ -224,8 +237,7 @@
 
   function renderRodape() {
     var r = st.modelo.resumo;
-    var txt = st.modo === 'editar' ? 'Atualizar móvel' : 'Gerar armário';
-    if (st.relatorioJunto) txt += st.modo === 'editar' ? ' e relatório' : ' + relatório';
+    var txt = st.modo === 'editar' ? 'Atualizar móvel' : 'Gerar móvel';
     var at = st.atualizacao;
     var htmlVersao = '<span class="versao">planê<i>.mob</i> ' + esc(st.versao) + '</span>';
     if (st.atualizando) htmlVersao += '<span class="pilula-atualizar ocupado">atualizando…</span>';
@@ -236,18 +248,46 @@
       '<span class="contador aviso">' + r.avisos + ' aviso' + (r.avisos === 1 ? '' : 's') + '</span>' +
       '<span class="contador ok">' + r.dicas + ' dica' + (r.dicas === 1 ? '' : 's') + '</span></div>' +
       '<button class="botao fantasma" data-act="cancelar">Cancelar</button>' +
+      '<button class="botao" data-act="relatorio" title="Monta as pranchas e a lista de peças, sem mexer no modelo"' + (r.erros ? ' disabled' : '') + '>Gerar relatório</button>' +
       '<button class="botao primario" data-act="gerar"' + (r.erros || st.gerando ? ' disabled' : '') + '>' + (st.gerando ? 'Gerando…' : txt) + '</button>';
   }
 
   // ---------------------------------------------------------------- painel
-  var ABAS = [['movel', 'Móvel', IC.abaMovel], ['montagem', 'Montagem', IC.abaMontagem], ['frentes', 'Detalhes', IC.abaFrentes], ['acabamento', 'Acabamento', IC.abaAcab], ['relatorio', 'Relatório', IC.abaRel]];
+  // menu lateral: as etapas na ordem de uso, ligadas por uma linha (as já visitadas ficam marcadas)
+  var ABAS = [
+    ['movel', 'Móvel', IC.abaMovel, 'tipo, medidas e base'],
+    ['montagem', 'Montagem', IC.abaMontagem, 'colunas, portas, gavetas'],
+    ['frentes', 'Frentes', IC.abaFrentes, 'estilo, folgas, LED'],
+    ['ferragens', 'Ferragens', IC.abaFer, 'puxador, corrediça, dobradiça'],
+    ['acabamento', 'Acabamento', IC.abaAcab, 'MDF, cores, chapa'],
+    ['relatorio', 'Relatório', IC.abaRel, 'pranchas e lista']
+  ];
+  var TITULO_ABA = { movel: ['o', 'móvel'], montagem: ['a', 'montagem'], frentes: ['as', 'frentes'], ferragens: ['as', 'ferragens'], acabamento: ['o', 'acabamento'], relatorio: ['o', 'relatório'] };
+
+  function renderMenu() {
+    st.visitadas = st.visitadas || {};
+    st.visitadas[st.aba] = true;
+    var r = (st.modelo && st.modelo.resumo) || {};
+    var h = '<div class="trilho-etapas">' + ABAS.map(function (a, k) {
+      var alerta = a[0] === 'montagem' && r.erros ? '<i class="trilho-alerta" title="' + r.erros + ' erro(s) na conferência"></i>' : '';
+      return '<button data-act="aba:' + a[0] + '" class="etapa' + (st.aba === a[0] ? ' ativo' : '') + (st.visitadas[a[0]] ? ' visitada' : '') + '" title="' + esc(a[1] + ' · ' + a[3]) + '">' +
+        '<span class="bolinha">' + a[2] + alerta + '</span><span class="num">' + (k + 1) + '</span><span class="rot">' + a[1] + '</span></button>';
+    }).join('') + '</div>';
+    h += '<div class="trilho-pe"><button class="etapa extra" data-act="bibGerenciar" title="Minha biblioteca de ferragens (.skp)"><span class="bolinha">' + IC.abaBib + '</span><span class="rot">biblioteca</span></button>' +
+      '<button class="etapa extra" data-guia="1" title="Como usar a planê.mob"><span class="bolinha">' + IC.abaGuia + '</span><span class="rot">guia</span></button></div>';
+    $('#abas').innerHTML = h;
+  }
 
   function renderPainel() {
-    $('#abas').innerHTML = ABAS.map(function (a) { return '<button data-act="aba:' + a[0] + '" class="' + (st.aba === a[0] ? 'ativo' : '') + '">' + a[2] + '<span>' + a[1] + '</span></button>'; }).join('');
+    renderMenu();
+    var aba = ABAS.filter(function (a) { return a[0] === st.aba; })[0] || ABAS[0];
+    var k = ABAS.indexOf(aba), tt = TITULO_ABA[aba[0]];
+    var prox = ABAS[k + 1];
     var cont = $('#conteudo');
     var top = cont.scrollTop;
-    var f = { movel: abaMovel, montagem: abaMontagem, frentes: abaFrentes, acabamento: abaAcabamento, relatorio: abaRelatorio }[st.aba];
-    cont.innerHTML = f();
+    var f = { movel: abaMovel, montagem: abaMontagem, frentes: abaFrentes, ferragens: abaFerragens, acabamento: abaAcabamento, relatorio: abaRelatorio }[aba[0]];
+    cont.innerHTML = '<div class="cab-etapa"><span class="eyebrow-etapa">etapa ' + (k + 1) + ' de ' + ABAS.length + '</span><h3>' + tt[0] + ' <em>' + tt[1] + '</em></h3><p>' + aba[3] + '</p></div>' + f() +
+      (prox ? '<button class="proxima-etapa" data-act="aba:' + prox[0] + '"><span>próxima etapa</span><b>' + prox[1] + '</b>' + IC.seta + '</button>' : '');
     cont.scrollTop = top;
   }
 
@@ -276,6 +316,155 @@
       return '<button class="card-ilus' + (String(v) === String(o[0]) ? ' ativo' : '') + '" data-act="set" data-path="' + path + '" data-val="' + esc(o[0]) + '" title="' + esc(o[1]) + '">' + (ILU[o[2]] || '') + '<span>' + o[1] + '</span></button>';
     }).join('') + '</div>';
   }
+  // ---------------------------------------------------------------- minha biblioteca (.skp)
+  var BIB_CAT = { puxador: 'Puxador', corredica: 'Corrediça', dobradica: 'Dobradiça', aramado: 'Aramado e lixeira', outro: 'Outro' };
+  function semAcento(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+  function bibBate(i, busca) {
+    if (!busca) return true;
+    var alvo = semAcento([i.nome, i.marca, BIB_CAT[i.categoria], i.notas, (i.medidas || []).join(' ')].join(' '));
+    return semAcento(busca).split(/\s+/).every(function (p) { return !p || alvo.indexOf(p) >= 0; });
+  }
+  function bibMedidas(m) { return (m || []).map(function (v) { return Math.round(v * 10) / 10; }).join(' × ') + ' mm'; }
+  function bibMini(i) { return i && i.mini ? '<img src="' + i.mini + '" alt="">' : IC.bibVazio; }
+  function bibBotoes(cat) {
+    return '<div class="bib-anexar">' +
+      '<button class="botao pequeno" data-act="bibAnexar:arquivo:' + cat + '">' + IC.bibArq + 'Anexar .skp</button>' +
+      '<button class="botao pequeno" data-act="bibAnexar:selecao:' + cat + '" title="Selecione no modelo o componente da ferragem e clique aqui">' + IC.bibSel + 'Usar o selecionado</button>' +
+      '<button class="botao pequeno" data-act="bibAnexar:pasta:' + cat + '" title="Anexa todos os .skp de uma pasta">' + IC.bibPasta + 'Anexar pasta</button>' +
+      '<button class="botao pequeno fantasma" data-act="bibGerenciar">' + IC.bibGer + 'Minha biblioteca</button></div>';
+  }
+  // escolha da ferragem de uma categoria (cartões com miniatura, busca por nome, marca ou medida)
+  function bibEscolha(cat, path, padraoTxt, opcoes) {
+    var atual = getPath(st.spec, path) || null;
+    var busca = st.bibBusca[cat] || '';
+    var todos = (st.bib || []).filter(function (i) { return i.categoria === cat; });
+    var itens = todos.filter(function (i) { return bibBate(i, busca); });
+    var h = '<div class="bib">';
+    if (todos.length > 4) h += '<input class="bib-busca" type="search" placeholder="Buscar por nome, marca ou medida" data-bib-busca="' + cat + '" value="' + esc(busca) + '">';
+    h += '<div class="bib-grade">';
+    if (padraoTxt) h += '<button class="bib-card' + (!atual ? ' ativo' : '') + '" data-act="bibUsar" data-path="' + path + '" data-id="">' + IC.bibVazio + '<b>' + padraoTxt + '</b><small>desenho da planê.mob</small></button>';
+    itens.forEach(function (i) {
+      h += '<button class="bib-card' + (atual && atual.id === i.id ? ' ativo' : '') + (i.existe === false ? ' faltando' : '') + '" data-act="bibUsar" data-path="' + path + '" data-id="' + esc(i.id) + '" title="' + esc(i.nome + (i.marca ? ' · ' + i.marca : '')) + '">' +
+        bibMini(i) + '<b>' + esc(i.nome) + '</b><small>' + esc((i.marca ? i.marca + ' · ' : '') + bibMedidas(i.medidas)) + '</small></button>';
+    });
+    h += '</div>';
+    if (!todos.length) h += '<p class="ajuda">Sua biblioteca ainda não tem ' + BIB_CAT[cat].toLowerCase() + '. Anexe o arquivo do SketchUp (.skp) do fabricante, de uma pasta ou o componente que já está no seu modelo.</p>';
+    else if (!itens.length) h += '<p class="ajuda">Nada encontrado para "' + esc(busca) + '".</p>';
+    h += bibBotoes(cat);
+    if (atual && opcoes) {
+      if (atual.existe === false) h += '<p class="ajuda">O arquivo desta ferragem não está mais na biblioteca: o móvel usa o desenho da planê.mob.</p>';
+      if (opcoes.encaixe) h += '<div class="campo"><label>Tamanho no móvel</label></div>' + pilulas(path + '.encaixe', [['real', 'Tamanho real'], ['esticar', 'Esticar no comprimento']], true);
+      if (opcoes.comprimento && atual.encaixe === 'esticar') h += deslizante('Comprimento', opcoes.comprimento, 60, 1200, 10, fmtMm);
+      h += interruptor('Girar 180° (virar)', path + '.virar');
+      if (opcoes.deitar) h += interruptor('Deitar (troca altura e profundidade)', path + '.deitar', 'Use se o componente entrou de lado: cada arquivo é desenhado numa posição.');
+    }
+    return h + '</div>';
+  }
+  function bibItem(id) { return (st.bib || []).filter(function (i) { return i.id === id; })[0]; }
+  // anexou um arquivo com várias peças soltas (ex.: puxador + logotipo): escolhe o que entra
+  function bibEscolherPartes(an) {
+    var fundo = document.createElement('div');
+    fundo.className = 'modal-fundo';
+    fundo.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><p class="eyebrow-m">minha biblioteca</p><h2>o arquivo tem <em>' + an.partes.length + ' peças</em></h2>' +
+      '<p class="sub-m">' + esc(an.nome) + ' · marque só o que é ferragem (cada uma vira um item da biblioteca).</p><div class="lista-m bib-partes">' +
+      an.partes.map(function (p) { return '<label class="bib-parte"><input type="checkbox" value="' + p.indice + '"' + (an.partes.length <= 3 ? ' checked' : '') + '><span><b>' + esc(p.nome) + '</b><small>' + bibMedidas(p.medidas) + '</small></span></label>'; }).join('') +
+      '</div><div class="botoes-m"><button class="botao" data-fechar-modal>cancelar</button><button class="botao primario" data-anexar-partes>anexar marcadas</button></div></div>';
+    document.body.appendChild(fundo);
+    fundo.addEventListener('click', function (ev) {
+      if (ev.target.hasAttribute('data-anexar-partes')) {
+        var idx = Array.prototype.map.call(fundo.querySelectorAll('input:checked'), function (c) { return +c.value; });
+        if (!idx.length) { toast('Marque pelo menos uma peça'); return; }
+        enviar('bibAnexar', { modo: 'partes', arquivo: an.arquivo, indices: idx, categoria: an.categoria });
+        fundo.remove(); return;
+      }
+      if (ev.target === fundo || ev.target.hasAttribute('data-fechar-modal')) fundo.remove();
+    });
+  }
+  // organizar texturas: nome, pasta e tamanho real
+  function texGerenciar() {
+    var fundo = document.querySelector('.modal-fundo.tex-ger');
+    if (!fundo) {
+      fundo = document.createElement('div');
+      fundo.className = 'modal-fundo tex-ger';
+      document.body.appendChild(fundo);
+      fundo.addEventListener('click', function (ev) {
+        var t = ev.target.closest('[data-tex-rem],[data-fechar-modal]');
+        if (ev.target === fundo || (t && t.hasAttribute('data-fechar-modal'))) { fundo.remove(); return; }
+        if (t && t.hasAttribute('data-tex-rem')) { var it = texItem(t.getAttribute('data-tex-rem')); if (it && window.confirm('Remover a textura "' + it.nome + '"?')) enviar('texRemover', { id: it.id }); }
+      });
+      fundo.addEventListener('change', function (ev) {
+        var el = ev.target, k = el.getAttribute('data-tex-campo');
+        if (!k) return;
+        var d = { id: el.closest('[data-tex-id]').getAttribute('data-tex-id') };
+        d[k] = el.value;
+        enviar('texEditar', d);
+      });
+    }
+    var pastas = [];
+    (st.texturas || []).forEach(function (t) { if (pastas.indexOf(t.pasta) < 0) pastas.push(t.pasta); });
+    fundo.innerHTML = '<div class="modal largo" role="dialog" aria-modal="true"><p class="eyebrow-m">minhas texturas</p><h2>organizar <em>texturas</em></h2>' +
+      '<p class="sub-m">Mude a pasta para separar por fornecedor ou coleção: cada pasta vira um botão no seletor de materiais.</p><datalist id="tex-pastas">' + pastas.map(function (p0) { return '<option value="' + esc(p0) + '">'; }).join('') + '</datalist>' +
+      '<div class="lista-m bib-lista">' + (st.texturas || []).map(function (t) {
+        return '<div class="bib-linha" data-tex-id="' + esc(t.id) + '"><div class="bib-mini"><span class="amostra foto grande" style="background-color:' + esc(t.cor || '#cfc6bd') + ';background-image:url(\'' + esc(t.img || '') + '\')"></span></div><div class="bib-campos">' +
+          '<input data-tex-campo="nome" value="' + esc(t.nome) + '" aria-label="Nome"><input data-tex-campo="pasta" list="tex-pastas" value="' + esc(t.pasta) + '" aria-label="Pasta">' +
+          '<label class="tex-larg">largura real (mm)<input data-tex-campo="largura" type="number" min="50" step="50" value="' + Math.round(t.largura || 1200) + '"></label>' +
+          '<small>' + (t.existe === false ? 'arquivo não encontrado' : 'a imagem se repete a cada ' + m2(t.largura || 1200) + ' m') + '</small></div>' +
+          '<button class="bib-rem" data-tex-rem="' + esc(t.id) + '" aria-label="Remover" title="Remover">' + IC.lixo + '</button></div>';
+      }).join('') + '</div><div class="botoes-m"><button class="botao primario" data-fechar-modal>pronto</button></div></div>';
+  }
+
+  // gerenciar: renomear, marca, categoria, tamanho, remover
+  function bibGerenciar() {
+    var fundo = document.querySelector('.modal-fundo.bib-ger');
+    if (!fundo) {
+      fundo = document.createElement('div');
+      fundo.className = 'modal-fundo bib-ger';
+      document.body.appendChild(fundo);
+      fundo.addEventListener('click', function (ev) {
+        var t = ev.target.closest('[data-bib-rem],[data-bib-cat-f],[data-fechar-modal],[data-act]');
+        if (ev.target === fundo || (t && t.hasAttribute('data-fechar-modal'))) { fundo.remove(); return; }
+        if (!t) return;
+        if (t.hasAttribute('data-bib-cat-f')) { st.bibFiltro = t.getAttribute('data-bib-cat-f'); bibGerenciar(); return; }
+        if (t.hasAttribute('data-bib-rem')) {
+          var it = bibItem(t.getAttribute('data-bib-rem'));
+          if (it && window.confirm('Remover "' + it.nome + '" da biblioteca? Os móveis que usam voltam ao desenho da planê.mob.')) enviar('bibRemover', { id: it.id });
+        }
+      });
+      fundo.addEventListener('change', function (ev) {
+        var el = ev.target, k = el.getAttribute('data-bib-campo');
+        if (!k) return;
+        var d = { id: el.closest('[data-bib-id]').getAttribute('data-bib-id') };
+        d[k] = el.type === 'checkbox' ? el.checked : el.value;
+        enviar('bibEditar', d);
+      });
+      fundo.addEventListener('input', function (ev) {
+        if (ev.target.id !== 'bib-ger-busca') return;
+        st.bibBusca._ger = ev.target.value;
+        var pos = ev.target.selectionStart; bibGerenciar();
+        var nb = document.getElementById('bib-ger-busca'); if (nb) { nb.focus(); nb.setSelectionRange(pos, pos); }
+      });
+    }
+    var filtro = st.bibFiltro || 'todos', busca = st.bibBusca._ger || '';
+    var lista = (st.bib || []).filter(function (i) { return (filtro === 'todos' || i.categoria === filtro) && bibBate(i, busca); });
+    var opCat = function (v) { return Object.keys(BIB_CAT).map(function (k) { return '<option value="' + k + '"' + (k === v ? ' selected' : '') + '>' + BIB_CAT[k] + '</option>'; }).join(''); };
+    fundo.innerHTML = '<div class="modal largo" role="dialog" aria-modal="true"><p class="eyebrow-m">minha biblioteca</p><h2>ferragens do <em>meu SketchUp</em></h2>' +
+      '<p class="sub-m">' + (st.bib || []).length + ' itens · os arquivos ficam no seu computador e valem para todos os projetos.</p>' +
+      '<input id="bib-ger-busca" class="bib-busca" type="search" placeholder="Buscar por nome, marca, categoria ou medida" value="' + esc(busca) + '">' +
+      '<div class="pilulas">' + [['todos', 'Todos']].concat(Object.keys(BIB_CAT).map(function (k) { return [k, BIB_CAT[k]]; })).map(function (o) { return '<button class="pilula pequena' + (filtro === o[0] ? ' ativo' : '') + '" data-bib-cat-f="' + o[0] + '">' + o[1] + '</button>'; }).join('') + '</div>' +
+      '<div class="lista-m bib-lista">' + (lista.length ? lista.map(function (i) {
+        return '<div class="bib-linha" data-bib-id="' + esc(i.id) + '"><div class="bib-mini">' + bibMini(i) + '</div><div class="bib-campos">' +
+          '<input data-bib-campo="nome" value="' + esc(i.nome) + '" aria-label="Nome"><input data-bib-campo="marca" value="' + esc(i.marca || '') + '" placeholder="marca" aria-label="Marca">' +
+          '<select data-bib-campo="categoria" aria-label="Categoria">' + opCat(i.categoria) + '</select>' +
+          '<select data-bib-campo="encaixe" aria-label="Tamanho"><option value="real"' + (i.encaixe !== 'esticar' ? ' selected' : '') + '>tamanho real</option><option value="esticar"' + (i.encaixe === 'esticar' ? ' selected' : '') + '>esticar no comprimento</option></select>' +
+          '<small>' + bibMedidas(i.medidas) + (i.existe === false ? ' · arquivo não encontrado' : '') + '</small></div>' +
+          '<button class="bib-rem" data-bib-rem="' + esc(i.id) + '" aria-label="Remover" title="Remover">' + IC.lixo + '</button></div>';
+      }).join('') : '<p class="ajuda">Nenhum item' + (busca ? ' para "' + esc(busca) + '"' : '') + '.</p>') + '</div>' +
+      bibBotoes(filtro === 'todos' ? 'outro' : filtro).replace(/<button class="botao pequeno fantasma" data-act="bibGerenciar">[\s\S]*?<\/button>/, '') +
+      '<div class="botoes-m"><button class="botao primario" data-fechar-modal>pronto</button></div></div>';
+  }
+
+  // altura recomendada da frente (mm): gaveta de talheres/utensílios, gavetão de panelas, gavetão com gaveta interna
+  var GAV_REC = { gaveta: [120, 250], gavetao: [250, 450], interna: [300, 450] };
   function fmtMm(v) { return Math.round(v) + ' mm'; }
   function fmtM(v) { return m2(v) + ' m'; }
 
@@ -329,6 +518,8 @@
       if (s.cuba.ativa) {
         h += campoNum('Centro da cuba (a partir da esquerda)', 'cuba.centro', 'mm') + campoNum('Largura da cuba', 'cuba.largura', 'mm') + campoNum('Profundidade da cuba', 'cuba.profundidade', 'mm');
         if (s.cuba.origem === 'modelo') h += '<p class="ajuda ok-linha">' + ILU.st_ok + 'Posição detectada no modelo.</p>';
+        h += '<div class="campo"><label>Fundo do módulo da cuba</label></div>' + pilulas('cuba.fundo', [['sem', 'Sem fundo'], ['furo', 'Fundo com furo p/ sifão']], true);
+        if (s.cuba.fundo === 'furo') h += '<div class="tres-campos"><div><label>Ø do furo</label><input type="number" data-path="cuba.furo" data-tipo="num" value="' + (s.cuba.furo || 100) + '"></div><div><label>Altura do furo</label><input type="number" data-path="cuba.alturaFuro" data-tipo="num" value="' + (s.cuba.alturaFuro || 500) + '"></div><div></div></div><p class="ajuda">Altura medida do piso até o centro do furo (confira a saída de esgoto na obra). O fundo fica removível (parafusado) para a manutenção.</p>';
       }
       h += '<div class="linha-botoes">' + (emSketchUp ? '<button class="botao pequeno" data-act="detectarCuba">Detectar cuba no modelo</button>' : '') + '<button class="botao pequeno" data-act="redistribuir">Redistribuir colunas</button></div>';
       h += interruptor('Desenhar tampo de pedra', 'pedra.ativa', 'Deixe desligado se o tampo já está modelado no projeto.');
@@ -408,23 +599,54 @@
     }
     if (sec.tipo === 'portas' || sec.tipo === 'basculante' || sec.tipo === 'nicho') {
       h += '<div class="campo"><label>Interior' + aj('interior') + '</label></div>' + pil('interior', [['prateleiras', 'Prateleiras'], ['cabideiro', 'Cabideiro'], ['vazio', 'Vazio']]);
-      if (sec.interior === 'prateleiras') h += '<div class="campo"><label>Prateleiras</label>' + passo('prateleiras', 0, 8) + '</div>';
+      if (sec.interior === 'prateleiras') {
+        h += '<div class="campo"><label>Prateleiras</label>' + passo('prateleiras', 0, 8) + '</div>';
+        if (sec.prateleiras > 0) {
+          // alturas reais calculadas (mm do piso do vão até a face de cima de cada prateleira)
+          var prs = (st.modelo.pecas || []).filter(function (p) { return p.nome === 'Prateleira' && p.col === st.sel.col && p.secao === st.sel.secao; });
+          var vmS = (st.modelo.vaos || []).filter(function (v) { return v.colunas.some(function (c) { return c.idx === st.sel.col; }); })[0];
+          var smS = vmS && vmS.secoes.filter(function (x) { return x.idx === st.sel.secao; })[0];
+          var altsReais = [];
+          prs.forEach(function (p) { var a = Math.round(p.z + p.dz - (smS ? smS.ib : 0)); if (altsReais.indexOf(a) < 0) altsReais.push(a); });
+          altsReais.sort(function (a, b) { return a - b; });
+          h += '<div class="prat-alturas"><label>Altura de cada prateleira <small>(mm, do piso do vão até a face de cima' + (smS ? '; vão de ' + Math.round(smS.altInt) + ' mm' : '') + ')</small></label><div class="prat-lista">';
+          for (var kp = 0; kp < sec.prateleiras; kp++) {
+            var vp = (sec.pratAlturas || [])[kp];
+            h += '<span class="prat-item"><i>' + (kp + 1) + '</i><input type="number" min="60" step="10" data-path="' + base + 'pratAlturas.' + kp + '" data-tipo="numnull" value="' + (vp || '') + '" placeholder="' + (altsReais[kp] !== undefined ? altsReais[kp] : 'auto') + '"></span>';
+          }
+          h += '</div>' + (Object.keys(sec.pratAlturas || {}).some(function (kk) { return sec.pratAlturas[kk]; }) ? '<button class="gav-auto" data-act="pratAuto">igualar (automático)</button>' : '') + '<p class="ajuda">Vazio = espaçamento igual. Veja na vista frontal → interno.</p></div>';
+        }
+      }
+      if (sec.tipo === 'portas') {
+        h += interruptor('Divisória interna (atrás das portas)', base + 'divOn');
+        if (sec.divOn) {
+          var vmD = (st.modelo.vaos || []).filter(function (v) { return v.colunas.some(function (c) { return c.idx === st.sel.col; }); })[0];
+          h += campoNum('Posição (a partir da lateral esquerda interna)', base + 'divInterna', 'mm', vmD ? ' placeholder="' + Math.round(vmD.largInt / 2) + ' (meio)"' : '') + '<p class="ajuda">As prateleiras ficam dos dois lados, na mesma altura.' + (vmD ? ' Vão interno de ' + Math.round(vmD.largInt) + ' mm.' : '') + '</p>';
+        }
+      }
     }
     if (sec.tipo === 'nicho') h += interruptor('Moldura frontal no nicho', base + 'moldura');
     if (sec.tipo === 'arco') h += '<div class="campo"><label>Prateleiras abaixo do arco</label>' + passo('prateleiras', 0, 8) + '</div>';
     if (sec.tipo === 'gavetas') {
       h += '<div class="campo"><label>Quantidade' + aj('gavetas') + '</label><span class="passo"><button data-act="gavQtd:-1">−</button><span>' + sec.itens.length + '</span><button data-act="gavQtd:1">+</button></span></div>';
+      // altura real de cada frente (calculada pelo motor), de baixo para cima
+      var frentesG = (st.modelo.pecas || []).filter(function (p) { return p.nome === 'Frente gaveta' && p.col === st.sel.col && p.secao === st.sel.secao; }).sort(function (a, b) { return a.z - b.z; });
       h += '<div class="gav-lista">';
       for (var k = sec.itens.length - 1; k >= 0; k--) {
-        var it = sec.itens[k];
-        h += '<div class="gav-item"><span class="ngv">' + (sec.itens.length - k) + '</span><div class="pilulas" style="flex:1">' +
+        var it = sec.itens[k], rec = GAV_REC[it.tipo] || GAV_REC.gaveta;
+        var real = frentesG[k] ? Math.round(frentesG[k].dz) : null;
+        var fora = real !== null && (real < rec[0] || real > rec[1]);
+        h += '<div class="gav-item' + (fora ? ' fora' : '') + '"><span class="ngv">' + (sec.itens.length - k) + '</span><div class="gav-meio"><div class="pilulas">' +
           Object.keys(E.TIPOS_ITEM_GAVETA).map(function (t) { return '<button class="mini-ilus' + (it.tipo === t ? ' ativo' : '') + '" data-act="gavTipo:' + k + ':' + t + '" title="' + E.TIPOS_ITEM_GAVETA[t] + '">' + (ILU['gav_' + t] || '') + '<span>' + E.TIPOS_ITEM_GAVETA[t] + '</span></button>'; }).join('') +
-          '</div><input type="number" data-path="' + base + 'itens.' + k + '.altura" data-tipo="numnull" value="' + (it.altura || '') + '" placeholder="auto" title="Altura da frente (mm)"></div>';
+          '</div><small class="gav-rec">' + (real !== null ? 'frente com <b>' + real + ' mm</b>' + (it.altura ? '' : ' (automática)') + ' · ' : '') + 'recomendado ' + rec[0] + ' a ' + rec[1] + ' mm' + (fora ? ' · ' + (real < rec[0] ? 'baixa demais' : 'alta demais') : '') + '</small></div>' +
+          '<div class="gav-alt"><label>altura (mm)</label><input type="number" min="60" max="1200" step="5" data-path="' + base + 'itens.' + k + '.altura" data-tipo="numnull" value="' + (it.altura || '') + '" placeholder="' + (real !== null ? real : 'auto') + '" title="Altura da frente em mm. Vazio = automática (divide o espaço que sobra)">' +
+          (it.altura ? '<button class="gav-auto" data-act="gavAuto:' + k + '" title="Voltar para automática">auto</button>' : '') + '</div></div>';
       }
-      h += '</div><p class="ajuda">Gaveta 1 é a de cima. "Gavetão c/ interna" cria uma gaveta oculta de 80 mm dentro do gavetão.</p>';
+      h += '</div><p class="ajuda">Gaveta 1 é a de cima. Digite a altura da frente para fixar; vazio fica automática e divide o espaço que sobra entre as outras. Recomendado: gaveta ' + GAV_REC.gaveta.join(' a ') + ' mm, gavetão ' + GAV_REC.gavetao.join(' a ') + ' mm, gavetão c/ interna ' + GAV_REC.interna.join(' a ') + ' mm (cria uma gaveta oculta de 80 mm dentro).</p>';
     }
     if (sec.tipo === 'temperos' || sec.tipo === 'fruteira') h += '<div class="campo"><label>Cestos aramados' + aj('aramados') + '</label>' + passo('cestos', 1, 6) + '</div>';
     if (sec.tipo === 'lixeira') h += '<div class="campo"><label>Cestos' + aj('lixeira') + '</label></div>' + pil('baldes', [[1, '1 cesto'], [2, '2 cestos (seletiva)']]);
+    if (sec.tipo === 'temperos' || sec.tipo === 'fruteira' || sec.tipo === 'lixeira') h += '<div class="campo"><label>Modelo do fabricante</label></div>' + bibEscolha('aramado', base + 'bib', 'Padrão', {});
     if (sec.tipo === 'forno') h += '<p class="ajuda">Nicho para forno de embutir: interno ~56–57 × 59–60 cm, profundidade ≥ 55 cm.</p>';
     if (sec.tipo === 'micro') h += '<p class="ajuda">Nicho para micro-ondas: interno ≥ 50 × 38–46 cm, com ventilação.</p>';
     if (sec.tipo === 'geladeira') {
@@ -439,15 +661,11 @@
   }
 
   // ---------- aba Frentes
-  function abaFrentes() {
+  // Ferragens: puxador, corrediças e dobradiças (genéricas da planê.mob ou da minha biblioteca .skp)
+  function abaFerragens() {
     var s = st.spec;
     var est = s.frentes.estilo || 'lisa';
-    var h = '<div class="grupo"><h4>Tipo de frente' + aj('estiloFrente') + '</h4>' +
-      cartoes('frentes.estilo', [['lisa', 'Lisa', 'porta_lisa'], ['ripada', 'Ripada', 'porta_ripada'], ['moldura', 'Moldura', 'porta_moldura'], ['vidro', 'Vidro canelado', 'porta_vidro']]);
-    if (est === 'ripada') h += deslizante('Largura da ripa', 'frentes.ripa.largura', 10, 60, 1, fmtMm) + deslizante('Espaçamento entre ripas', 'frentes.ripa.espaco', 3, 40, 1, fmtMm) + deslizante('Espessura da ripa', 'frentes.ripa.espessura', 6, 20, 1, fmtMm) + '<p class="ajuda">Ripas aplicadas sobre todas as frentes (portas, gavetas, porta-temperos e lixeira). Cava usinada não se aplica no ripado: fica com toque, perfil ou puxador aplicado.</p>';
-    if (est === 'moldura') h += '<p class="ajuda">Quadro de 6 mm aplicado sobre a frente, com largura proporcional ao tamanho da porta (25 a 60 mm).</p>';
-    if (est === 'vidro') h += '<p class="ajuda">Portas e basculantes em quadro de alumínio de 20 mm com vidro canelado 4 mm. Gavetas e aramados continuam em MDF.</p>';
-    h += '</div>';
+    var h = '';
     h += '<div class="grupo"><h4>Puxador' + aj('puxador') + '</h4><div class="grade-cards">';
     Object.keys(E.PUXADORES).forEach(function (k) {
       var bloqueado = est === 'ripada' && k === 'cava';
@@ -457,15 +675,48 @@
     if (s.puxador.tipo !== 'toque' && s.puxador.tipo !== 'nenhum') h += '<div class="campo"><label>Posição' + aj('posicao') + '</label></div>' + pilulas('puxador.posicao', [['auto', 'Auto'], ['topo', 'Topo'], ['base', 'Base'], ['lateral', 'Lateral']], true);
     if (s.puxador.tipo === 'cava') h += deslizante('Vão da cava 45°', 'puxador.tamanho', 8, 14, 1, fmtMm);
     if (s.puxador.tipo === 'passante') h += deslizante('Quanto a porta passa da caixa', 'puxador.passa', 10, 60, 1, fmtMm) + '<p class="ajuda">A frente passa além da caixa e vira a pega. Em aéreo, passa por baixo; em torre e roupeiro, por cima.</p>';
+    if (s.puxador.tipo === 'meu') h += bibEscolha('puxador', 'puxador.bib', null, { encaixe: true, comprimento: 'puxador.comprimento', deitar: true });
     if (s.puxador.tipo === 'alca') h += '<div class="campo"><label>Comprimento da alça</label></div>' + pilulas('puxador.comprimento', [[96, '96'], [128, '128'], [160, '160'], [192, '192'], [256, '256'], [320, '320']], true);
+    h += '</div>';
+    h += '<div class="grupo"><h4>Gavetas' + aj('corredica') + '</h4>' + cartoes('gavetas.corredica', [['telescopica', 'Telescópica', 'corr_telescopica'], ['oculta', 'Oculta', 'corr_oculta']]) +
+      '<p class="ajuda">Telescópica: 12,5 mm de cada lado. Oculta com amortecedor: 5 mm de cada lado, fica embaixo da gaveta.</p>' +
+      '<div class="campo"><label>Modelo da corrediça ' + (s.gavetas.corredica === 'oculta' ? 'oculta' : 'telescópica') + '</label></div>' +
+      bibEscolha('corredica', s.gavetas.corredica === 'oculta' ? 'gavetas.bibOculta' : 'gavetas.bibTelescopica', 'Padrão', {}) +
+      '<div class="tres-campos" style="margin-top:8px"><div><label>Lateral gaveta</label><input type="number" data-path="esp.gaveta" data-tipo="num" value="' + s.esp.gaveta + '"></div><div><label>Fundo gaveta</label><input type="number" data-path="esp.fundoGaveta" data-tipo="num" value="' + s.esp.fundoGaveta + '"></div><div></div></div></div>';
+    h += '<div class="grupo"><h4>Dobradiças' + aj('biblioteca') + '</h4><p class="ajuda">Caneco de 35 mm; reta, curva ou super curva conforme a montagem. Escolha o modelo do fabricante para o desenho no SketchUp.</p>' + bibEscolha('dobradica', 'frentes.bibDobradica', 'Padrão', { deitar: true }) + '</div>';
+    h += '<div class="grupo"><h4>Minha biblioteca' + aj('biblioteca') + '</h4><p class="ajuda">' + (st.bib || []).length + ' ferragens do seu SketchUp. Anexe os arquivos .skp dos fabricantes (puxadores, corrediças, dobradiças) e use em qualquer móvel; a lista de peças sai com o nome e a marca.</p>' + bibBotoes('outro') + '</div>';
+    return h;
+  }
+
+  function abaFrentes() {
+    var s = st.spec;
+    var est = s.frentes.estilo || 'lisa';
+    var h = '<div class="grupo"><h4>Tipo de frente' + aj('estiloFrente') + '</h4>' +
+      cartoes('frentes.estilo', [['lisa', 'Lisa', 'porta_lisa'], ['ripada', 'Ripada', 'porta_ripada'], ['moldura', 'Moldura', 'porta_moldura'], ['vidro', 'Vidro', 'porta_vidro'], ['palhinha', 'Tela / palhinha', 'porta_palhinha']]);
+    if (est === 'ripada') h += deslizante('Largura da ripa', 'frentes.ripa.largura', 10, 60, 1, fmtMm) + deslizante('Espaçamento entre ripas', 'frentes.ripa.espaco', 3, 40, 1, fmtMm) + deslizante('Espessura da ripa', 'frentes.ripa.espessura', 6, 20, 1, fmtMm) + '<p class="ajuda">Ripas aplicadas sobre todas as frentes (portas, gavetas, porta-temperos e lixeira). Cava usinada não se aplica no ripado: fica com toque, perfil ou puxador aplicado.</p>';
+    if (est === 'moldura') h += '<p class="ajuda">Quadro de 6 mm aplicado sobre a frente, com largura proporcional ao tamanho da porta (25 a 60 mm).</p>';
+    if (est === 'vidro') {
+      h += '<div class="campo"><label>Vidro</label></div><div class="pilulas">' + Object.keys(E.VIDROS).map(function (k) {
+        var v = E.VIDROS[k];
+        return '<button class="pilula pequena com-cor' + ((s.frentes.vidro || 'canelado') === k ? ' ativo' : '') + '" data-act="set" data-path="frentes.vidro" data-val="' + k + '"><i style="background:' + v.cor + '"></i>' + esc(v.nome.replace(/ 4 mm$/, '').replace(/^Vidro /, '')) + '</button>';
+      }).join('') + '</div>';
+      h += '<p class="ajuda">Portas e basculantes em quadro de alumínio de 20 mm com vidro 4 mm. Gavetas e aramados continuam em MDF.</p>';
+      h += '<p class="ajuda amb">Outro vidro (serigrafado, laca, aramado...)? Escolha o mais parecido: a lista de compras sai com o nome, e no SketchUp é só pintar com a cor ou a textura desejada.</p>';
+    }
+    if (est === 'palhinha') {
+      var telaAt = (s.materiais.tela && s.materiais.tela.id) || 'tela-palhinha';
+      h += '<div class="campo"><label>Tela</label></div><div class="grade-amostras compacta">' + Object.keys(E.TELAS).map(function (k) {
+        var t = E.TELAS[k];
+        return '<button class="amostra-op' + (telaAt === t.id ? ' ativo' : '') + '" data-act="tela:' + k + '"><span class="amostra tela" style="background-color:' + t.cor + '"></span>' + esc(t.nome) + '</button>';
+      }).join('') + (s.materiais.tela && s.materiais.tela.textura ? '<button class="amostra-op ativo" data-act="picker:tela">' + amostraHtml(s.materiais.tela) + esc(s.materiais.tela.nome) + '<small>minha textura</small></button>' : '') + '</div>';
+      h += '<p class="ajuda">Quadro de MDF com montantes de 70 mm (cabe o caneco da dobradiça) e a tela presa num rebaixo de 8 × 6 mm por trás. Portas com menos de 24 cm ficam lisas. Cava usinada não se aplica.</p>';
+      h += '<p class="ajuda amb">A tela entra com a cor aproximada. Para o render, use a sua textura: <button class="link" data-act="picker:tela">escolher ou anexar textura da tela</button> (ou pinte direto no SketchUp).</p>';
+    }
     h += '</div>';
     h += '<div class="grupo"><h4>Montagem das frentes' + aj('montagem') + '</h4>' + cartoes('frentes.montagem', [['sobreposta', 'Sobreposta', 'mont_sobreposta'], ['embutida', 'Embutida', 'mont_embutida']]);
     h += deslizante('Folga entre frentes' + aj('folgas'), 'frentes.folga', 1, 6, 0.5, fmtMm);
     h += deslizante('Folga no topo (sob o tampo)', 'frentes.folgaTopo', 0, 10, 1, fmtMm);
     h += '<div class="campo"><label>Veio das frentes' + aj('veio') + '</label></div>' + pilulas('frentes.veio', [['vertical', 'Vertical'], ['horizontal', 'Horizontal']], true) + '</div>';
-    h += '<div class="grupo"><h4>Gavetas' + aj('corredica') + '</h4>' + cartoes('gavetas.corredica', [['telescopica', 'Telescópica', 'corr_telescopica'], ['oculta', 'Oculta', 'corr_oculta']]) +
-      '<p class="ajuda">Telescópica: 12,5 mm de cada lado. Oculta com amortecedor: 5 mm de cada lado, fica embaixo da gaveta.</p>' +
-      '<div class="tres-campos" style="margin-top:8px"><div><label>Lateral gaveta</label><input type="number" data-path="esp.gaveta" data-tipo="num" value="' + s.esp.gaveta + '"></div><div><label>Fundo gaveta</label><input type="number" data-path="esp.fundoGaveta" data-tipo="num" value="' + s.esp.fundoGaveta + '"></div><div></div></div></div>';
     h += '<div class="grupo"><h4>Prateleiras' + aj('prateleiras') + '</h4>' + deslizante('Recuo frontal', 'prateleiras.recuo', 0, 60, 5, fmtMm) + '</div>';
     var led = s.led || {};
     h += '<div class="grupo"><h4>Desempenho no SketchUp' + aj('leve') + '</h4>' + interruptor('Modo leve (ferragens simplificadas)', 'leve', 'Desenha corrediças, dobradiças e aramados de forma simples, com bem menos geometria. Use em projetos grandes; as pranchas e a lista de peças continuam iguais.') + '</div>';
@@ -485,7 +736,32 @@
 
   // ---------- aba Acabamento
   function amostraHtml(m) {
-    return '<span class="amostra' + (m.veio ? ' veio' : '') + '" style="background-color:' + esc(m.cor) + '"></span>';
+    var img = m.img || (m.textura && texItem(m.textura) && texItem(m.textura).img);
+    return '<span class="amostra' + (m.veio && !img ? ' veio' : '') + (img ? ' foto' : '') + '" style="background-color:' + esc(m.cor || '#cfc6bd') + (img ? ';background-image:url(\'' + esc(img) + '\')' : '') + '"></span>';
+  }
+  // ---------- minhas texturas (imagens anexadas, separadas por pasta)
+  function texItem(id) { return (st.texturas || []).filter(function (t) { return t.id === id; })[0]; }
+  function texComoMaterial(t) { return { id: 'tex-' + t.id, nome: t.nome, marca: t.pasta || 'minhas texturas', cor: t.cor || '#cfc6bd', veio: false, img: t.img, textura: t.id, texturaLargura: t.largura || 1200, minha: true }; }
+  // cor média da textura (para a prévia e os desenhos); tenta uma vez por imagem
+  function texCores() {
+    st.texCorTentou = st.texCorTentou || {};
+    (st.texturas || []).forEach(function (t) {
+      if (t.cor || !t.img || st.texCorTentou[t.id]) return;
+      st.texCorTentou[t.id] = true;
+      var im = new Image();
+      im.onload = function () {
+        try {
+          var c = document.createElement('canvas'); c.width = 16; c.height = 16;
+          var g = c.getContext('2d'); g.drawImage(im, 0, 0, 16, 16);
+          var d = g.getImageData(0, 0, 16, 16).data, r = 0, gg = 0, b = 0;
+          for (var i = 0; i < d.length; i += 4) { r += d[i]; gg += d[i + 1]; b += d[i + 2]; }
+          var n = d.length / 4, hx = function (v) { return ('0' + Math.round(v / n).toString(16)).slice(-2); };
+          t.cor = '#' + hx(r) + hx(gg) + hx(b);
+          enviar('texEditar', { id: t.id, cor: t.cor, silencioso: true });
+        } catch (e) { /* imagem sem leitura de pixels: fica a cor neutra */ }
+      };
+      im.src = t.img;
+    });
   }
   function abaAcabamento() {
     var s = st.spec;
@@ -494,6 +770,10 @@
       var m = s.materiais[p[0]];
       h += '<div class="mat-linha"><span>' + p[1] + '</span><button class="swatch-btn' + (st.picker === p[0] ? ' ativo' : '') + '" data-act="picker:' + p[0] + '">' + amostraHtml(m) + '<span>' + esc((m.marca && m.marca !== 'Genérico' ? m.marca + ' · ' : '') + m.nome) + '</span></button></div>';
     });
+    if (s.frentes.estilo === 'palhinha') {
+      var mt = s.materiais.tela || E.TELAS.palhinha;
+      h += '<div class="mat-linha"><span>Tela das portas</span><button class="swatch-btn' + (st.picker === 'tela' ? ' ativo' : '') + '" data-act="picker:tela">' + amostraHtml(mt) + '<span>' + esc(mt.nome) + '</span></button></div>';
+    }
     h += '<div class="linha-botoes"><button class="botao pequeno" data-act="mesmoMaterial">Caixaria igual às frentes</button></div>';
     if (st.picker) h += pickerHtml();
     h += interruptor('MDF interno branco (economia)', 'caixaInternaBranca', null, 'internaBranca') + ajudaTexto( 'Divisórias, prateleiras, base e travessas internas saem em branco; só as laterais aparentes no padrão escolhido.');
@@ -513,24 +793,38 @@
     return h;
   }
 
+  function listaMateriais(chave) {
+    var minhas = (st.texturas || []).map(texComoMaterial);
+    if (chave === 'tela') return Object.keys(E.TELAS).map(function (k) { return E.TELAS[k]; }).concat(minhas);
+    return C.LISTA.concat(st.padroes && st.padroes.personalizados ? st.padroes.personalizados : []).concat(minhas);
+  }
   function pickerHtml() {
     var chave = st.picker;
     var atual = st.spec.materiais[chave];
-    var marcas = ['Todas'].concat(C.MARCAS);
-    var lista = (C.LISTA.concat(st.padroes && st.padroes.personalizados ? st.padroes.personalizados : [])).filter(function (m) {
+    var pastas = [];
+    (st.texturas || []).forEach(function (t) { var p0 = t.pasta || 'minhas texturas'; if (pastas.indexOf(p0) < 0) pastas.push(p0); });
+    var marcas = ['Todas'].concat(chave === 'tela' ? ['Tela'] : C.MARCAS).concat(pastas);
+    if (marcas.indexOf(st.marcaPicker) < 0) st.marcaPicker = 'Todas';
+    var lista = listaMateriais(chave).filter(function (m) {
       if (st.marcaPicker !== 'Todas' && m.marca !== st.marcaPicker) return false;
       if (st.busca && (m.nome + ' ' + m.marca).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').indexOf(st.busca.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')) < 0) return false;
       return true;
     });
-    var nomes = { frente: 'das frentes', caixa: 'da caixaria', gaveta: 'das gavetas', fundo: 'dos fundos' };
+    var nomes = { frente: 'das frentes', caixa: 'da caixaria', gaveta: 'das gavetas', fundo: 'dos fundos', tela: 'da tela' };
     var h = '<div class="picker"><div class="topo-picker"><span>Material ' + nomes[chave] + '</span><button class="botao pequeno fantasma" data-act="picker:">fechar</button></div><div class="pilulas">';
-    marcas.forEach(function (m) { h += '<button class="pilula pequena' + (st.marcaPicker === m ? ' ativo' : '') + '" data-act="marca:' + m + '">' + (m === 'Genérico' ? 'Genéricos' : m) + '</button>'; });
+    marcas.forEach(function (m) { h += '<button class="pilula pequena' + (pastas.indexOf(m) >= 0 ? ' pasta' : '') + (st.marcaPicker === m ? ' ativo' : '') + '" data-act="marca:' + esc(m) + '">' + (pastas.indexOf(m) >= 0 ? IC.bibPasta : '') + esc(m === 'Genérico' ? 'Genéricos' : m) + '</button>'; });
     h += '</div><input class="busca" id="busca-mat" placeholder="Buscar padrão (ex.: carvalho, freijó, cinza)" value="' + esc(st.busca) + '"><div class="grade-amostras">';
     lista.forEach(function (m) {
       h += '<button class="amostra-op' + (atual && atual.id === m.id ? ' ativo' : '') + '" data-act="mat:' + m.id + '">' + amostraHtml(m) + esc(m.nome) + '<small>' + esc(m.marca) + '</small></button>';
     });
+    h += '<button class="amostra-op anexar" data-act="texAnexar:arquivo"><span class="amostra mais">+</span>anexar textura<small>imagem jpg ou png</small></button>';
+    h += '<button class="amostra-op anexar" data-act="texAnexar:pasta"><span class="amostra mais">' + IC.bibPasta + '</span>anexar pasta<small>vira um botão de pasta</small></button>';
     if (!lista.length) h += '<p class="ajuda">Nenhum padrão encontrado.</p>';
-    h += '</div><p class="ajuda">Cores aproximadas — confira o mostruário do fornecedor.</p></div>';
+    h += '</div>';
+    if (atual && atual.textura) h += deslizante('Tamanho real da imagem (largura)', 'materiais.' + chave + '.texturaLargura', 100, 3000, 50, function (v) { return m2(v) + ' m'; });
+    h += '<p class="ajuda">Cores aproximadas — confira o mostruário do fornecedor. Não achou o padrão? Anexe a foto da textura (ela fica na sua biblioteca, separada por pasta) ou crie uma cor em "Padrão próprio".</p>';
+    if ((st.texturas || []).length) h += '<div class="linha-botoes"><button class="botao pequeno fantasma" data-act="texGerenciar">Organizar minhas texturas</button></div>';
+    h += '</div>';
     return h;
   }
 
@@ -541,7 +835,6 @@
 
   function abaRelatorio() {
     var h = '<div class="grupo"><h4>Relatório executivo' + aj('relatorio') + '</h4><p class="ajuda amb">O relatório abre no navegador como um <b>editor de pranchas</b>: lá você escolhe folha, cores, cota, logotipo, dados do escritório e do projeto e quais pranchas entram. Fica salvo no navegador e não pesa no SketchUp.</p><p class="ajuda">A prancha aberta acompanha o móvel: ao atualizar o móvel, ela se redesenha sozinha (ou use <b>Atualizar prancha</b>).</p>';
-    h += '<label class="interruptor"><input type="checkbox" data-act-chk="relatorioJunto"' + (st.relatorioJunto ? ' checked' : '') + '><span class="trilho"></span><span class="txt">Abrir o editor de pranchas junto ao gerar o móvel</span></label>';
     h += '<div class="linha-botoes"><button class="botao" data-act="relatorio">Abrir editor de pranchas</button><button class="botao" data-act="atualizarPrancha">Atualizar prancha</button>' + (st.prancha ? '<button class="botao" data-act="abrirPrancha">Abrir prancha salva</button>' : '') + '<button class="botao" data-act="csv">Exportar lista de peças (CSV)</button></div></div>';
     h += '<div class="grupo"><h4>Código do móvel</h4><div class="campo"><label>Código na planta de marcenaria</label><input type="text" data-path="codigo" value="' + esc(st.spec.codigo || 'M01') + '" placeholder="M01" maxlength="8" style="max-width:90px"></div><p class="ajuda">Cada móvel novo recebe o próximo código livre (M01, M02...). Ele aparece no selo da isométrica, no topo das pranchas e na planta de marcenaria.</p></div>';
     h += '<div class="grupo"><h4>No modelo</h4><p class="ajuda">Depois de gerar: use <b>Extensões → planê.mob → Abrir/fechar portas e gavetas</b> e clique numa porta ou gaveta para ver o interior. Para editar, selecione o móvel e clique em <b>Editar móvel</b> (ou botão direito → planê.mob).</p></div>';
@@ -555,6 +848,7 @@
     switch (p[0]) {
       case 'vista': st.vista = p[1]; renderCabecalho(); renderVisao(); return;
       case 'aberto': st.aberto3d = p[1] === '1'; renderVisao(); return;
+      case 'interno': st.interno = p[1] === '1'; renderVisao(); return;
       case 'aba': st.aba = p[1]; renderPainel(); return;
       case 'conf': st.confAberta = !st.confAberta; renderConferencia(); return;
       case 'comodo': {
@@ -586,6 +880,18 @@
         if (path === 'divisorias' || path === 'larguraMax') { /* sem efeito extra */ }
         break;
       }
+      case 'bibUsar': {
+        var pth = el.getAttribute('data-path'), it = bibItem(el.getAttribute('data-id'));
+        setPath(s, pth, it ? { id: it.id, nome: it.nome, marca: it.marca || '', medidas: it.medidas, encaixe: it.encaixe || 'real', virar: false, deitar: false } : null);
+        if (it && pth === 'puxador.bib' && it.encaixe === 'esticar' && !(s.puxador.comprimento > 60)) s.puxador.comprimento = 300;
+        break;
+      }
+      case 'bibAnexar':
+        if (!enviar('bibAnexar', { modo: p[1], categoria: p[2] })) toast('Anexar arquivos funciona dentro do SketchUp');
+        return;
+      case 'bibGerenciar': bibGerenciar(); return;
+      case 'pratAuto': { var sp = colSel().secoes[st.sel.secao]; if (sp) sp.pratAlturas = []; break; }
+      case 'gavAuto': { var sg = colSel().secoes[st.sel.secao]; if (sg && sg.itens[+p[1]]) sg.itens[+p[1]].altura = null; break; }
       case 'liberarMedidas': s.origemVolume = false; break;
       case 'redistribuir': redistribuir(true); toast('Colunas redistribuídas pela largura máxima de porta'); break;
       case 'pratTodas': {
@@ -623,18 +929,24 @@
       }
       case 'gavTipo': secSel().itens[parseInt(p[1], 10)].tipo = p[2]; break;
       case 'irpara': st.sel = { col: parseInt(p[1], 10), secao: parseInt(p[2], 10) }; st.aba = 'montagem'; st.vista = 'frontal'; break;
-      case 'picker': st.picker = p[1] || null; st.busca = ''; renderPainel(); return;
-      case 'marca': st.marcaPicker = p[1]; renderPainel(); return;
+      case 'picker': st.picker = p[1] || null; st.busca = ''; if (p[1] === 'tela') st.aba = 'acabamento'; renderPainel(); return;
+      case 'marca': st.marcaPicker = nome.slice(6); renderPainel(); return;
+      case 'texAnexar':
+        if (!enviar('texAnexar', { modo: p[1] })) toast('Anexar texturas funciona dentro do SketchUp');
+        return;
+      case 'texGerenciar': texGerenciar(); return;
       case 'mat': {
         var id = nome.slice(4);
-        var m = C.LISTA.concat((st.padroes && st.padroes.personalizados) || []).filter(function (x) { return x.id === id; })[0];
+        var m = listaMateriais(st.picker).filter(function (x) { return x.id === id; })[0];
         if (m) {
           var tl = (s.materiais[st.picker] && s.materiais[st.picker].texturaLargura) || 1200;
-          s.materiais[st.picker] = { id: m.id, nome: m.nome, marca: m.marca, cor: m.cor, veio: m.veio, texturaLargura: tl };
+          s.materiais[st.picker] = m.textura ? { id: m.id, nome: m.nome, marca: m.marca, cor: m.cor, veio: false, texturaLargura: m.texturaLargura || 1200, textura: m.textura }
+            : { id: m.id, nome: m.nome, marca: m.marca, cor: m.cor, veio: !!m.veio, texturaLargura: tl };
           if (st.picker === 'caixa' && !s.caixaInternaBranca) { /* ok */ }
         }
         break;
       }
+      case 'tela': { var tl2 = E.TELAS[p[1]]; if (tl2) s.materiais.tela = JSON.parse(JSON.stringify(tl2)); break; }
       case 'mesmoMaterial': { var f = JSON.parse(JSON.stringify(s.materiais.frente)); s.materiais.caixa = f; toast('Caixaria no mesmo padrão das frentes'); break; }
       case 'novoPadrao': {
         var nm = ($('#novo-nome').value || '').trim() || 'Padrão próprio';
@@ -661,7 +973,10 @@
         if (st.padroes && st.padroes.escritorio) { delete st.padroes.escritorio.logo; enviar('salvarPadroes', { padroes: st.padroes }); }
         renderPainel(); return;
       case 'detectarCuba': enviar('detectarCuba', { L: s.L, D: s.D, H: s.H }); toast('Procurando cuba no modelo…'); return;
-      case 'relatorio': abrirRelatorio(null); return;
+      case 'relatorio':
+        // móvel já no modelo: tira as fotos dele antes de montar as pranchas
+        if (st.modo === 'editar' && enviar('pedirFotos', {})) { toast('Preparando o relatório…'); return; }
+        abrirRelatorio(null); return;
       case 'abrirPrancha': enviar('abrirPrancha', {}); return;
       case 'atualizarPrancha': if (!enviar('atualizarPrancha', {})) toast('Abra pelo SketchUp para atualizar a prancha.'); return;
       case 'csv': exportarCsv(); return;
@@ -709,6 +1024,13 @@
   }
   document.addEventListener('input', function (ev) {
     var el = ev.target;
+    if (el.hasAttribute('data-bib-busca')) {
+      var cb = el.getAttribute('data-bib-busca'), pb = el.selectionStart;
+      st.bibBusca[cb] = el.value;
+      renderPainel();
+      var nbb = document.querySelector('[data-bib-busca="' + cb + '"]'); if (nbb) { nbb.focus(); nbb.setSelectionRange(pb, pb); }
+      return;
+    }
     if (el.id === 'busca-mat') {
       st.busca = el.value;
       var pos = el.selectionStart;
@@ -929,12 +1251,44 @@
           else if (!msg.spec && !msg.avisoAtualizado) { try { if (!localStorage.getItem('marce-guia-visto')) { localStorage.setItem('marce-guia-visto', '1'); abrirGuia(); } } catch (e) { /* sem armazenamento */ } }
           if (msg.avisoAtualizado) { st.atualizacao = { verificado: true, nova: false }; renderRodape(); if (!(msg.novidades && msg.novidades.length)) toast(msg.avisoAtualizado); }
           else if (emSketchUp && !st.atualizacao) setTimeout(function () { enviar('verificarAtualizacao', {}); }, 1200);
+          enviar('bibListar', {});
+          enviar('texListar', {});
           if (msg.acao === 'relatorio') { st.aba = 'relatorio'; renderPainel(); abrirRelatorio(msg.imagens || null); }
           break;
         }
         case 'cuba':
           if (msg.cuba) { st.spec.cuba = Object.assign(st.spec.cuba, msg.cuba, { ativa: true, origem: 'modelo' }); redistribuir(false); atualizar(); toast('Cuba detectada no modelo'); }
           else toast(msg.msg || 'Nenhuma cuba encontrada sobre o volume');
+          break;
+        case 'texturas': {
+          st.texturas = msg.itens || [];
+          if (msg.novos && msg.novos.length) {
+            toast(msg.novos.length === 1 ? 'Textura "' + msg.novos[0].nome + '" anexada' : msg.novos.length + ' texturas anexadas na pasta "' + msg.novos[0].pasta + '"');
+            if (st.picker) st.marcaPicker = msg.novos[0].pasta;
+          } else if (msg.novos) toast('Nenhuma imagem encontrada');
+          // materiais em uso acompanham a cor média calculada
+          ['frente', 'caixa', 'gaveta', 'fundo', 'tela'].forEach(function (k) { var mm = st.spec && st.spec.materiais[k]; var t = mm && mm.textura && texItem(mm.textura); if (t && t.cor) mm.cor = t.cor; });
+          texCores();
+          if (document.querySelector('.modal-fundo.tex-ger')) texGerenciar();
+          if (st.spec && !msg.silencioso) renderPainel();
+          break;
+        }
+        case 'biblioteca': {
+          st.bib = msg.itens || [];
+          // ferragens escolhidas cujo arquivo sumiu ficam marcadas (o móvel volta ao desenho da planê.mob)
+          [['puxador', 'bib'], ['gavetas', 'bibTelescopica'], ['gavetas', 'bibOculta'], ['frentes', 'bibDobradica']].forEach(function (pp) {
+            var o = st.spec && st.spec[pp[0]] && st.spec[pp[0]][pp[1]];
+            if (o && o.id) { var it = bibItem(o.id); o.existe = !!(it && it.existe !== false); if (it) { o.nome = it.nome; o.marca = it.marca || ''; } }
+          });
+          var an = msg.anexo;
+          if (an && an.partes) bibEscolherPartes(an);
+          else if (an && an.itens) toast(an.itens.length ? (an.itens.length === 1 ? '"' + an.itens[0].nome + '" anexado à biblioteca' : an.itens.length + ' ferragens anexadas à biblioteca') + (an.erros && an.erros.length ? ' · ' + an.erros.length + ' com erro' : '') : 'Nenhum arquivo .skp anexado');
+          if (document.querySelector('.modal-fundo.bib-ger')) bibGerenciar();
+          if (st.spec) { renderPainel(); }
+          break;
+        }
+        case 'fotos':
+          abrirRelatorio(msg.imagens || null);
           break;
         case 'gerado':
           st.gerando = false;

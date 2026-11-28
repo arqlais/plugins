@@ -14,7 +14,7 @@ module ArqLais
     DICT = 'marce'.freeze
   end
 end
-%w[util materiais volume construtor abrir_fechar exportar autoteste].each { |f| require File.join(RAIZ, 'src', 'marce', f) }
+%w[util materiais volume biblioteca construtor abrir_fechar exportar autoteste].each { |f| require File.join(RAIZ, 'src', 'marce', f) }
 
 def dados_do_motor(cenario)
   js = <<~JS
@@ -320,5 +320,55 @@ class TesteCorredica < Minitest::Test
     assert_in_delta(-dg / 2.0, dm, 0.02 * dg.abs, 'intermediário volta a metade (anda metade do curso no total)')
     M::AbrirFechar.alternar(gav)
     assert_in_delta 0, meio.transformation.to_a[13], 1e-9, 'fecha junto'
+  end
+end
+
+# encaixe das ferragens da biblioteca (.skp) na caixa calculada pelo motor
+class TesteBiblioteca < Minitest::Test
+  include ArqLais::Marce
+  def caixa_mm(bounds, tr)
+    bb = Geom::BoundingBox.new
+    8.times { |i| bb.add(tr.aplicar(bounds.corner(i))) }
+    [[bb.min.x, bb.max.x], [bb.min.y, bb.max.y], [bb.min.z, bb.max.z]].map { |a, b| [a.to_mm.round(1), b.to_mm.round(1)] }
+  end
+  def det(tr)
+    m = tr.m
+    m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0])
+  end
+  def bounds(min, tam)
+    bb = Geom::BoundingBox.new
+    bb.add(Geom::Point3d.new(*min.map(&:mm)), Geom::Point3d.new(*min.zip(tam).map { |a, b| (a + b).mm }))
+    bb
+  end
+
+  def test_corredica_esticada_no_comprimento
+    # modelo do fabricante deitado no eixo x (350 de comprimento), fora da origem
+    b = bounds([5, -3, 2], [350, 12.7, 45])
+    [false, true].each do |virar|
+      tr = Biblioteca.encaixe(b, [12.5, 400, 45], 'encaixe' => 'esticar', 'longo' => 'y', 'virar' => virar)
+      cx = caixa_mm(b, tr)
+      assert_equal [0.0, 400.0], cx[1], 'comprimento esticado para 400 no eixo y'
+      assert_equal [0.0, 45.0], cx[2]
+      assert_in_delta 12.7, cx[0][1] - cx[0][0], 0.05, 'espessura real'
+      assert_in_delta 6.25, (cx[0][0] + cx[0][1]) / 2, 0.05, 'centralizada na folga'
+      assert det(tr) > 0, 'nunca espelha o componente'
+    end
+  end
+
+  def test_puxador_tamanho_real_centralizado
+    b = bounds([0, 0, 0], [28, 160, 12])
+    tr = Biblioteca.encaixe(b, [300, 28, 12], 'encaixe' => 'real', 'longo' => 'x')
+    cx = caixa_mm(b, tr)
+    assert_equal [70.0, 230.0], cx[0], 'comprimento real (160) no meio dos 300'
+    assert det(tr) > 0
+  end
+
+  def test_kit_apoiado_na_base
+    b = bounds([0, 0, 0], [180, 450, 600])
+    tr = Biblioteca.encaixe(b, [200, 470, 700], 'encaixe' => 'real', 'apoiar' => 'z')
+    cx = caixa_mm(b, tr)
+    assert_equal 0.0, cx[2][0], 'apoiado embaixo'
+    assert_in_delta 600, cx[2][1], 0.05
+    assert_in_delta 10, cx[0][0], 0.05
   end
 end

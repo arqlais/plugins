@@ -11,6 +11,7 @@ module ArqLais
     require File.join(PASTA, 'util')
     require File.join(PASTA, 'materiais')
     require File.join(PASTA, 'volume')
+    require File.join(PASTA, 'biblioteca')
     require File.join(PASTA, 'construtor')
     require File.join(PASTA, 'abrir_fechar')
     require File.join(PASTA, 'exportar')
@@ -132,11 +133,7 @@ module ArqLais
       tb.add_item(c_atualizar)
       tb.restore
 
-      # procura atualização alguns segundos depois de abrir o SketchUp (1x por dia)
-      UI.start_timer(8, false) do
-        mostrou = (Aviso.novidades_se_houver rescue false)
-        Atualizar.checagem_automatica unless mostrou
-      end
+      # a busca de atualização acontece só quando a janela da planê.mob abre (nada ao abrir o SketchUp)
 
       UI.add_context_menu_handler do |ctx|
         model = Sketchup.active_model

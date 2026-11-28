@@ -58,7 +58,7 @@
     ['Escolha tipo e ambiente', 'Na aba Móvel: balcão, aéreo, torre… e o ambiente. Ajuste base, roda-teto, estrutura e cuba.'],
     ['Monte as colunas', 'Clique numa frente na vista frontal e diga o que ela é: porta, gavetas, lixeira, porta-temperos, nicho… Use faixas para empilhar.'],
     ['Acabamento', 'Puxador na aba Frentes; padrões de MDF na aba Acabamento.'],
-    ['Confira e gere', 'Leia a conferência técnica e clique em "Gerar armário". Para mudar depois, selecione o móvel e clique em "Editar móvel".'],
+    ['Confira e gere', 'Leia a conferência técnica e clique em "Gerar móvel" (as pranchas ficam no botão "Gerar relatório", só quando quiser). Para mudar depois, selecione o móvel e clique em "Editar móvel".'],
     ['Abra portas e gere o relatório', 'Use a ferramenta Abrir/fechar para ver o interior e o botão Relatório para o documento do marceneiro.']
   ];
 

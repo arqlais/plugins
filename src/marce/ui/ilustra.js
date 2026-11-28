@@ -38,6 +38,7 @@
     porta_lisa: svg('<rect x="20" y="4" width="24" height="40"/><path d="M39 22v4" stroke="' + R + '" stroke-width="2"/>'),
     porta_ripada: svg('<rect x="20" y="4" width="24" height="40"/><path d="M23.5 4v40M27 4v40M30.5 4v40M34 4v40M37.5 4v40M41 4v40" stroke="' + R + '" stroke-width="1.2"/>'),
     porta_moldura: svg('<rect x="20" y="4" width="24" height="40"/><rect x="24" y="8" width="16" height="32" stroke="' + R + '"/><path d="M20 4l4 4M44 4l-4 4M20 44l4-4M44 44l-4-4" stroke-width=".8"/>'),
+    porta_palhinha: svg('<rect x="20" y="4" width="24" height="40"/><rect x="25" y="9" width="14" height="30" fill="' + R + '" fill-opacity=".18"/><path d="M25 13l14 0M25 17h14M25 21h14M25 25h14M25 29h14M25 33h14M27 9v30M31 9v30M35 9v30" stroke="' + R + '" stroke-width=".6"/><path d="M25 9l14 30M39 9L25 39" stroke="' + R + '" stroke-width=".5"/>'),
     porta_vidro: svg('<rect x="20" y="4" width="24" height="40" stroke-width="2"/><rect x="23" y="7" width="18" height="34" fill="' + R + '" fill-opacity=".2" stroke="none"/><path d="M26 7v34M29 7v34M32 7v34M35 7v34M38 7v34" stroke="' + R + '" stroke-width=".8"/>'),
     // --- LED (corte lateral do aéreo; frente à esquerda)
     led_frente: svg(parede() + '<rect x="12" y="8" width="44" height="24"/><rect x="16" y="32" width="6" height="2" fill="' + R + '" stroke="' + R + '"/><path d="M19 35l-6 9M19 35l6 9" stroke="' + R + '" stroke-dasharray="1.5 1.5" stroke-width="1"/>'),

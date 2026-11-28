@@ -68,8 +68,8 @@
     sala: { label: 'Sala', ambiente: 'seco', tipos: ['rack', 'estante', 'aereo', 'personalizado'] },
     quarto: { label: 'Quarto', ambiente: 'seco', tipos: ['roupeiro', 'criado', 'gaveteiro', 'escrivaninha', 'estante', 'personalizado'] },
     escritorio: { label: 'Escritório', ambiente: 'seco', tipos: ['escrivaninha', 'estante', 'aereo', 'gaveteiro', 'personalizado'] },
-    banheiro: { label: 'Banheiro', ambiente: 'banheiro', tipos: ['gabinete', 'aereo', 'torre', 'personalizado'] },
-    lavanderia: { label: 'Lavanderia', ambiente: 'lavanderia', tipos: ['balcao', 'aereo', 'torre', 'personalizado'] },
+    banheiro: { label: 'Banheiro', ambiente: 'banheiro', tipos: ['gabinete', 'aereo', 'personalizado'] },
+    lavanderia: { label: 'Lavanderia', ambiente: 'lavanderia', tipos: ['balcao', 'aereo', 'personalizado'] },
     closet: { label: 'Closet', ambiente: 'seco', tipos: ['roupeiro', 'gaveteiro', 'estante', 'personalizado'] }
   };
   function comodoDoTipo(tipo, ambiente) {
@@ -116,6 +116,7 @@
     barra: 'Barra longa',
     botao: 'Botão',
     testeira: 'Perfil 45° (testeira)',
+    meu: 'Da minha biblioteca',
     toque: 'Toque (push)',
     nenhum: 'Sem puxador'
   };
@@ -139,11 +140,30 @@
     gaveta: { id: 'gen-branco', nome: 'Branco TX', marca: 'Genérico', cor: '#f2f1ec', veio: false, texturaLargura: 1200 },
     fundoGaveta: { id: 'gen-hdf-branco', nome: 'HDF Branco', marca: 'Genérico', cor: '#ecebe6', veio: false, texturaLargura: 1200 }
   };
-  var ESTILOS_FRENTE = { lisa: 'Lisa', ripada: 'Ripada', moldura: 'Moldura', vidro: 'Vidro canelado' };
+  var ESTILOS_FRENTE = { lisa: 'Lisa', ripada: 'Ripada', moldura: 'Moldura', vidro: 'Vidro', palhinha: 'Tela / palhinha' };
+  // vidros das portas em quadro de alumínio (cor aproximada; no SketchUp dá para pintar com a textura desejada)
+  var VIDROS = {
+    canelado: { nome: 'Vidro canelado 4 mm', cor: '#cfdde2' },
+    incolor: { nome: 'Vidro incolor 4 mm', cor: '#dcebf0' },
+    fume: { nome: 'Vidro fumê 4 mm', cor: '#7f8891' },
+    bronze: { nome: 'Vidro bronze 4 mm', cor: '#a08c7c' },
+    reflecta: { nome: 'Vidro reflecta prata 4 mm', cor: '#aab4ba' },
+    jateado: { nome: 'Vidro jateado (acetinado) 4 mm', cor: '#e6ecee' },
+    espelho: { nome: 'Espelho 4 mm', cor: '#bcd3dc' }
+  };
+  // telas das portas em quadro de MDF (palhinha e afins)
+  var TELAS = {
+    palhinha: { id: 'tela-palhinha', nome: 'Palhinha natural', marca: 'Tela', cor: '#d8c39a' },
+    sintetica: { id: 'tela-sintetica', nome: 'Palhinha sintética', marca: 'Tela', cor: '#e3d5b4' },
+    rattan: { id: 'tela-rattan', nome: 'Rattan sextavado', marca: 'Tela', cor: '#c4a175' },
+    metalica: { id: 'tela-metalica', nome: 'Tela metálica', marca: 'Tela', cor: '#9aa2a9' },
+    tecido: { id: 'tela-tecido', nome: 'Tecido / linho', marca: 'Tela', cor: '#d6cdc2' }
+  };
   var TEMP_LED = { 2700: '#ffcf8a', 3000: '#ffd9a0', 4000: '#fff1d6', 6000: '#eef4ff' };
   var MATERIAIS_FIXOS = {
     metal: { nome: 'Metal', cor: '#9a9ea3' },
     vidro: { nome: 'Vidro canelado', cor: '#cfdde2' },
+    tela: { nome: 'Palhinha natural', cor: '#d8c39a' },
     led: { nome: 'LED', cor: '#fff1d6' },
     aramado: { nome: 'Aramado cromado', cor: '#c3c7cc' },
     espelho: { nome: 'Espelho', cor: '#bcd3dc' },
@@ -208,11 +228,11 @@
       puxador: { tipo: 'cava', tamanho: 25, comprimento: 160, posicao: 'auto', passa: 25 },
       led: { ativo: false, local: 'base', posicao: 'fundo', tipo: 'embutido', temperatura: 4000 },
       larguraMax: Math.min(t.larguraMax, AMBIENTES[ambiente].larguraMax === 500 ? 500 : t.larguraMax),
-      divisorias: 'cada',     // cada | par | nenhuma
+      divisorias: 'par',      // cada | par | nenhuma (padrão: portas em par, divisória a cada par)
       gavetas: { corredica: 'telescopica' },
       prateleiras: { recuo: 20, folga: 1 },
       pedra: { ativa: false, espessura: 20, avancoFrente: 20, avancoLados: 0 },
-      cuba: { ativa: false, centro: Math.round(t.L / 2), largura: 500, profundidade: 400, origem: 'manual' },
+      cuba: { ativa: false, centro: Math.round(t.L / 2), largura: 500, profundidade: 400, origem: 'manual', fundo: 'sem', furo: 100, alturaFuro: 500 },
       chapa: { comprimento: 2750, largura: 1850, refilo: 10, serra: 4 },
       emendaAuto: false,
       caixaInternaBranca: false,
@@ -466,6 +486,7 @@
         vao: isNum(o.vao) ? o.vao : null, col: isNum(o.col) ? o.col : null, secao: isNum(o.secao) ? o.secao : null,
         conj: o.conj || null, forma: o.forma || null, obs: o.obs || '', meta: o.meta || null
       };
+      if (o.biblio) p.biblio = o.biblio;
       lista.push(p);
       return p;
     }
@@ -501,9 +522,21 @@
     var Tg = spec.esp.gaveta, Fg = spec.esp.fundoGaveta;
     var fr = spec.frentes, g = fr.folga;
     var pux = deepMerge({ tipo: 'cava', tamanho: 25, comprimento: 160, posicao: 'auto', passa: 25 }, spec.puxador || {});
+    // ferragem da minha biblioteca (.skp): precisa de id e das 3 medidas (mm, da maior para a menor)
+    function bibOk(b) { return b && b.id && b.medidas && b.medidas.length === 3 && b.medidas.every(function (v) { return +v > 0; }) ? b : null; }
+    function bibDe(b, extra) { var o = { id: b.id, encaixe: b.encaixe === 'esticar' ? 'esticar' : 'real', virar: !!b.virar }; for (var k in extra) o[k] = extra[k]; return o; }
+    if (pux.tipo === 'meu' && !bibOk(pux.bib)) { info('Puxador da biblioteca: escolha um modelo (aba Detalhes). Enquanto isso, o desenho usa alça.'); pux.tipo = 'alca'; }
+    var bibCorr = spec.leve ? null : bibOk((spec.gavetas || {})[spec.gavetas && spec.gavetas.corredica === 'oculta' ? 'bibOculta' : 'bibTelescopica']);
+    var bibDob = spec.leve ? null : bibOk(fr.bibDobradica);
     var estilo = ESTILOS_FRENTE[fr.estilo] ? fr.estilo : 'lisa';
+    var vidroTipo = VIDROS[(spec.frentes || {}).vidro] ? spec.frentes.vidro : 'canelado';
+    var telaInfo = (spec.materiais && spec.materiais.tela) || TELAS.palhinha;
     var ripa = deepMerge({ largura: 20, espaco: 10, espessura: 9 }, fr.ripa || {});
     var led = deepMerge({ ativo: false, local: 'base', posicao: 'fundo', tipo: 'embutido', temperatura: 4000 }, spec.led || {});
+    if (estilo === 'palhinha' && pux.tipo === 'cava') {
+      pux = deepMerge(pux, { tipo: 'toque' });
+      info('Frente com tela: o quadro de 70 mm não comporta cava usinada — as portas ficam com abertura por toque (gavetas lisas seguem com a cava escolhida em outro móvel; aqui escolha perfil, alça, barra ou botão).');
+    }
     if (estilo === 'ripada' && pux.tipo === 'cava') {
       pux = deepMerge(pux, { tipo: 'toque' });
       info('Frente ripada: cava usinada não se aplica nas ripas — as frentes ficam com abertura por toque (ou escolha perfil, barra ou botão).');
@@ -680,6 +713,28 @@
       var hT2 = Math.min(250, Math.max(120, (zTop - z0) * 0.3));
       fab.chapa({ nome: 'Travessa de fundo', grupo: 'caixa', mat: matInt, eixoEsp: 'y', x: vm.il, y: Dc - T, z: zTop - T - hT2, dx: vm.largInt, dy: T, dz: hT2, veio: 'x', fitas: ['x'], vao: vm.idx, obs: 'Trava o móvel no vão das pernas' });
     });
+    // módulo da cuba: sem fundo (padrão) ou com fundo e furo para o sifão / esgoto
+    var cubaFundo = spec.cuba && spec.cuba.fundo === 'furo';
+    function furoSifao(px, pz, pdx, pdz) {
+      var d = clamp(+spec.cuba.furo || 100, 40, 200);
+      var zf = (+spec.cuba.alturaFuro || 500) - (spec.base && spec.base.tipo === 'suspenso' ? (+spec.elevacao || 0) : 0);
+      var cx = clamp(+spec.cuba.centro - px, d / 2 + 10, pdx - d / 2 - 10), cz = clamp(zf - pz, d / 2 + 10, pdz - d / 2 - 10);
+      return { x: r1(cx), z: r1(cz), d: d };
+    }
+    if (fundoTipo !== 'nenhum' && cubaFundo) {
+      vaosM.forEach(function (vm) {
+        if (!vm.cuba) return;
+        var px = fundoTipo === 'sobreposto' ? vm.il : vm.il - spec.fundo.rasgo, pdx = fundoTipo === 'sobreposto' ? vm.largInt : vm.largInt + 2 * spec.fundo.rasgo;
+        var zb2 = fundoTipo === 'sobreposto' ? z0 + T : z0 + T - spec.fundo.rasgo, zt2 = fundoTipo === 'sobreposto' ? zTop - T : (topoTravessas ? zTop : zTop - T + spec.fundo.rasgo);
+        var yF2 = fundoTipo === 'sobreposto' ? Dc - F : D - spec.fundo.recuoEncaixe - F;
+        // o furo vai só no vão onde está o eixo da cuba; os outros vãos sob a cuba ganham fundo liso removível
+        var temFuro = +spec.cuba.centro >= vm.il && +spec.cuba.centro <= vm.ir;
+        var fu = temFuro ? furoSifao(px, zb2, pdx, zt2 - zb2) : null;
+        var pf2 = fab.chapa({ nome: 'Fundo da cuba', grupo: 'fundo', mat: 'fundo', eixoEsp: 'y', x: px, y: yF2, z: zb2, dx: pdx, dy: F, dz: zt2 - zb2, fitas: [], vao: vm.idx,
+          obs: 'Removível (parafusos)' + (fu ? ' · furo Ø' + fu.d + ' mm p/ sifão a ' + Math.round(fu.z + zb2) + ' mm da base' : '') });
+        if (pf2 && fu) pf2.furo = fu;
+      });
+    }
     if (fundoTipo !== 'nenhum') {
       if (fundoTipo === 'sobreposto') {
         var runs = [], atual = null;
@@ -706,7 +761,7 @@
       }
     }
     if (cubaAtiva && vaosM.some(function (v) { return v.cuba; })) {
-      info('Cuba detectada' + (spec.cuba.origem === 'modelo' ? ' no modelo' : '') + ': o módulo da pia fica sem fundo, sem prateleira na altura do sifão e laterais, divisórias, travessas e gavetas recortadas com 2 cm de folga.');
+      info('Cuba detectada' + (spec.cuba.origem === 'modelo' ? ' no modelo' : '') + ': o módulo da pia fica ' + (spec.cuba.fundo === 'furo' ? 'com fundo removível furado para o sifão' : 'sem fundo') + ', sem prateleira na altura do sifão e laterais, divisórias, travessas e gavetas recortadas com 2 cm de folga.');
     }
 
     // ================================================================
@@ -751,6 +806,27 @@
         cont.puxadorPerfilMm += w;
         return;
       }
+      if (pux.tipo === 'meu') {
+        // puxador da biblioteca: comprimento real (ou esticado, se for perfil), saindo da frente
+        var md = pux.bib.medidas.map(Number), est = pux.bib.encaixe === 'esticar';
+        var vertP = info2.tipoFrente === 'porta' && posV === 'lateral';
+        var dispP = vertP ? h - 80 : w - 60;
+        var longo = Math.max(10, Math.min(dispP, est ? (+pux.comprimento || md[0]) : md[0]));
+        var proj = pux.bib.deitar ? md[2] : md[1], altP = pux.bib.deitar ? md[1] : md[2];
+        var mx, mz, mw, mh;
+        if (vertP) {
+          mw = altP; mh = longo;
+          mx = info2.lado === 'esq' ? x + w - 33 - altP : x + 33;
+          mz = z + (tipo === 'balcao' ? h - longo - 60 : (tipo === 'aereo' ? 60 : (h - longo) / 2));
+        } else {
+          mw = longo; mh = altP;
+          mx = x + (w - longo) / 2;
+          mz = posV === 'base' ? z + 35 : z + h - 35 - altP;
+        }
+        fab.objeto({ nome: 'Puxador ' + pux.bib.nome, grupo: 'ferragem', mat: 'metal', x: mx, y: y0 - proj, z: mz, dx: mw, dy: proj, dz: mh,
+          vao: refs.vao, col: refs.col, secao: refs.secao, conj: refs.conj, biblio: bibDe(pux.bib, { longo: vertP ? 'z' : 'x' }) });
+        return;
+      }
       if (pux.tipo === 'alca' || pux.tipo === 'barra') {
         var compMax = pux.tipo === 'barra' ? 800 : pux.comprimento;
         var comp = Math.min(compMax, (info2.tipoFrente === 'porta' && posV === 'lateral') ? h - 80 : w - 60);
@@ -771,6 +847,35 @@
       if (pux.tipo === 'perfil') {
         var ph = 22;
         var pzp = posV === 'base' ? z : z + h - ph;
+        // frente lisa/moldura: o perfil entra NO LUGAR da borda da frente (a chapa fica 22 mm menor), alinhado
+        // com a face dela; é assim que o perfil de alumínio é parafusado na marcenaria. Sem nada sobrando para fora.
+        var embutePerfil = frenteP && frenteP.cortavel && frenteP.mat === 'frente' && (estilo === 'lisa' || estilo === 'moldura');
+        if (embutePerfil) {
+          var vertical = info2.tipoFrente === 'porta' && posV === 'lateral';
+          var redu = vertical ? 20 : ph;
+          var eixoR = vertical ? 'dx' : 'dz';
+          var antes = frenteP[eixoR];
+          if (antes - redu > 60) {
+            frenteP[eixoR] = r1(antes - redu);
+            if (vertical && info2.lado !== 'esq') frenteP.x = r1(frenteP.x + redu);
+            if (!vertical && posV === 'base') frenteP.z = r1(frenteP.z + redu);
+            if (frenteP.corte) { if (frenteP.corte.c === antes) frenteP.corte.c = frenteP[eixoR]; else if (frenteP.corte.l === antes) frenteP.corte.l = frenteP[eixoR]; }
+            frenteP.obs = (frenteP.obs ? frenteP.obs + ' · ' : '') + 'descontado ' + redu + ' mm do perfil puxador';
+            var yF = frenteP.y, dyF = frenteP.dy;
+            if (vertical) {
+              fab.objeto({ nome: 'Perfil puxador', grupo: 'ferragem', mat: 'metal', x: info2.lado === 'esq' ? x + w - redu : x, y: yF, z: z, dx: redu, dy: dyF, dz: h, vao: refs.vao, col: refs.col, secao: refs.secao, conj: refs.conj,
+                forma: { plano: 'xz', pts: info2.lado === 'esq' ? [[0, 0], [redu, 0], [redu, h], [0, h]] : [[0, 0], [redu, 0], [redu, h], [0, h]] } });
+              cont.puxadorPerfilMm += h;
+            } else {
+              // seção em "J": aba na face da frente e o vão para os dedos atrás
+              var pts = posV === 'base' ? [[0, 0], [dyF, 0], [dyF, 2], [4, 2], [4, ph], [0, ph]] : [[0, 0], [4, 0], [4, ph - 2], [dyF, ph - 2], [dyF, ph], [0, ph]];
+              fab.objeto({ nome: 'Perfil puxador', grupo: 'ferragem', mat: 'metal', x: x, y: yF, z: posV === 'base' ? z : z + h - ph, dx: w, dy: dyF, dz: ph, vao: refs.vao, col: refs.col, secao: refs.secao, conj: refs.conj,
+                forma: { plano: 'yz', pts: pts } });
+              cont.puxadorPerfilMm += w;
+            }
+            return;
+          }
+        }
         if (info2.tipoFrente === 'porta' && posV === 'lateral') {
           var pxp = info2.lado === 'esq' ? x + w - 20 : x;
           fab.objeto({ nome: 'Perfil puxador', grupo: 'ferragem', mat: 'metal', x: pxp, y: y0 - 16, z: z + 40, dx: 20, dy: 16, dz: h - 80, vao: refs.vao, col: refs.col, secao: refs.secao, conj: refs.conj });
@@ -792,10 +897,22 @@
         fab.objeto(comRef({ nome: 'Perfil alumínio da porta', grupo: 'frente', mat: 'metal', x: o.x + o.w - pf, y: o.y0, z: o.z, dx: pf, dy: Tf, dz: o.h }));
         fab.objeto(comRef({ nome: 'Perfil alumínio da porta', grupo: 'frente', mat: 'metal', x: o.x + pf, y: o.y0, z: o.z, dx: o.w - 2 * pf, dy: Tf, dz: pf }));
         fab.objeto(comRef({ nome: 'Perfil alumínio da porta', grupo: 'frente', mat: 'metal', x: o.x + pf, y: o.y0, z: o.z + o.h - pf, dx: o.w - 2 * pf, dy: Tf, dz: pf }));
-        fab.objeto(comRef({ nome: 'Vidro canelado 4 mm', grupo: 'frente', mat: 'vidro', x: o.x + pf, y: o.y0 + Tf / 2 - 2, z: o.z + pf, dx: o.w - 2 * pf, dy: 4, dz: o.h - 2 * pf, meta: o.meta, obs: o.obs }));
+        fab.objeto(comRef({ nome: VIDROS[vidroTipo].nome, grupo: 'frente', mat: 'vidro', x: o.x + pf, y: o.y0 + Tf / 2 - 2, z: o.z + pf, dx: o.w - 2 * pf, dy: 4, dz: o.h - 2 * pf, meta: o.meta, obs: o.obs }));
         cont.vidroM2 += (o.w - 2 * pf) * (o.h - 2 * pf) / 1e6; cont.perfilVidroMm += 2 * (o.w + o.h);
         return null;
       }
+      if (estilo === 'palhinha' && o.vidroOk && o.w >= 240 && o.h >= 240) {
+        // quadro de MDF (montantes de 70 mm, largos para o caneco da dobradiça) com a tela presa num rebaixo
+        var qm = 70, ytela = o.y0 + Tf / 2 - 1.5;
+        var mE = fab.chapa(comRef({ nome: o.nome + ' · montante', grupo: 'frente', mat: 'frente', eixoEsp: 'y', x: o.x, y: o.y0, z: o.z, dx: qm, dy: Tf, dz: o.h, veio: 'z', fitas: ['z', 'z', 'x', 'x'], obs: 'quadro p/ tela · rebaixo 8 × 6 mm', meta: o.meta }));
+        fab.chapa(comRef({ nome: o.nome + ' · montante', grupo: 'frente', mat: 'frente', eixoEsp: 'y', x: o.x + o.w - qm, y: o.y0, z: o.z, dx: qm, dy: Tf, dz: o.h, veio: 'z', fitas: ['z', 'z', 'x', 'x'], obs: 'quadro p/ tela · rebaixo 8 × 6 mm' }));
+        fab.chapa(comRef({ nome: o.nome + ' · travessa', grupo: 'frente', mat: 'frente', eixoEsp: 'y', x: o.x + qm, y: o.y0, z: o.z, dx: o.w - 2 * qm, dy: Tf, dz: qm, veio: 'x', fitas: ['x'], obs: 'quadro p/ tela · cavilha/cola' }));
+        fab.chapa(comRef({ nome: o.nome + ' · travessa', grupo: 'frente', mat: 'frente', eixoEsp: 'y', x: o.x + qm, y: o.y0, z: o.z + o.h - qm, dx: o.w - 2 * qm, dy: Tf, dz: qm, veio: 'x', fitas: ['x'], obs: 'quadro p/ tela · cavilha/cola' }));
+        fab.objeto(comRef({ nome: 'Tela ' + telaInfo.nome.toLowerCase(), grupo: 'frente', mat: 'tela', x: o.x + qm, y: ytela, z: o.z + qm, dx: o.w - 2 * qm, dy: 3, dz: o.h - 2 * qm, obs: o.obs }));
+        cont.telaM2 = (cont.telaM2 || 0) + (o.w - 2 * qm + 16) * (o.h - 2 * qm + 16) / 1e6;
+        return mE;
+      }
+      if (estilo === 'palhinha' && o.vidroOk && !cont.avisoTelaPequena) { cont.avisoTelaPequena = true; info('Portas com menos de 24 cm ficam lisas: o quadro de 70 mm de cada lado não deixa espaço para a tela.'); }
       var b = fab.chapa(comRef({ nome: o.nome, grupo: 'frente', mat: 'frente', eixoEsp: 'y', x: o.x, y: o.y0, z: o.z, dx: o.w, dy: Tf, dz: o.h, veio: o.veio, fitas: ['x', 'x', 'z', 'z'], obs: o.obs, meta: o.meta }));
       if (estilo === 'ripada') {
         var passo = ripa.largura + ripa.espaco;
@@ -820,6 +937,13 @@
         var zz = nd === 1 ? pz + ph / 2 : pz + 90 + (ph - 180) * k / (nd - 1);
         var xc = lado === 'esq' ? px + 22 : px + pw - 22 - 35;
         var yBack = embutida ? Tf : 0;
+        if (bibDob) {
+          // dobradiça da biblioteca, no tamanho real: o braço (medida maior) entra no móvel a partir do caneco
+          var mdD = bibDob.medidas.map(Number), lD = bibDob.deitar ? mdD[1] : mdD[2], aD = bibDob.deitar ? mdD[2] : mdD[1];
+          fab.objeto({ nome: 'Dobradiça ' + bibDob.nome, grupo: 'ferragem', mat: 'metal', x: xc + 17.5 - lD / 2, y: yBack, z: zz - aD / 2, dx: lD, dy: mdD[0], dz: aD, conj: conj, vao: refs.vao, col: refs.col, secao: refs.secao,
+            biblio: bibDe(bibDob, { longo: 'y', virar: lado === 'esq' ? !!bibDob.virar : !bibDob.virar }) });
+          continue;
+        }
         var circ = [];
         for (var kc = 0; kc < 24; kc++) { var ac = kc * Math.PI / 12; circ.push([r1(17.5 + 17.5 * Math.cos(ac)), r1(17.5 + 17.5 * Math.sin(ac))]); }
         fab.objeto({ nome: 'Dobradiça (caneco)', grupo: 'ferragem', mat: 'metal', x: xc, y: yBack - 11, z: zz - 17.5, dx: 35, dy: 12.5, dz: 35, conj: conj, vao: refs.vao, col: refs.col, secao: refs.secao, forma: spec.leve ? null : { plano: 'xz', pts: circ } });
@@ -839,6 +963,14 @@
     function corredicasVisuais(xL, xR, zc, y0, len, conj, refs, hMax) {
       var h = Math.max(27, Math.min(45, hMax || 45));
       var r = { vao: refs.vao, col: refs.col, secao: refs.secao };
+      if (bibCorr && spec.gavetas.corredica !== 'oculta') {
+        // corrediça da biblioteca: ocupa os 12,5 mm de folga, no comprimento da corrediça (fixa no móvel)
+        [[xL, 1], [xR, -1]].forEach(function (ld) {
+          fab.objeto(Object.assign({ nome: 'Corrediça ' + bibCorr.nome, grupo: 'ferragem', mat: 'metal', x: ld[1] > 0 ? ld[0] : ld[0] - 12.5, y: y0, z: zc, dx: 12.5, dy: len, dz: h,
+            biblio: bibDe(bibCorr, { encaixe: 'esticar', longo: 'y', virar: ld[1] > 0 ? !!bibCorr.virar : !bibCorr.virar }) }, r));
+        });
+        return;
+      }
       if (spec.leve) {
         // modo leve: um bloco fixo e um móvel por lado (bem menos geometria)
         [[xL, 1], [xR, -1]].forEach(function (ld) {
@@ -915,19 +1047,46 @@
         }
         var nomeHinge = { reta: 'reta', curva: 'curva', superCurva: 'super curva' };
 
-        function prateleirasMoveis(n, topoLim) {
-          if (n <= 0 || vm.cuba) return;
-          var itop = isNum(topoLim) ? Math.min(topoLim, sm.it) : sm.it;
-          var pw = vm.largInt - 2 * spec.prateleiras.folga;
-          var pd = profUtil - yInt - spec.prateleiras.recuo;
+        // alturas das prateleiras: escolhidas (mm do piso interno do vão até a face de cima) ou iguais
+        function alturasPrat(n, itop) {
+          var bruto = cfg.pratAlturas || [], alt = [];
+          for (var ka = 0; ka < n; ka++) alt.push(Number(bruto[ka]));
+          var out = [];
           for (var k = 1; k <= n; k++) {
-            var zc = sm.ib + (itop - sm.ib) * k / (n + 1);
-            fab.chapa({ nome: 'Prateleira', grupo: 'caixa', mat: matInt, eixoEsp: 'z',
-              x: vm.il + spec.prateleiras.folga, y: yInt + spec.prateleiras.recuo, z: zc - T / 2, dx: pw, dy: pd, dz: T,
-              veio: 'x', fitas: ['x'], vao: vi, col: colIdx0, secao: j, obs: 'Móvel (4 pinos)' });
-            cont.prateleirasMoveis++;
+            var auto = (itop - sm.ib) * k / (n + 1) + T / 2;
+            var v = isNum(alt[k - 1]) && alt[k - 1] > 0 ? alt[k - 1] : auto;
+            out.push(clamp(v, T + 60, itop - sm.ib - 60));
           }
-          if (vm.largInt > 800) vaosLargosPrat.push(colIdx0);
+          out.sort(function (a, b) { return a - b; });
+          for (var q = 1; q < out.length; q++) if (out[q] - out[q - 1] < T + 40) { aviso(rot + ': prateleiras com só ' + fmtCm(out[q] - out[q - 1] - T) + ' de vão entre elas. Por quê: abaixo de 4 cm não cabe nada nem a mão.', ref); break; }
+          return out;
+        }
+        function prateleirasMoveis(n, topoLim) {
+          if (vm.cuba) return;
+          var itop = isNum(topoLim) ? Math.min(topoLim, sm.it) : sm.it;
+          var pd = profUtil - yInt - spec.prateleiras.recuo;
+          // divisória interna (atrás das portas): posição em mm a partir da lateral esquerda interna
+          var faixas = [[vm.il, vm.ir]];
+          if (cfg.divOn) {
+            var posD = isNum(cfg.divInterna) && cfg.divInterna > 0 ? cfg.divInterna : vm.largInt / 2; // padrão: no meio
+            var xd = clamp(vm.il + posD - T / 2, vm.il + 100, vm.ir - 100 - T);
+            fab.chapa({ nome: 'Divisória interna', grupo: 'caixa', mat: matInt, eixoEsp: 'x', x: xd, y: yInt + spec.prateleiras.recuo, z: sm.ib, dx: T, dy: pd, dz: itop - sm.ib,
+              veio: 'z', fitas: ['z'], vao: vi, col: colIdx0, secao: j, obs: 'Fixa por cavilhas na base e no topo do vão' });
+            faixas = [[vm.il, xd], [xd + T, vm.ir]];
+            if (Math.min(xd - vm.il, vm.ir - xd - T) < 150) aviso(rot + ': a divisória interna deixa um lado com menos de 15 cm. Por quê: vão estreito demais para guardar e para a mão.', ref);
+          }
+          if (n <= 0) return;
+          var alts = alturasPrat(n, itop);
+          faixas.forEach(function (fx) {
+            var pw = fx[1] - fx[0] - 2 * spec.prateleiras.folga;
+            alts.forEach(function (a) {
+              fab.chapa({ nome: 'Prateleira', grupo: 'caixa', mat: matInt, eixoEsp: 'z',
+                x: fx[0] + spec.prateleiras.folga, y: yInt + spec.prateleiras.recuo, z: sm.ib + a - T, dx: pw, dy: pd, dz: T,
+                veio: 'x', fitas: ['x'], vao: vi, col: colIdx0, secao: j, obs: 'Móvel (4 pinos) · ' + Math.round(a) + ' mm do piso do vão' });
+              cont.prateleirasMoveis++;
+            });
+            if (fx[1] - fx[0] > 800) vaosLargosPrat.push(colIdx0);
+          });
         }
         function cabideiro() {
           var zt = sm.it - 60;
@@ -1049,7 +1208,13 @@
             fab.chapa({ nome: 'Contrafrente', grupo: 'gaveta', mat: 'gaveta', eixoEsp: 'y', x: bx0 + Tg, y: yBox, z: zBox, dx: bW - 2 * Tg, dy: Tg, dz: hbG, veio: 'x', fitas: ['x'], vao: vi, col: colIdx0, secao: j, conj: cjG, obs: obsG });
             fab.chapa({ nome: 'Traseira gaveta', grupo: 'gaveta', mat: 'gaveta', eixoEsp: 'y', x: bx0 + Tg, y: yBox + lenC - Tg, z: zBox, dx: bW - 2 * Tg, dy: Tg, dz: hbG, veio: 'x', fitas: ['x'], vao: vi, col: colIdx0, secao: j, conj: cjG, obs: obsG });
             fab.chapa({ nome: 'Fundo gaveta', grupo: 'gaveta', mat: 'fundoGaveta', eixoEsp: 'z', x: bx0 + Tg - 8, y: yBox + Tg - 8, z: zBox + 10, dx: bW - 2 * Tg + 16, dy: lenC - 2 * Tg + 16, dz: Fg, fitas: [], vao: vi, col: colIdx0, secao: j, conj: cjG, obs: nomeG + ' · rasgo 8 mm' });
-            if (oculta) {
+            if (oculta && bibCorr) {
+              [[vm.il, 1], [vm.ir, -1]].forEach(function (ld) {
+                var lwB = clear + Tg;
+                fab.objeto({ nome: 'Corrediça ' + bibCorr.nome, grupo: 'ferragem', mat: 'metal', x: ld[1] > 0 ? ld[0] : ld[0] - lwB, y: yBox, z: zBox - 12.5, dx: lwB, dy: lenC, dz: 12, vao: vi, col: colIdx0, secao: j,
+                  biblio: bibDe(bibCorr, { encaixe: 'esticar', longo: 'y', virar: ld[1] > 0 ? !!bibCorr.virar : !bibCorr.virar }) });
+              });
+            } else if (oculta) {
               // corrediça oculta (tipo Tandem): trilho fixo em "L" na lateral do móvel e trilho móvel em "U"
               // sob a lateral da gaveta (folga de 5 mm de cada lado)
               [[vm.il, 1], [vm.ir, -1]].forEach(function (ld) {
@@ -1101,7 +1266,20 @@
           var fa = frente({ nome: 'Frente ' + nomeA.toLowerCase(), x: reg.x0, y0: reg.y0, z: reg.z0, w: regW, h: regH, veio: veioF,
             vao: vi, col: colIdx0, secao: j, conj: cjA, obs: nomeA + ' de correr', meta: { tipo: cfg.tipo } });
           aplicarPuxador(fa, { x: reg.x0, z: reg.z0, w: regW, h: regH, y0: reg.y0, conj: cjA, tipoFrente: 'gaveta', vao: vi, col: colIdx0, secao: j });
-          if (lenA) {
+          var bibA = spec.leve ? null : bibOk(cfg.bib);
+          if (lenA && bibA) {
+            // porta-temperos / lixeira do fabricante (.skp): o kit já vem com as corrediças. Entra no tamanho
+            // real, centralizado na largura e apoiado na base do vão; anda junto com a frente.
+            var hA = itCorre - sm.ib - 20;
+            fab.objeto({ nome: nomeA + ' ' + bibA.nome, grupo: 'ferragem', mat: 'aramado', x: vm.il, y: yInt, z: sm.ib + 5, dx: vm.largInt, dy: lenA, dz: hA,
+              conj: cjA, vao: vi, col: colIdx0, secao: j, biblio: bibDe(bibA, { apoiar: 'z' }) });
+            var mdA = bibA.medidas.map(Number);
+            if (Math.min(mdA[0], mdA[1], mdA[2]) > vm.largInt + 1) aviso(rot + ': o modelo "' + bibA.nome + '" (' + mdA.map(Math.round).join(' × ') + ' mm) não cabe no vão de ' + fmtCm(vm.largInt) + ' interno. Por quê: o kit do fabricante tem largura fixa; aumente a coluna ou escolha outro modelo.', ref);
+            cont.bibAramados = cont.bibAramados || [];
+            cont.bibAramados.push(nomeA + ' ' + bibA.nome + (bibA.marca ? ' (' + bibA.marca + ')' : ''));
+            R.elementos.push({ tipo: cfg.tipo, nome: nomeA + ' ' + bibA.nome, col: colIdx0, frenteW: regW, frenteH: regH, corredica: lenA, cestos: cfg.cestos || 0, baldes: cfg.baldes || 0,
+              texto: nomeA + ' ' + bibA.nome + (bibA.marca ? ' (' + bibA.marca + ')' : '') + ', kit do fabricante com corrediças próprias; confira a medida mínima do vão no catálogo.' });
+          } else if (lenA) {
             cont.corredicas[lenA] = (cont.corredicas[lenA] || 0) + 1;
             var ax0 = vm.il + 12.5, ax1 = vm.ir - 12.5, aW = ax1 - ax0;
             corredicasVisuais(vm.il, vm.ir, sm.ib + 15, yInt, lenA, cjA, refs);
@@ -1418,19 +1596,22 @@
     var fer = [];
     var amort = pux.tipo === 'toque' ? 'sem amortecedor' : 'com amortecedor';
     if (estilo === 'vidro') amort += ' para perfil de alumínio';
-    if (cont.dobradicas.reta) fer.push({ item: 'Dobradiça reta 35 mm ' + amort, qtd: cont.dobradicas.reta, un: 'un' });
-    if (cont.dobradicas.curva) fer.push({ item: 'Dobradiça curva 35 mm ' + amort, qtd: cont.dobradicas.curva, un: 'un' });
-    if (cont.dobradicas.superCurva) fer.push({ item: 'Dobradiça super curva 35 mm ' + amort, qtd: cont.dobradicas.superCurva, un: 'un' });
-    var nomeCorr = spec.gavetas.corredica === 'oculta' ? 'Corrediça oculta' : 'Corrediça telescópica';
+    if (!bibDob && cont.dobradicas.reta) fer.push({ item: 'Dobradiça reta 35 mm ' + amort, qtd: cont.dobradicas.reta, un: 'un' });
+    if (!bibDob && cont.dobradicas.curva) fer.push({ item: 'Dobradiça curva 35 mm ' + amort, qtd: cont.dobradicas.curva, un: 'un' });
+    if (!bibDob && cont.dobradicas.superCurva) fer.push({ item: 'Dobradiça super curva 35 mm ' + amort, qtd: cont.dobradicas.superCurva, un: 'un' });
+    var nomeCorr = (spec.gavetas.corredica === 'oculta' ? 'Corrediça oculta' : 'Corrediça telescópica') + (bibCorr ? ' ' + bibCorr.nome + (bibCorr.marca ? ' (' + bibCorr.marca + ')' : '') : '');
+    if (bibDob) fer.push({ item: 'Dobradiça ' + bibDob.nome + (bibDob.marca ? ' (' + bibDob.marca + ')' : '') + ' — da biblioteca', qtd: cont.dobradicas.reta + cont.dobradicas.curva + cont.dobradicas.superCurva, un: 'un', obs: 'reta/curva conforme a montagem' });
     Object.keys(cont.corredicas).map(Number).sort(function (a, b) { return a - b; }).forEach(function (len) {
       fer.push({ item: nomeCorr + ' ' + len + ' mm (par)', qtd: cont.corredicas[len], un: 'par' });
     });
     if (cont.pistoes) fer.push({ item: 'Pistão a gás para basculante', qtd: cont.pistoes, un: 'un' });
     if (cont.lixeiras.length) fer.push({ item: 'Lixeira embutida de extração (' + cont.lixeiras.map(function (l) { return l + ' L'; }).join(' + ') + ', tampa basculante)', qtd: 1, un: 'cj' });
+    if (cont.bibAramados) { var contA = {}; cont.bibAramados.forEach(function (n) { contA[n] = (contA[n] || 0) + 1; }); Object.keys(contA).forEach(function (n) { fer.push({ item: n, qtd: contA[n], un: 'cj' }); }); }
     if (cont.temperos) fer.push({ item: 'Porta-temperos aramado cromado', qtd: cont.temperos, un: 'cj' });
     if (cont.fruteiras) fer.push({ item: 'Fruteira aramada de correr', qtd: cont.fruteiras, un: 'cj' });
     if (cont.puxadores) {
-      if (pux.tipo === 'alca') fer.push({ item: 'Puxador alça ' + pux.comprimento + ' mm', qtd: cont.puxadores, un: 'un' });
+      if (pux.tipo === 'meu') fer.push({ item: 'Puxador ' + pux.bib.nome + (pux.bib.marca ? ' (' + pux.bib.marca + ')' : ''), qtd: cont.puxadores, un: 'un' });
+      else if (pux.tipo === 'alca') fer.push({ item: 'Puxador alça ' + pux.comprimento + ' mm', qtd: cont.puxadores, un: 'un' });
       else if (pux.tipo === 'barra') fer.push({ item: 'Puxador barra longa', qtd: cont.puxadores, un: 'un' });
       else if (pux.tipo === 'botao') fer.push({ item: 'Puxador botão', qtd: cont.puxadores, un: 'un' });
       else if (pux.tipo === 'testeira') fer.push({ item: 'Perfil puxador 45° (testeira) em alumínio', qtd: r1(cont.puxadorPerfilMm / 1000), un: 'm' });
@@ -1441,7 +1622,8 @@
     if (pux.tipo === 'toque') fer.push({ item: 'Fecho toque (push)', qtd: cont.portas + cont.gavetas + cont.basculantes, un: 'un' });
     if (cont.prateleirasMoveis) fer.push({ item: 'Suporte de prateleira (pino)', qtd: cont.prateleirasMoveis * 4, un: 'un' });
     if (cont.cabideiroMm) { fer.push({ item: 'Tubo cabideiro oblongo', qtd: r1(cont.cabideiroMm / 1000), un: 'm' }); fer.push({ item: 'Suporte de tubo cabideiro', qtd: cont.suportesCabideiro, un: 'un' }); }
-    if (cont.vidroM2) { fer.push({ item: 'Perfil de alumínio para porta de vidro', qtd: r1(cont.perfilVidroMm / 1000), un: 'm' }); fer.push({ item: 'Vidro canelado 4 mm', qtd: r1(cont.vidroM2 * 100) / 100, un: 'm²' }); }
+    if (cont.vidroM2) { fer.push({ item: 'Perfil de alumínio para porta de vidro', qtd: r1(cont.perfilVidroMm / 1000), un: 'm' }); fer.push({ item: VIDROS[vidroTipo].nome, qtd: r1(cont.vidroM2 * 100) / 100, un: 'm²' }); }
+    if (cont.telaM2) fer.push({ item: 'Tela ' + telaInfo.nome.toLowerCase() + ' (com 8 mm de sobra para o rebaixo) + baguete/grampos', qtd: r1(cont.telaM2 * 100) / 100, un: 'm²' });
     if (cont.ripas) fer.push({ item: 'Ripas ' + ripa.largura + ' × ' + ripa.espessura + ' mm coladas nas frentes', qtd: cont.ripas, un: 'un' });
     if (cont.ledMm) { var mLed = r1(cont.ledMm / 1000); fer.push({ item: 'Fita de LED ' + led.temperatura + 'K 12 V + perfil de alumínio ' + led.tipo + ' com difusor leitoso', qtd: mLed, un: 'm' }); fer.push({ item: 'Fonte (driver) 12 V ' + Math.max(30, Math.ceil(mLed * 9.6 * 1.25 / 10) * 10) + ' W', qtd: 1, un: 'un' }); }
     if (cont.espelhoM2) fer.push({ item: 'Espelho 4 mm lapidado (recorte em arco)', qtd: r1(cont.espelhoM2 * 100) / 100, un: 'm²' });
@@ -1589,7 +1771,7 @@
 
   return {
     TIPOS: TIPOS, AMBIENTES: AMBIENTES, TIPOS_SECAO: TIPOS_SECAO, TIPOS_ITEM_GAVETA: TIPOS_ITEM_GAVETA,
-    PUXADORES: PUXADORES, COMPOSICOES: COMPOSICOES, COMODOS: COMODOS, comodoDoTipo: comodoDoTipo, ESTILOS_FRENTE: ESTILOS_FRENTE, TEMP_LED: TEMP_LED, CORREDICAS: CORREDICAS,
+    PUXADORES: PUXADORES, COMPOSICOES: COMPOSICOES, COMODOS: COMODOS, comodoDoTipo: comodoDoTipo, ESTILOS_FRENTE: ESTILOS_FRENTE, VIDROS: VIDROS, TELAS: TELAS, TEMP_LED: TEMP_LED, CORREDICAS: CORREDICAS,
     MATERIAIS_PADRAO: MATERIAIS_PADRAO, MATERIAIS_FIXOS: MATERIAIS_FIXOS,
     VERIFICACOES: VERIFICACOES, CHECKLIST: CHECKLIST,
     specPadrao: specPadrao, aplicarTipo: aplicarTipo, normalizar: normalizar,

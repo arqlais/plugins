@@ -4,6 +4,11 @@ const assert = require('node:assert');
 const E = require('../src/marce/ui/engine.js');
 const N = require('../src/marce/ui/nesting.js');
 
+const BIB_PUX = { id: 'b1', nome: 'Leo M13', marca: 'Leo', medidas: [3000, 40, 18], encaixe: 'esticar' };
+const BIB_CORR = { id: 'b2', nome: 'telescópica 350 FGV', marca: 'FGV', medidas: [350, 45, 12.7], encaixe: 'esticar' };
+const BIB_OCU = { id: 'b3', nome: 'invisível', medidas: [450, 40, 12], encaixe: 'esticar' };
+const BIB_DOB = { id: 'b4', nome: 'reta', medidas: [100, 45, 18], encaixe: 'real' };
+
 function cenarios() {
   const lista = [];
   Object.keys(E.TIPOS).forEach((t) => lista.push([t, E.specPadrao(t)]));
@@ -17,7 +22,7 @@ function cenarios() {
   lista.push(['video', v]);
   const emb = E.specPadrao('aereo'); emb.frentes.montagem = 'embutida'; emb.puxador.tipo = 'alca'; lista.push(['embutida', emb]);
   const rt = E.specPadrao('roupeiro'); rt.rodaTeto.ativo = true; rt.base.tipo = 'pes'; rt.fundo.tipo = 'encaixado'; lista.push(['roda-teto', rt]);
-  for (const est of ['ripada', 'moldura', 'vidro']) for (const px of ['barra', 'botao', 'testeira', 'passante']) {
+  for (const est of ['ripada', 'moldura', 'vidro', 'palhinha']) for (const px of ['barra', 'botao', 'testeira', 'passante', 'cava']) {
     const a = E.specPadrao('aereo'); a.frentes.estilo = est; a.puxador.tipo = px; a.led.ativo = true; a.led.tipo = 'embutido';
     lista.push(['aereo:' + est + ':' + px, a]);
     const n = E.specPadrao('estante'); n.frentes.estilo = est; n.puxador.tipo = px; n.led.ativo = true; n.led.local = 'prateleiras'; n.led.tipo = 'sobreposto';
@@ -35,6 +40,14 @@ function cenarios() {
     t.colunas.push(E.novaColuna(800, [E.novaSecao('geladeira', { altura: 1950 }), E.novaSecao('basculante', { prateleiras: 0, interior: 'vazio' })]));
     t.colunas.push(E.novaColuna(null, [E.novaSecao('gavetas', { itens: [{ tipo: 'interna' }, { tipo: 'gaveta' }, { tipo: 'gaveta' }] })]));
     lista.push(['tudo:' + pux + ':' + mont + ':' + corr + ':' + fundo, t]);
+  }
+  // ferragens da minha biblioteca (.skp): puxador, corrediças e dobradiça
+  for (const corr of ['telescopica', 'oculta']) {
+    const b = E.specPadrao('balcao');
+    b.puxador = Object.assign(b.puxador, { tipo: 'meu', bib: BIB_PUX });
+    b.gavetas = { corredica: corr, bibTelescopica: BIB_CORR, bibOculta: BIB_OCU };
+    b.frentes.bibDobradica = BIB_DOB;
+    lista.push(['biblioteca:' + corr, b]);
   }
   return lista;
 }
@@ -140,6 +153,8 @@ function permitido(a, b) {
   if (um(/^Fundo$/) && a.grupo !== b.grupo && (um(/^Lateral|^Divisória|^Base|^Topo|^Travessa superior/))) return true; // fundo encaixado em rasgo
   if (um(/^Travessa da cava/) && um(/^Divisória/)) return true; // divisória entalhada para a travessa da cava
   if (um(/^Dobradiça \(caneco\)/) && um(/^Porta/)) return true;
+  if (/^Dobradiça /.test(a.nome) && a.biblio && /^Lateral|^Divisória|^Porta/.test(b.nome)) return true; // dobradiça do fabricante: caneco no furo e calço na lateral
+  if (/^Dobradiça /.test(b.nome) && b.biblio && /^Lateral|^Divisória|^Porta/.test(a.nome)) return true;
   if (um(/^Perfil LED/) && um(/^Base|^Prateleira/)) return true; // perfil de LED embutido em rasgo // caneco embutido no furo de 35 mm da porta
   if (a.mat === 'aramado' && b.mat === 'aramado') return true; // arames soldados entre si
   if (/^Corrediça oculta/.test(a.nome) && /^Corrediça oculta/.test(b.nome) && a.vao === b.vao && a.secao === b.secao) return true; // trilho móvel corre sobre o fixo
@@ -233,4 +248,67 @@ test('torre de geladeira: nicho sem base nem rodapé e folgas conferidas', () =>
   assert.ok(g && g.folgaLateral >= 20 && g.folgaTopo >= 50);
   s.colunas[0].secoes[0].eletro.largura = 900;
   assert.ok(!E.calcular(s).ok, 'geladeira maior que o vão dá erro');
+});
+
+test('ferragens da minha biblioteca: viram peças com "biblio" no lugar das desenhadas', () => {
+  for (const corr of ['telescopica', 'oculta']) {
+    const b = cenarios().find((c) => c[0] === 'biblioteca:' + corr)[1];
+    const m = E.calcular(b);
+    assert.ok(m.ok, 'gera sem erro');
+    const pux = m.pecas.filter((p) => p.biblio && /^Puxador/.test(p.nome));
+    const cor = m.pecas.filter((p) => p.biblio && /^Corrediça/.test(p.nome));
+    const dob = m.pecas.filter((p) => p.biblio && /^Dobradiça/.test(p.nome));
+    assert.ok(pux.length > 0 && cor.length > 0 && dob.length > 0, corr + ': puxador, corrediça e dobradiça da biblioteca');
+    assert.ok(!m.pecas.some((p) => /perfil (fixo|interno|intermediário)|trilho/.test(p.nome)), 'não desenha a corrediça genérica junto');
+    pux.forEach((p) => { assert.strictEqual(p.biblio.longo, 'x'); assert.ok(p.dx <= 600); assert.strictEqual(p.dy, 40); });
+    cor.forEach((p) => assert.strictEqual(p.biblio.longo, 'y'));
+    assert.ok(m.ferragens.some((f) => /Leo M13/.test(f.item)), 'lista de ferragens cita o puxador');
+  }
+  // sem modelo escolhido: volta para alça e avisa
+  const s = E.specPadrao('balcao'); s.puxador.tipo = 'meu';
+  const m2 = E.calcular(s);
+  assert.ok(m2.pecas.some((p) => p.nome === 'Puxador alça'));
+});
+
+test('frente com tela (palhinha) e vidros: quadro de 70 mm, tela no rebaixo e item na lista', () => {
+  const s = E.specPadrao('aereo'); s.frentes.estilo = 'palhinha'; s.materiais.tela = E.TELAS.rattan;
+  const m = E.calcular(s);
+  const telas = m.pecas.filter((p) => p.mat === 'tela');
+  assert.ok(telas.length > 0, 'tem tela');
+  assert.ok(m.pecas.some((p) => /montante/.test(p.nome) && p.dx === 70 && p.cortavel), 'montante de 70 mm vai para o plano de corte');
+  assert.ok(m.ferragens.some((f) => /rattan/.test(f.item)), 'tela na lista');
+  const v = E.specPadrao('aereo'); v.frentes.estilo = 'vidro'; v.frentes.vidro = 'fume';
+  const mv = E.calcular(v);
+  assert.ok(mv.pecas.some((p) => p.nome === 'Vidro fumê 4 mm'));
+  assert.ok(mv.ferragens.some((f) => f.item === 'Vidro fumê 4 mm'));
+});
+
+test('porta-temperos e lixeira do fabricante (.skp): kit no vão, sem desenhar cestos nem corrediças genéricas', () => {
+  const s = E.specPadrao('balcao');
+  s.colunas[0].secoes = [E.novaSecao('temperos', { bib: { id: 'b9', nome: 'Kit temperos 200', marca: 'Masutti', medidas: [600, 450, 180], encaixe: 'real' } })];
+  s.colunas[0].largura = 250;
+  const m = E.calcular(s);
+  const kit = m.pecas.filter((p) => p.biblio && /^Porta-temperos/.test(p.nome));
+  assert.strictEqual(kit.length, 1);
+  assert.strictEqual(kit[0].biblio.apoiar, 'z');
+  assert.ok(!m.pecas.some((p) => p.col === 0 && /Borda do cesto|Cesto/.test(p.nome)), 'não desenha cestos genéricos');
+  assert.ok(m.ferragens.some((f) => /Kit temperos 200 \(Masutti\)/.test(f.item)));
+});
+
+test('prateleiras nas alturas escolhidas, divisória interna e fundo da cuba com furo do sifão', () => {
+  const s = E.specPadrao('balcao');
+  s.colunas = [E.novaColuna(800, [E.novaSecao('portas', { prateleiras: 2, pratAlturas: [200, 450], divOn: true, divInterna: 300 })]), E.novaColuna(null, [E.novaSecao('portas', { prateleiras: 1 })])];
+  s.cuba.ativa = true; s.cuba.centro = 1200; s.cuba.fundo = 'furo'; s.cuba.furo = 110; s.cuba.alturaFuro = 480;
+  const m = E.calcular(s);
+  const vm = m.vaos.filter((v) => v.colunas.some((c) => c.idx === 0))[0];
+  const sm = vm.secoes[0];
+  const prs = m.pecas.filter((p) => p.nome === 'Prateleira' && p.col === 0);
+  assert.strictEqual(prs.length, 4, 'duas alturas × dois lados da divisória');
+  const alts = [...new Set(prs.map((p) => Math.round(p.z + p.dz - sm.ib)))].sort((a, b) => a - b);
+  assert.deepStrictEqual(alts, [200, 450]);
+  assert.ok(m.pecas.some((p) => p.nome === 'Divisória interna' && p.col === 0));
+  const fc = m.pecas.find((p) => p.nome === 'Fundo da cuba');
+  assert.ok(fc && fc.furo && fc.furo.d === 110, 'fundo com furo');
+  assert.ok(Math.abs(fc.z + fc.furo.z - 480) < 1, 'centro do furo a 480 mm');
+  assert.ok(Math.abs(fc.x + fc.furo.x - 1200) < 1, 'no eixo da cuba');
 });

@@ -148,6 +148,11 @@
           s.push('<text class="rotulo" x="' + X(vm.il + vm.largInt / 2) + '" y="' + Y(gh * 0.3) + '" font-size="' + n1(fs * 0.8) + '" text-anchor="middle">geladeira</text>');
           return;
         }
+        if (opts.interno && t !== 'nicho' && t !== 'arco' && t !== 'espelho' && t !== 'painel' && t !== 'forno' && t !== 'micro' && t !== 'livre') {
+          // vista interna: o vão atrás das portas e gavetas
+          s.push('<rect x="' + X(vm.il) + '" y="' + Y(sm.it) + '" width="' + n1(vm.largInt) + '" height="' + n1(sm.altInt) + '" fill="' + shade(intCor, 0.8) + '"/>');
+          return;
+        }
         if (t === 'nicho' || t === 'arco' || t === 'espelho' || t === 'painel' || t === 'forno' || t === 'micro') {
           s.push('<rect x="' + X(vm.il) + '" y="' + Y(sm.it) + '" width="' + n1(vm.largInt) + '" height="' + n1(sm.altInt) + '" fill="' + shade(intCor, 0.8) + '"/>');
           if (t === 'forno' || t === 'micro') {
@@ -160,6 +165,29 @@
         }
       });
     });
+    if (opts.interno) {
+      // divisória interna, caixas de gaveta, aramados e kits (vistos de frente, sem as frentes)
+      M.pecas.forEach(function (p) {
+        if (p.nome === 'Divisória interna') s.push('<rect x="' + X(p.x) + '" y="' + Y(p.z + p.dz) + '" width="' + n1(p.dx) + '" height="' + n1(p.dz) + '" fill="' + shade(intCor, 0.95) + '" stroke="' + shade(intCor, 0.6) + '" stroke-width="0.5" vector-effect="non-scaling-stroke"/>');
+        if (p.nome === 'Contrafrente' || p.nome === 'Frente gaveta interna') s.push('<rect x="' + X(p.x - (p.nome === 'Contrafrente' ? spec.esp.gaveta : 0)) + '" y="' + Y(p.z + p.dz) + '" width="' + n1(p.dx + (p.nome === 'Contrafrente' ? 2 * spec.esp.gaveta : 0)) + '" height="' + n1(p.dz) + '" fill="' + shade(corMat(spec, 'gaveta'), 0.97) + '" stroke="' + shade(corMat(spec, 'gaveta'), 0.6) + '" stroke-width="0.6" vector-effect="non-scaling-stroke"/>');
+        if ((p.mat === 'aramado' && (p.biblio || /^Cesto|^Quadro|^Balde|^Lixeira/.test(p.nome))) || /^Corrediça/.test(p.nome) && p.y < 200) s.push('<rect x="' + X(p.x) + '" y="' + Y(p.z + p.dz) + '" width="' + n1(p.dx) + '" height="' + n1(p.dz) + '" fill="none" stroke="#8f949a" stroke-width="0.7" vector-effect="non-scaling-stroke"/>');
+        if (p.furo) {
+          var fx = p.x + p.furo.x, fz = p.z + p.furo.z;
+          s.push('<circle cx="' + X(fx) + '" cy="' + Y(fz) + '" r="' + n1(p.furo.d / 2) + '" fill="' + shade(intCor, 0.45) + '" stroke="' + shade(intCor, 0.3) + '" stroke-width="0.7" vector-effect="non-scaling-stroke"/>');
+          s.push('<text class="rotulo" x="' + n1(+X(fx) - p.furo.d / 2 - fs * 0.4) + '" y="' + n1(+Y(fz) + fs * 0.25) + '" font-size="' + n1(fs * 0.6) + '" text-anchor="end">furo Ø' + p.furo.d + ' p/ sifão</text>');
+        }
+      });
+      if (M.cuba) {
+        // sifão desenhado: da válvula da cuba até a saída na parede (ou para baixo, sem fundo)
+        var fundoC = M.pecas.filter(function (p) { return p.furo; })[0];
+        var zs = d.zTop - Math.min(220, d.Hc * 0.35), xs = M.cuba.centro;
+        var zSaida = fundoC ? fundoC.z + fundoC.furo.z : Math.max(d.z0 + 80, zs - 330);
+        // válvula → desce → curva em "U" (fecho hídrico) → sobe até a altura da saída e volta para o furo
+        var r = Math.max(30, fs * 1.2), zU = Math.max(d.z0 + 40, zSaida - 2.2 * r);
+        s.push('<path class="sifao" d="M' + X(xs) + ' ' + Y(zs) + ' V' + Y(zU + r) + ' A' + n1(r) + ' ' + n1(r) + ' 0 0 0 ' + X(xs + 2 * r) + ' ' + Y(zU + r) + ' V' + Y(zSaida) + ' H' + X(xs) + '" fill="none" stroke="#9aa3ab" stroke-width="' + n1(fs * 0.35) + '" stroke-linecap="round" stroke-linejoin="round"/>');
+        s.push('<rect class="cuba-proj" x="' + X(M.cuba.x0) + '" y="' + Y(d.zTop) + '" width="' + n1(M.cuba.x1 - M.cuba.x0) + '" height="' + n1(Math.min(220, d.Hc * 0.35)) + '"/>');
+      }
+    }
     // prateleiras visíveis em nichos
     M.pecas.forEach(function (p) {
       if (p.nome !== 'Prateleira' && p.nome !== 'Prateleira fixa') return;
@@ -177,7 +205,7 @@
     });
 
     // frentes
-    var frentes = M.pecas.filter(function (p) { return p.grupo === 'frente' && p.nome !== 'Painel'; });
+    var frentes = opts.interno ? [] : M.pecas.filter(function (p) { return p.grupo === 'frente' && p.nome !== 'Painel'; });
     var linhaFrente = shade(corMat(spec, 'frente'), lum(corMat(spec, 'frente')) > 0.5 ? 0.55 : 1.6);
     frentes.forEach(function (p) {
       var horiz = spec.frentes.veio === 'horizontal' || /Moldura horizontal/.test(p.nome);
@@ -210,7 +238,7 @@
     });
     // puxadores visíveis
     M.pecas.forEach(function (p) {
-      if (p.nome !== 'Puxador alça' && p.nome !== 'Perfil puxador') return;
+      if (opts.interno || (p.nome !== 'Puxador alça' && p.nome !== 'Perfil puxador')) return;
       s.push('<rect x="' + X(p.x) + '" y="' + Y(p.z + p.dz) + '" width="' + n1(p.dx) + '" height="' + n1(p.dz) + '" rx="' + n1(Math.min(p.dx, p.dz) / 2) + '" fill="#8f949a" stroke="#5d6166" stroke-width="0.5" vector-effect="non-scaling-stroke"/>');
     });
     // LED (perfil + brilho)

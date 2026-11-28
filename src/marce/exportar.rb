@@ -150,17 +150,28 @@ module ArqLais
           xa = t.xaxis
           ya = t.yaxis
           frente = ya.reverse
-          olho = c.offset(frente, diag * 1.3).offset(xa.reverse, diag * 0.75).offset(Geom::Vector3d.new(0, 0, 1), diag * 0.75)
-          view.camera = Sketchup::Camera.new(olho, c, Geom::Vector3d.new(0, 0, 1), true, 30)
-          view.zoom(movel)
-          imagens['iso'] = capturar(view, 'iso')
-          # mesma câmera com portas e gavetas abertas (posições originais restauradas no ensure)
+          # isométrica em projeção paralela (como a vista "Iso" do SketchUp): olha de frente-esquerda-cima,
+          # a 35,26° do chão. Fechada e aberta usam a MESMA câmera, enquadrada com tudo aberto.
+          xh = Geom::Vector3d.new(xa.x, xa.y, 0)
+          yh = Geom::Vector3d.new(ya.x, ya.y, 0)
+          xh = Geom::Vector3d.new(1, 0, 0) if xh.length < 1e-6
+          yh = Geom::Vector3d.new(0, 1, 0) if yh.length < 1e-6
+          xh.normalize!
+          yh.normalize!
+          dir = Geom::Vector3d.new(-xh.x - yh.x, -xh.y - yh.y, 1.0)
+          olho = c.offset(dir, diag * 3)
+          view.camera = Sketchup::Camera.new(olho, c, Geom::Vector3d.new(0, 0, 1), false)
           movs = AbrirFechar.conjuntos(movel)
-          unless movs.empty?
+          if movs.empty?
+            view.zoom(movel)
+          else
             originais = movs.map { |g| [g, g.transformation] }
             movs.each { |g| g.transformation = AbrirFechar.movimento(g, 1.0) * AbrirFechar.base(g) }
+            view.zoom(movel)
             imagens['aberto'] = capturar(view, 'aberto')
+            originais.each { |g, tr| g.transformation = tr if g.valid? }
           end
+          imagens['iso'] = capturar(view, 'iso')
           # vista superior inclinada sem frentes (mostra o interior)
           camada.visible = false if camada
           camada_p.visible = false if camada_p
