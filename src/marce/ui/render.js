@@ -227,7 +227,7 @@
     var linhaFrente = shade(corMat(spec, 'frente'), lum(corMat(spec, 'frente')) > 0.5 ? 0.55 : 1.6);
     frentes.forEach(function (p) {
       var horiz = spec.frentes.veio === 'horizontal' || /Moldura horizontal/.test(p.nome);
-      var fill = (p.mat === 'frente' || p.mat === 'frente2') ? preenchimento(spec, p.mat, defs, horiz) : (p.mat === 'vidro' ? 'url(#vidro-canelado)' : corMat(spec, p.mat));
+      var fill = (p.mat === 'frente' || p.mat === 'frente2') ? preenchimento(spec, p.mat, defs, horiz) : (p.mat === 'vidro' ? ((spec.frentes.vidro || 'canelado') === 'canelado' ? 'url(#vidro-canelado)' : (FIXOS['vidro_' + spec.frentes.vidro] || '#cfdde2')) : corMat(spec, p.mat));
       if (p.mat === 'vidro' && !defs['vidro-canelado']) defs['vidro-canelado'] = '<pattern id="vidro-canelado" patternUnits="userSpaceOnUse" width="14" height="400"><rect width="14" height="400" fill="#d6e3e8"/><rect width="5" height="400" fill="#c2d3da"/><rect x="9" width="2" height="400" fill="#e9f1f4"/></pattern>';
       var x = p.x, z = p.z, w = p.dx, h = p.dz;
       s.push('<rect class="frente" x="' + X(x) + '" y="' + Y(z + h) + '" width="' + n1(w) + '" height="' + n1(h) + '" fill="' + fill + '" stroke="' + shade(corMat(spec, 'frente'), 0.55) + '" stroke-width="0.8" vector-effect="non-scaling-stroke"/>');

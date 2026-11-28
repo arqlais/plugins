@@ -15,7 +15,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: false, relatorioJunto: false, bib: [], bibBusca: {}, bibFiltro: 'todos',
-    padroes: null, projeto: {}, versao: '1.22.0', gerando: false, atualizacao: null, atualizando: false
+    padroes: null, projeto: {}, versao: '1.22.1', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -730,6 +730,8 @@
       }
     }
     if (['portas', 'gavetas', 'basculante', 'correr', 'temperos', 'lixeira', 'fruteira'].indexOf(sec.tipo) >= 0) {
+      h += '<div class="campo"><label>Tipo de frente desta faixa</label></div>' + pil('estilo', [['', 'Igual às outras'], ['lisa', 'Lisa'], ['ripada', 'Ripada'], ['moldura', 'Moldura'], ['vidro', 'Vidro'], ['palhinha', 'Palhinha']]);
+      if (sec.estilo === 'vidro') h += '<p class="ajuda">O vidro é o escolhido na etapa Frentes (canelado, fumê, bronze...). Gavetas continuam em MDF.</p>';
       h += '<div class="campo"><label>Cor das frentes desta faixa</label></div>' + pil('frente2', [['', 'Principal'], ['1', 'Segunda cor']]);
       if (sec.frente2 && !st.spec.materiais.frente2) h += '<p class="ajuda">Escolha a segunda cor na etapa Acabamento (enquanto isso, fica igual à principal).</p>';
     }
@@ -844,6 +846,7 @@
       cartoes('frentes.estilo', [['lisa', 'Lisa', 'porta_lisa'], ['ripada', 'Ripada', 'porta_ripada'], ['moldura', 'Moldura', 'porta_moldura'], ['vidro', 'Vidro', 'porta_vidro'], ['palhinha', 'Tela / palhinha', 'porta_palhinha']]);
     if (est === 'ripada') h += deslizante('Largura da ripa', 'frentes.ripa.largura', 10, 60, 1, fmtMm) + deslizante('Espaçamento entre ripas', 'frentes.ripa.espaco', 3, 40, 1, fmtMm) + deslizante('Espessura da ripa', 'frentes.ripa.espessura', 6, 20, 1, fmtMm) + '<p class="ajuda">Ripas aplicadas sobre todas as frentes (portas, gavetas, porta-temperos e lixeira). Cava usinada não se aplica no ripado: fica com toque, perfil ou puxador aplicado.</p>';
     if (est === 'moldura') h += '<p class="ajuda">Quadro de 6 mm aplicado sobre a frente, com largura proporcional ao tamanho da porta (25 a 60 mm).</p>';
+    h += '<p class="ajuda amb">Este é o tipo de frente de todas. Para uma porta diferente (vidro no meio de molduras, por exemplo), clique nela na prévia e escolha em "Tipo de frente desta faixa", na etapa Montagem.</p>';
     if (est === 'vidro') {
       h += '<div class="campo"><label>Vidro</label></div><div class="pilulas">' + Object.keys(E.VIDROS).map(function (k) {
         var v = E.VIDROS[k];

@@ -1,16 +1,9 @@
 {
-  "versao": "1.22.0",
+  "versao": "1.22.1",
   "rbz": "dist/marce.rbz",
-  "sha256": "f62232b47cdeeb7066d1d0ba1261720d94fba1b910d304ed422a2cbcabc8c8d4",
+  "sha256": "5f0d5817b41a2b48d73d25a87512e60edfe3634479f2a8a1692ce494ba4b7a15",
   "notas": [
-    "Frentes em duas cores: escolha a segunda cor em Acabamento e marque, faixa a faixa, quais frentes usam ela",
-    "Canto cego em L: na coluna da ponta, a parte escondida atrás do outro balcão fica sem porta; a porta vai na parte visível com dobradiça de 165° e espaçador de 70 mm",
-    "Aéreo de coifa: faixa com a coifa embutida (medidas editáveis), duto subindo pelo meio e furo no topo",
-    "LED sob a bancada: perfil logo abaixo do tampo, com as frentes 30 mm mais baixas para a faixa de luz",
-    "Tipos de cava: 45° usinada, rasgo reto ou perfil J de alumínio",
-    "Organizador dentro da gaveta: divisórias para talheres ou grade 3 × 3",
-    "Folga da corrediça conforme o modelo (FGV 12,7 mm, invisível 5 mm, editável na Minha biblioteca); a caixa da gaveta sai na medida certa para cada modelo",
-    "Dobradiças contadas também pelo peso e pela largura da porta (porta larga ganha mais uma; aviso para porta muito pesada)",
-    "Prancha da vista aberta com o nome de cada módulo do interior (gaveta, cabideiro, sapateira...)"
+    "Tipo de frente por faixa: cada faixa (e cada coluna) pode ser lisa, ripada, moldura, vidro ou palhinha; o tipo da etapa Frentes vale para as outras",
+    "Prévia mostra a cor do vidro escolhido (fumê, bronze...)"
   ]
 }

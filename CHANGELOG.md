@@ -1,5 +1,9 @@
 # Novidades da planê.mob
 
+## 1.22.1
+- Tipo de frente por faixa: cada faixa (e cada coluna) pode ser lisa, ripada, moldura, vidro ou palhinha; o tipo da etapa Frentes vale para as outras
+- Prévia mostra a cor do vidro escolhido (fumê, bronze...)
+
 ## 1.22.0
 - Frentes em duas cores: escolha a segunda cor em Acabamento e marque, faixa a faixa, quais frentes usam ela
 - Canto cego em L: na coluna da ponta, a parte escondida atrás do outro balcão fica sem porta; a porta vai na parte visível com dobradiça de 165° e espaçador de 70 mm

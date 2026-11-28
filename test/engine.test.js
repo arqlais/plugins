@@ -529,3 +529,14 @@ test('canto cego em L: porta só na parte visível, dobradiça do lado oposto e 
   const ps = caixas(m, false);
   for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) if (sobrepoe(ps[i], ps[j], 0.6) && !permitido(ps[i], ps[j])) assert.fail(ps[i].nome + ' atravessa ' + ps[j].nome);
 });
+
+test('tipo de frente por faixa: uma coluna de vidro no meio de portas com moldura', () => {
+  const s = E.specPadrao('roupeiro'); s.frentes.estilo = 'moldura'; s.frentes.vidro = 'fume';
+  s.colunas[1].secoes.forEach((x) => { x.estilo = 'vidro'; });
+  const m = E.calcular(s);
+  assert.ok(m.pecas.some((p) => p.nome === 'Vidro fumê 4 mm' && p.col === 1), 'porta de vidro na coluna 2');
+  assert.ok(!m.pecas.some((p) => p.nome === 'Vidro fumê 4 mm' && p.col !== 1), 'só nela');
+  assert.ok(m.pecas.some((p) => p.nome === 'Moldura da frente' && p.col === 0), 'as outras com moldura');
+  const ps = caixas(m, false);
+  for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) if (sobrepoe(ps[i], ps[j], 0.6) && !permitido(ps[i], ps[j])) assert.fail(ps[i].nome + ' atravessa ' + ps[j].nome);
+});

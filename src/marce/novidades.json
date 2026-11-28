@@ -1,5 +1,12 @@
 [
   {
+    "versao": "1.22.1",
+    "notas": [
+      "Tipo de frente por faixa: cada faixa (e cada coluna) pode ser lisa, ripada, moldura, vidro ou palhinha; o tipo da etapa Frentes vale para as outras",
+      "Prévia mostra a cor do vidro escolhido (fumê, bronze...)"
+    ]
+  },
+  {
     "versao": "1.22.0",
     "notas": [
       "Frentes em duas cores: escolha a segunda cor em Acabamento e marque, faixa a faixa, quais frentes usam ela",

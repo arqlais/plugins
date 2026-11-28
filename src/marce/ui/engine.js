@@ -237,6 +237,8 @@
       baldes: 1,              // lixeira
       moldura: false,         // nicho com moldura frontal
       folhas: 0,              // portas de correr: 0 = automático, 2, 3 ou 4 folhas
+      estilo: '',             // tipo de frente desta faixa (vazio = igual ao do móvel)
+      frente2: '',            // '1' = usa a segunda cor das frentes
       coifa: { largura: 520, profundidade: 280, altura: 160, duto: 150 }, // coifa embutida (mm)
       eletro: { largura: 700, altura: 1800, profundidade: 700 } // geladeira: medidas do aparelho (mm)
     };
@@ -614,6 +616,12 @@
       info('Frente ripada: cava usinada não se aplica nas ripas — as frentes ficam com abertura por toque (ou escolha perfil, barra ou botão).');
     }
     var yApar = estilo === 'ripada' ? ripa.espessura : (estilo === 'moldura' ? 6 : 0); // espessura aplicada à frente
+    // tipo de frente por faixa ou por coluna (ex.: uma porta de vidro no meio de portas com moldura)
+    var estiloGlobal = estilo;
+    function usarEstilo(c) {
+      estilo = c && ESTILOS_FRENTE[c.estilo] ? c.estilo : estiloGlobal;
+      yApar = estilo === 'ripada' ? ripa.espessura : (estilo === 'moldura' ? 6 : 0);
+    }
     var embutida = fr.montagem === 'embutida';
     var usavelC = spec.chapa.comprimento - 2 * spec.chapa.refilo;
     var usavelL = spec.chapa.largura - 2 * spec.chapa.refilo;
@@ -875,6 +883,7 @@
       var refs = { vao: info2.vao, col: info2.col, secao: info2.secao, conj: info2.conj };
       var posV = info2.tipoFrente === 'gaveta' || info2.tipoFrente === 'basculante' ? (puxPos === 'base' ? 'base' : 'topo') : puxPos;
       if (pux.tipo === 'passante') return; // a própria porta passa da caixa
+      if (pux.tipo === 'cava' && (estilo === 'ripada' || estilo === 'palhinha')) return; // abre por toque nessas frentes
       if (pux.tipo === 'cava' && frenteP) {
         // chanfro 45° na borda superior (ou inferior) traseira da frente
         var c = clamp(pux.tamanho, 8, Tf - 4);
@@ -1114,6 +1123,7 @@
         var j = sm.idx, cfg = sm.cfg;
         var ref = { vao: vi, col: colIdx0, secao: j };
         matFrenteAtual = cfg.frente2 && spec.materiais.frente2 ? 'frente2' : 'frente';
+        usarEstilo(cfg);
         var rot = 'Coluna ' + (colIdx0 + 1) + (nS > 1 ? ', faixa ' + (j + 1) : '');
         var refs = { vao: vi, col: colIdx0, secao: j };
 
@@ -1386,6 +1396,9 @@
             if (pp.canto) cont.angulosDob[165] = (cont.angulosDob[165] || 0) + 0;
             cont.angulosDob[angDob] = (cont.angulosDob[angDob] || 0) + nd;
             var cj = fab.conjunto({ nome: 'Porta', tipo: 'giro', eixo: 'z', pivot: { x: pivX, y: reg.y0, z: reg.z0 }, angulo: lado === 'esq' ? -abre : abre, vao: vi, col: pp.col, secao: j });
+            var cfgPorta = (spec.colunas[pp.col] && spec.colunas[pp.col].secoes[j]) || cfg;
+            usarEstilo(cfgPorta);
+            matFrenteAtual = cfgPorta.frente2 && spec.materiais.frente2 ? 'frente2' : 'frente';
             var porta = frente({ nome: 'Porta', x: pp.x, y0: reg.y0, z: reg.z0, w: pp.w, h: regH, veio: veioF, vidroOk: true,
               vao: vi, col: pp.col, secao: j, conj: cj,
               obs: 'De abrir, dobradiça ' + nomeHinge[th] + ' à ' + (lado === 'esq' ? 'esquerda' : 'direita') + ' (' + nd + ' un)' + (vm.cuba ? ' · lado da cuba abaixo do fundo dela' : ''),
