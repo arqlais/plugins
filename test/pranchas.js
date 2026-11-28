@@ -38,6 +38,11 @@ function folhaDe(f, visual) {
   if (process.argv[5] === 'pequeno') {
     const t = E.specPadrao('gaveteiro'); t.nome = 'Gaveteiro'; t.L = 600; t.D = 500; t.H = 750; t.colunas = E.autoColunas(t); Object.assign(s, t);
   }
+  if (process.argv[5] === 'correr') {
+    const t2 = E.specPadrao('roupeiro'); t2.nome = 'Guarda-roupa de correr'; t2.L = 2700; t2.D = 600; t2.H = 2500;
+    t2.colunas = [0, 1, 2].map(() => E.novaColuna(null, [E.novaSecao('correr', { prateleiras: 3 })]));
+    Object.assign(s, t2);
+  }
   if (process.argv[5] === 'detalhes') { s.frentes.estilo = 'ripada'; s.puxador.tipo = 'toque'; s.led.ativo = true; s.led.local = 'base'; s.led.posicao = 'fundo'; }
   // planta de marcenaria simulada (no SketchUp vem da câmera de cima)
   const plantaSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000"><rect width="1600" height="1000" fill="#fff"/><path d="M200 150H1400V850H200Z" fill="none" stroke="#555" stroke-width="18"/><path d="M800 150V600" stroke="#555" stroke-width="10"/></svg>';

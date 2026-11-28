@@ -215,6 +215,7 @@
       [sv('<path d="M3 12H27" stroke="' + cor + '" stroke-width=".8"/><path d="M3 7v8M27 7v8" stroke="' + cor + '" stroke-width=".6"/><path d="M1.5 13.5l3-3M25.5 13.5l3-3" stroke="' + cor + '" stroke-width=".9"/><text x="15" y="9.5" font-size="6" text-anchor="middle" fill="' + cor + '" font-family="Poppins,sans-serif">0,60</text>'), 'cota'],
       [sv('<path d="M3 4H27" stroke="' + f + '" stroke-width="1.1"/><path d="M3 10H27M3 16H27" stroke="' + f + '" stroke-width=".55"/>'), 'peça vista / prateleira']
     ];
+    if (M.pecas.some(function (p) { return p.nome === 'Folha de correr'; })) it.push([sv('<rect x="3" y="3" width="14" height="14" fill="#fff" stroke="' + t + '" stroke-width="1.2" stroke-dasharray="2.4 1.4"/><rect x="13" y="3" width="14" height="14" fill="#fff" stroke="' + t + '" stroke-width="1.3"/><path d="M16 10h8M16 10l2.5-2M16 10l2.5 2M24 10l-2.5-2M24 10l-2.5 2" fill="none" stroke="' + f + '" stroke-width=".8"/>'), 'porta de correr (tracejada: folha de trás)']);
     if (M.pecas.some(function (p) { return p.nome === 'Ripa'; })) it.push([sv('<rect x="4" y="2" width="22" height="16" fill="#fff" stroke="' + t + '" stroke-width="1.2"/><path d="M8 2v16M12 2v16M16 2v16M20 2v16" stroke="' + f + '" stroke-width=".55"/>'), 'ripado']);
     if (M.pecas.some(function (p) { return p.grupo === 'led'; })) it.push([sv('<path d="M3 7H27" stroke="#d9a400" stroke-width="2" stroke-dasharray="3 1.5"/><path d="M15 8L9 18H21Z" fill="#d9a400" opacity=".25"/>'), 'perfil de LED']);
     if (M.cuba) {

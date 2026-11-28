@@ -126,6 +126,22 @@
     d.nota(41.5, 64, 70, 64, ['porta passante'], 'd');
     return d;
   };
+  // porta de correr: corte do trilho superior duplo com as roldanas e as duas folhas em planos diferentes
+  D.correr = function (d) {
+    d.corte(6, 6, 64, 9);                        // chapa de cima da caixa
+    d.poli([[28, 15], [64, 15], [64, 25], [62, 25], [62, 17], [48.5, 17], [48.5, 25], [46.5, 25], [46.5, 17], [30, 17], [30, 25], [28, 25]], 'metal');
+    d.frente(31.5, 27, 9, 44);                   // folha da frente
+    d.frente(50, 27, 9, 44);                     // folha de trás
+    d.metal(34.5, 19, 3, 8).metal(53, 19, 3, 8); // suportes das roldanas
+    d.linha('M36 19a2.4 2.4 0 1 0 0.01 0M54.5 19a2.4 2.4 0 1 0 0.01 0', '#5a5a5a', 0.5);
+    d.cotaH(40.5, 50, 77, '6');
+    d.nota(63, 18, 74, 11, ['trilho superior duplo', 'parafusado no topo'], 'd');
+    d.nota(56, 22, 74, 30, ['roldana regulável', 'presa na folha'], 'd');
+    d.nota(59, 52, 74, 52, ['folha de trás', 'transpasse 30 mm'], 'd');
+    d.nota(32, 46, 16, 46, ['folha da', 'frente'], 'e');
+    d.rotulo(45, 86, 'guia inferior de 10 mm embaixo', 'middle');
+    return d;
+  };
   D.alca = function (d, o) {
     var b = o.tipo === 'barra', y0 = b ? 18 : 32, y1 = b ? 74 : 60;
     d.frente(40, 6, 11, 80);
@@ -269,7 +285,7 @@
     botao: 'puxador botão', testeira: 'perfil 45° (testeira)', toque: 'abertura por toque', led: 'iluminação em LED',
     rodape: 'rodapé recuado', pes: 'pés reguláveis', suspenso: 'fixação suspensa', fundo: 'fundo encaixado',
     prateleira: 'prateleira regulável', temperos: 'porta-temperos', fruteira: 'fruteira', lixeira: 'lixeira embutida',
-    ripada: 'frente ripada', moldura: 'frente com moldura', vidro: 'porta de vidro canelado'
+    ripada: 'frente ripada', moldura: 'frente com moldura', vidro: 'porta de vidro', palhinha: 'porta com tela', correr: 'porta de correr'
   };
 
   function desenhar(chave, M, o, corCota, corTexto) {
@@ -285,8 +301,10 @@
     function add(chave, o) { if (D[chave] && !out.some(function (x) { return x.chave === chave; })) out.push({ chave: chave, titulo: TITULOS[chave], svg: desenhar(chave, M, o, corCota, corTexto) }); }
     function tem(re) { return M.pecas.some(function (p) { return re.test(p.nome); }); }
     if (tem(/^Frente gaveta|^Frente porta-temperos|^Frente lixeira|^Frente fruteira/)) add(sp.gavetas && sp.gavetas.corredica === 'oculta' ? 'oculta' : 'telescopica');
+    if (tem(/^Folha de correr/)) add('correr');
     if (tem(/^Porta/)) add('dobradica', { dobradica: sp.frentes.montagem === 'embutida' ? 'superCurva' : 'reta' });
-    add(sp.puxador.tipo, { tipo: sp.puxador.tipo });
+    // puxador só se houver frente de abrir (portas de correr usam puxador concha embutido)
+    if (tem(/^Porta|^Frente/)) add(sp.puxador.tipo, { tipo: sp.puxador.tipo });
     var est = (sp.frentes && sp.frentes.estilo) || 'lisa';
     if (est !== 'lisa') add(est, { ripa: sp.frentes.ripa });
     if (sp.led && sp.led.ativo && M.pecas.some(function (p) { return p.grupo === 'led'; })) add('led', { montagem: sp.led.tipo, temperatura: sp.led.temperatura, posicao: sp.led.posicao });

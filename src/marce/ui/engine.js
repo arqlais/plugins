@@ -104,7 +104,8 @@
     forno: 'Forno',
     micro: 'Micro-ondas',
     geladeira: 'Nicho geladeira',
-    livre: 'Vão livre (até o piso)'
+    livre: 'Vão livre (até o piso)',
+    correr: 'Portas de correr'
   };
   var TIPOS_ITEM_GAVETA = { gaveta: 'Gaveta', gavetao: 'Gavetão', interna: 'Gavetão c/ interna' };
 
@@ -192,6 +193,7 @@
       cestos: 3,              // temperos/fruteira
       baldes: 1,              // lixeira
       moldura: false,         // nicho com moldura frontal
+      folhas: 0,              // portas de correr: 0 = automático, 2, 3 ou 4 folhas
       eletro: { largura: 700, altura: 1800, profundidade: 700 } // geladeira: medidas do aparelho (mm)
     };
     if (tipo === 'gavetas') s.prateleiras = 0;
@@ -1159,6 +1161,55 @@
           if (regW > 1000) aviso(rot + ': basculante com ' + fmtCm(regW) + ' de largura passa do recomendado (até 1 m). Por quê: a porta torce na abertura e um pistão de cada lado não segura. Use pistões reforçados ou divida em dois basculantes.', ref);
         }
 
+        // ------------------------------------------------ PORTAS DE CORRER
+        // Folhas sobrepostas em dois planos, correndo num trilho superior (roldanas) com guia embaixo.
+        // As folhas da frente correm por cima das de trás; transpasse de 30 mm entre elas.
+        else if (cfg.tipo === 'correr') {
+          interior();
+          // colunas vizinhas com portas de correr na mesma faixa formam um só conjunto: as folhas
+          // atravessam as divisórias (que ficam atrás, segurando as prateleiras)
+          var correrEm = function (v) { return v && v.secoes.filter(function (s2) { return s2.cfg.tipo === 'correr' && Math.abs(s2.z0 - sm.z0) < 1 && Math.abs(s2.z1 - sm.z1) < 1; })[0]; };
+          if (correrEm(vaosM[vi - 1])) return; // as folhas já foram desenhadas a partir do primeiro vão do conjunto
+          var ultimo = vm;
+          while (correrEm(vaosM[ultimo.idx + 1])) ultimo = vaosM[ultimo.idx + 1];
+          var extDirC = ultimo.idx === nV - 1;
+          var rc = { x0: vm.x0 + (extEsq ? 0 : g / 2), x1: ultimo.x1 - (extDirC ? 0 : g / 2), z0: sm.z0 + (extBaixo ? 0 : g / 2), z1: sm.z1 - (extTopo ? fr.folgaTopo : g / 2) };
+          var trans = 30, tSup = 18, tInf = 10, folgaPl = 6;
+          var wC = rc.x1 - rc.x0, hF = rc.z1 - rc.z0 - tSup - tInf - 4;
+          // folhas: escolhidas (2, 3 ou 4) ou automáticas, para cada folha ficar com até ~1 m
+          var nF = [2, 3, 4].indexOf(+cfg.folhas) >= 0 ? +cfg.folhas : (wC <= 1900 ? 2 : (wC <= 2800 ? 3 : 4));
+          var fw = (wC + (nF - 1) * trans) / nF;
+          var yA = -Tf, yB = -2 * Tf - folgaPl, yTr = yB; // planos: de trás (A) e da frente (B)
+          var bibK = spec.leve ? null : bibOk(cfg.bibCorrer);
+          // trilho superior (duplo) e guia inferior, na largura toda
+          fab.objeto({ nome: bibK ? 'Trilho ' + bibK.nome : 'Trilho superior duplo (porta de correr)', grupo: 'ferragem', mat: 'metal', x: rc.x0, y: yTr, z: rc.z1 - tSup, dx: wC, dy: -yTr, dz: tSup, vao: vi, col: colIdx0, secao: j,
+            forma: bibK ? null : { plano: 'yz', pts: [[0, 0], [2, 0], [2, tSup - 2], [Tf + folgaPl / 2 - 1, tSup - 2], [Tf + folgaPl / 2 - 1, 0], [Tf + folgaPl / 2 + 1, 0], [Tf + folgaPl / 2 + 1, tSup - 2], [-yTr - 2, tSup - 2], [-yTr - 2, 0], [-yTr, 0], [-yTr, tSup], [0, tSup]] },
+            biblio: bibK ? bibDe(bibK, { encaixe: 'esticar', longo: 'x', apoiar: 'z' }) : null });
+          fab.objeto({ nome: 'Guia inferior (porta de correr)', grupo: 'ferragem', mat: 'metal', x: rc.x0, y: yTr, z: rc.z0, dx: wC, dy: -yTr, dz: tInf, vao: vi, col: colIdx0, secao: j,
+            forma: { plano: 'yz', pts: [[0, 0], [-yTr, 0], [-yTr, tInf], [-yTr - 2, tInf], [-yTr - 2, 2], [Tf + folgaPl / 2 + 1, 2], [Tf + folgaPl / 2 + 1, tInf], [Tf + folgaPl / 2 - 1, tInf], [Tf + folgaPl / 2 - 1, 2], [2, 2], [2, tInf], [0, tInf]] } });
+          for (var kf = 0; kf < nF; kf++) {
+            var frenteDaFrente = kf % 2 === 1;
+            var xf = rc.x0 + kf * (fw - trans);
+            var cjF = frenteDaFrente ? fab.conjunto({ nome: 'Porta de correr ' + (kf + 1), tipo: 'corre', eixo: 'x', curso: -Math.round(fw - trans), vao: vi, col: colIdx0, secao: j }) : null;
+            var folha = frente({ nome: 'Folha de correr', x: xf, y0: frenteDaFrente ? yB : yA, z: rc.z0 + tInf + 2, w: fw, h: hF, veio: veioF, vidroOk: true,
+              vao: vi, col: colIdx0, secao: j, conj: cjF, obs: 'Correr · ' + nF + ' folhas · transpasse ' + trans + ' mm · roldanas no trilho superior',
+              meta: { tipo: 'correr', folha: kf + 1, folhas: nF, plano: frenteDaFrente ? 'frente' : 'tras' } });
+            // puxador concha embutido na folha, perto da borda que fica livre
+            var xc = kf === 0 ? xf + fw - trans - 50 : xf + 30;
+            if (pux.tipo !== 'nenhum' && pux.tipo !== 'toque') fab.objeto({ nome: 'Puxador concha', grupo: 'ferragem', mat: 'metal', x: xc, y: (frenteDaFrente ? yB : yA) - 1, z: rc.z0 + tInf + hF / 2 - 60, dx: 20, dy: 6, dz: 120, conj: cjF, vao: vi, col: colIdx0, secao: j });
+            cont.portasCorrer = (cont.portasCorrer || 0) + 1; cont.portas++;
+            if (!folha && estilo !== 'vidro' && estilo !== 'palhinha') aviso(rot + ': folha de correr não desenhada.', ref);
+          }
+          cont.trilhoCorrerMm = (cont.trilhoCorrerMm || 0) + wC;
+          cont.kitsCorrer = (cont.kitsCorrer || []).concat([{ folhas: nF, larg: wC, bib: bibK }]);
+          R.elementos.push({ tipo: 'correr', nome: 'Portas de correr', col: colIdx0, frenteW: wC, frenteH: hF, folhas: nF,
+            texto: nF + ' folhas de ' + fmtCm(fw) + ' × ' + fmtCm(hF) + ', transpasse de ' + trans + ' mm, trilho superior duplo com roldanas e guia inferior' + (bibK ? ' (' + bibK.nome + ')' : '') + '.' });
+          if (fw > 1000) aviso(rot + ': folha de correr com ' + fmtCm(fw) + ' de largura passa do recomendado (até 1 m). Por quê: a folha larga pesa nas roldanas e empena; use 3 folhas.', ref);
+          if (hF > 2400) aviso(rot + ': folha de correr com ' + fmtCm(hF) + ' de altura passa do recomendado (até 2,40 m). Por quê: empena com a umidade e sai do trilho; use MDF 25 mm ou perfil de alumínio.', ref);
+          if (wC < 800) aviso(rot + ': portas de correr num vão de ' + fmtCm(wC) + '. Por quê: abaixo de ~80 cm cada folha abre menos de 40 cm e quase não dá para usar; prefira portas de giro.', ref);
+          if (D < 450 && !cont.avisoCorrerProf) { cont.avisoCorrerProf = true; info('Portas de correr ficam ' + (2 * Tf + folgaPl) + ' mm à frente da caixa (dois planos de folha): considere isso na circulação.'); }
+        }
+
         // ------------------------------------------------ GAVETAS
         else if (cfg.tipo === 'gavetas') {
           var itens = cfg.itens;
@@ -1609,6 +1660,9 @@
     if (bibDob) fer.push({ item: 'Dobradiça ' + bibDob.nome + (bibDob.marca ? ' (' + bibDob.marca + ')' : '') + ' — da biblioteca', qtd: cont.dobradicas.reta + cont.dobradicas.curva + cont.dobradicas.superCurva, un: 'un', obs: 'reta/curva conforme a montagem' });
     Object.keys(cont.corredicas).map(Number).sort(function (a, b) { return a - b; }).forEach(function (len) {
       fer.push({ item: nomeCorr + ' ' + len + ' mm (par)', qtd: cont.corredicas[len], un: 'par' });
+    });
+    (cont.kitsCorrer || []).forEach(function (kc) {
+      fer.push({ item: (kc.bib ? 'Kit ' + kc.bib.nome : 'Kit porta de correr (trilho superior duplo com roldanas, guia inferior, batentes)') + ' · ' + kc.folhas + ' folhas · ' + r1(kc.larg / 1000) + ' m', qtd: 1, un: 'cj' });
     });
     if (cont.pistoes) fer.push({ item: 'Pistão a gás para basculante', qtd: cont.pistoes, un: 'un' });
     if (cont.lixeiras.length) fer.push({ item: 'Lixeira embutida de extração (' + cont.lixeiras.map(function (l) { return l + ' L'; }).join(' + ') + ', tampa basculante)', qtd: 1, un: 'cj' });

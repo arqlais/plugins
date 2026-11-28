@@ -33,6 +33,8 @@ module ArqLais
           Geom::Transformation.rotation(Geom::Point3d.new(Util.mm(pv[0]), Util.mm(pv[1]), Util.mm(pv[2])), eixo, ang.degrees)
         else
           curso = g.get_attribute(DICT, 'mov_curso').to_f * fracao
+          # porta de correr anda de lado (eixo x); gaveta e aramado saem para a frente
+          return Geom::Transformation.translation(Geom::Vector3d.new(Util.mm(curso), 0, 0)) if g.get_attribute(DICT, 'mov_eixo') == 'x'
           Geom::Transformation.translation(Geom::Vector3d.new(0, -Util.mm(curso), 0))
         end
       end

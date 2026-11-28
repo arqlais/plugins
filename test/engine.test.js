@@ -72,6 +72,7 @@ test('frentes ficam dentro do comprimento e não se sobrepõem', () => {
       assert.ok(a.x >= -0.2 && a.x + a.dx <= s.L + 0.2, nome + ': frente fora');
       for (const b of fr) {
         if (a === b) continue;
+        if (a.meta.tipo === 'correr' && b.meta.tipo === 'correr') continue; // folhas de correr se transpassam em planos diferentes
         const sobre = a.x < b.x + b.dx - 0.5 && b.x < a.x + a.dx - 0.5 && a.z < b.z + b.dz - 0.5 && b.z < a.z + a.dz - 0.5;
         assert.ok(!sobre, nome + ': frentes sobrepostas ' + a.id + ' ' + b.id);
       }
@@ -153,6 +154,8 @@ function permitido(a, b) {
   if (um(/^Fundo$/) && a.grupo !== b.grupo && (um(/^Lateral|^Divisória|^Base|^Topo|^Travessa superior/))) return true; // fundo encaixado em rasgo
   if (um(/^Travessa da cava/) && um(/^Divisória/)) return true; // divisória entalhada para a travessa da cava
   if (um(/^Dobradiça \(caneco\)/) && um(/^Porta/)) return true;
+  if (um(/^Puxador concha/) && um(/^Folha de correr/)) return true; // concha embutida na folha
+  if (um(/^Folha de correr/) && um(/^Trilho|^Guia inferior/)) return true; // folha encaixada no trilho/guia
   if (/^Dobradiça /.test(a.nome) && a.biblio && /^Lateral|^Divisória|^Porta/.test(b.nome)) return true; // dobradiça do fabricante: caneco no furo e calço na lateral
   if (/^Dobradiça /.test(b.nome) && b.biblio && /^Lateral|^Divisória|^Porta/.test(a.nome)) return true;
   if (um(/^Perfil LED/) && um(/^Base|^Prateleira/)) return true; // perfil de LED embutido em rasgo // caneco embutido no furo de 35 mm da porta
@@ -166,13 +169,14 @@ function caixas(m, abertos) {
   const cj = {};
   m.conjuntos.forEach((c) => { cj[c.id] = c; });
   const desloc = (p) => {
-    let dy = 0, id = p.conj;
-    while (id) { const c = cj[id]; if (c.tipo === 'corre') dy -= c.curso; id = c.pai; }
-    return dy;
+    let dy = 0, dx = 0, id = p.conj;
+    while (id) { const c = cj[id]; if (c.tipo === 'corre') { if (c.eixo === 'x') dx += c.curso; else dy -= c.curso; } id = c.pai; }
+    return [dx, dy];
   };
   return m.pecas.map((p) => {
     const giro = (() => { let id = p.conj; while (id) { if (cj[id].tipo === 'giro') return true; id = cj[id].pai; } return false; })();
-    return Object.assign({}, p, { y: abertos ? p.y + desloc(p) : p.y, giro });
+    const d = abertos ? desloc(p) : [0, 0];
+    return Object.assign({}, p, { x: p.x + d[0], y: p.y + d[1], giro });
   });
 }
 
@@ -313,4 +317,35 @@ test('prateleiras nas alturas escolhidas, divisória interna e fundo da cuba com
   assert.ok(fc && fc.furo && fc.furo.d === 110, 'fundo com furo');
   assert.ok(Math.abs(fc.z + fc.furo.z - 480) < 1, 'centro do furo a 480 mm');
   assert.ok(Math.abs(fc.x + fc.furo.x - 1200) < 1, 'no eixo da cuba');
+});
+
+test('portas de correr: duas folhas em planos diferentes, a da frente corre de lado sobre a de trás', () => {
+  const s = E.specPadrao('roupeiro');
+  s.colunas = [E.novaColuna(1600, [E.novaSecao('correr', { folhas: 2, prateleiras: 2 })])];
+  s.L = 1600;
+  const m = E.calcular(s);
+  const folhas = m.pecas.filter((p) => p.nome === 'Folha de correr');
+  assert.strictEqual(folhas.length, 2);
+  assert.notStrictEqual(folhas[0].y, folhas[1].y, 'planos diferentes');
+  const cjF = m.conjuntos.filter((c) => c.eixo === 'x' && c.tipo === 'corre');
+  assert.strictEqual(cjF.length, 1, 'a folha da frente corre');
+  assert.ok(cjF[0].curso < 0, 'corre para a esquerda');
+  assert.ok(Math.abs(folhas[0].dx + folhas[1].dx - 30 - (folhas[1].x + folhas[1].dx - folhas[0].x)) < 1, 'transpasse de 30 mm');
+  assert.ok(m.pecas.some((p) => /^Trilho superior/.test(p.nome)) && m.pecas.some((p) => /^Guia inferior/.test(p.nome)));
+  assert.ok(m.ferragens.some((f) => /Kit porta de correr/.test(f.item)));
+  const s3 = E.specPadrao('roupeiro'); s3.L = 2400; s3.colunas = [E.novaColuna(2400, [E.novaSecao('correr', { folhas: 3 })])];
+  assert.strictEqual(E.calcular(s3).pecas.filter((p) => p.nome === 'Folha de correr').length, 3);
+});
+
+test('portas de correr em colunas vizinhas formam um só conjunto (folhas por cima das divisórias)', () => {
+  const s = E.specPadrao('roupeiro');
+  s.L = 2700; s.divisorias = 'cada';
+  s.colunas = [0, 1, 2].map(() => E.novaColuna(null, [E.novaSecao('correr', { prateleiras: 3 })]));
+  const m = E.calcular(s);
+  const folhas = m.pecas.filter((p) => p.nome === 'Folha de correr');
+  assert.strictEqual(folhas.length, 3, 'automático: 3 folhas para 2,70 m');
+  const x0 = Math.min(...folhas.map((f) => f.x)), x1 = Math.max(...folhas.map((f) => f.x + f.dx));
+  assert.ok(x0 <= 1 && x1 >= 2699, 'as folhas cobrem o móvel inteiro');
+  assert.ok(m.pecas.filter((p) => /^Divisória/.test(p.nome) && p.grupo === 'caixa').length >= 2, 'divisórias continuam atrás');
+  assert.strictEqual(m.pecas.filter((p) => /^Trilho superior/.test(p.nome)).length, 1, 'um trilho só, na largura toda');
 });

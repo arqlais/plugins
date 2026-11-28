@@ -1,5 +1,12 @@
 # Novidades da planê.mob
 
+## 1.20.0
+- Portas de correr: novo tipo de faixa com 2, 3 ou 4 folhas (ou automático pela largura), trilho superior duplo com roldanas e guia inferior; a folha da frente corre de verdade por cima da de trás
+- Colunas vizinhas com portas de correr viram um só conjunto: as folhas passam por cima das divisórias, que ficam atrás segurando as prateleiras; botão para aplicar em todas as colunas
+- Kit de porta de correr da biblioteca (RO21) no lugar do trilho desenhado
+- Pranchas com o símbolo de correr na vista frontal e na legenda, e detalhe construtivo do trilho
+- Móvel novo já usa as ferragens que vêm com a planê.mob: corrediça FGV 350, corrediça invisível e dobradiça reta (escolhendo "Padrão", volta ao desenho da planê.mob)
+
 ## 1.19.0
 - Ferragens que vêm com a planê.mob: corrediças telescópicas (com amortecedor 350 e 45 mm), corrediça invisível, dobradiça reta, dobradiça invisível, perfil puxador Leo M13, puxadores, porta-temperos, lixeiras (Masutti e cesto duplo), kit de porta de correr e a coleção de ferragens; baixadas uma vez na primeira vez que você abre a etapa Ferragens
 - As ferragens do fabricante funcionam: na corrediça, o perfil junto da lateral fica no móvel, o do meio anda a metade e o de dentro sai com a gaveta; na dobradiça, a base fica na lateral e o braço gira com a porta

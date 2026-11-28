@@ -13,7 +13,7 @@ require 'digest'
 module ArqLais
   module Marce
     module Biblioteca
-      CATEGORIAS = %w[puxador corredica dobradica aramado outro].freeze
+      CATEGORIAS = %w[puxador corredica dobradica aramado correr outro].freeze
       @cache = {} unless instance_variable_defined?(:@cache)
 
       module_function
@@ -67,6 +67,7 @@ module ArqLais
         n = nome.to_s.downcase
         return 'corredica' if n =~ /corredi|trilho|tandem|telesc/
         return 'dobradica' if n =~ /dobradi|caneco|articulador/
+        return 'correr' if n =~ /correr|deslizante/
         return 'aramado' if n =~ /tempero|lixeira|cesto|aramad|fruteira|organizador/
         return 'puxador' if n =~ /puxador|pux|alça|alca|perfil|botão|botao/
         'outro'

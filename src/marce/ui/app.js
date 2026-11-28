@@ -15,7 +15,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: false, relatorioJunto: false, bib: [], bibBusca: {}, bibFiltro: 'todos',
-    padroes: null, projeto: {}, versao: '1.19.0', gerando: false, atualizacao: null, atualizando: false
+    padroes: null, projeto: {}, versao: '1.20.0', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -87,6 +87,7 @@
     botao: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="4" width="14" height="24" rx="1"/><circle cx="18.5" cy="16" r="2.4" fill="currentColor"/></svg>',
     testeira: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="8" width="14" height="20" rx="1"/><path d="M8 8l4-4h16l-5 4z" fill="#d6b3ab" fill-opacity=".5"/></svg>',
     alca: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="4" width="14" height="24" rx="1"/><path d="M19 10v10" stroke-width="2.5"/></svg>',
+    correr: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="13" height="22"/><rect x="14" y="6" width="13" height="22" fill="#fff"/><path d="M17 17h7M17 17l2-2M17 17l2 2"/></svg>',
     livre: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 27V6h18v21"/><path d="M7 10h18"/><path d="M12 27v-8l4-3 4 3v8" stroke-dasharray="2 2"/></svg>',
     meu: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="4" width="14" height="24" rx="1"/><path d="M18 10h3v12h-3"/><path d="M4 26l4-4M4 22v4h4" stroke-width="1.3"/></svg>',
     bibArq: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M12 11v6M9 14h6"/></svg>',
@@ -111,7 +112,26 @@
   };
 
   // ---------------------------------------------------------------- estado / cálculo
+  // Móvel novo usa as ferragens que vêm com a planê.mob (corrediça FGV 350, invisível e dobradiça reta),
+  // assim que a biblioteca de fábrica estiver pronta. Quem escolher "Padrão" (desenho da planê.mob) fica
+  // com a escolha (o campo vira null); móveis já gerados não mudam sozinhos.
+  var FABRICA_PADRAO = [
+    ['gavetas', 'bibTelescopica', 'corredica-telescopica-amortecedor-350.skp'],
+    ['gavetas', 'bibOculta', 'corredica-invisivel.skp'],
+    ['frentes', 'bibDobradica', 'dobradica-reta.skp']
+  ];
+  function aplicarFabricaPadrao(spec) {
+    if (!spec || st.modo === 'editar' || !(st.bib || []).length) return;
+    FABRICA_PADRAO.forEach(function (f) {
+      spec[f[0]] = spec[f[0]] || {};
+      if (spec[f[0]][f[1]] !== undefined) return;
+      var it = (st.bib || []).filter(function (i) { return i.origem === 'fabrica' && i.fabrica_arquivo === f[2] && i.existe !== false; })[0];
+      if (it) spec[f[0]][f[1]] = { id: it.id, nome: it.nome, marca: it.marca || '', medidas: it.medidas, encaixe: it.encaixe || 'real', virar: false, deitar: false };
+    });
+  }
+
   function recalcular() {
+    aplicarFabricaPadrao(st.spec);
     st.modelo = E.calcular(st.spec);
     var nC = st.spec.colunas.length;
     if (st.sel.col >= nC) st.sel.col = nC - 1;
@@ -349,7 +369,7 @@
     }).join('') + '</div>';
   }
   // ---------------------------------------------------------------- minha biblioteca (.skp)
-  var BIB_CAT = { puxador: 'Puxador', corredica: 'Corrediça', dobradica: 'Dobradiça', aramado: 'Aramado e lixeira', outro: 'Outro' };
+  var BIB_CAT = { puxador: 'Puxador', corredica: 'Corrediça', dobradica: 'Dobradiça', aramado: 'Aramado e lixeira', correr: 'Porta de correr', outro: 'Outro' };
   function semAcento(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
   function bibBate(i, busca) {
     if (!busca) return true;
@@ -650,7 +670,7 @@
           h += '</div>' + (Object.keys(sec.pratAlturas || {}).some(function (kk) { return sec.pratAlturas[kk]; }) ? '<button class="gav-auto" data-act="pratAuto">igualar (automático)</button>' : '') + '<p class="ajuda">Vazio = espaçamento igual. Veja na vista frontal → interno.</p></div>';
         }
       }
-      if (sec.tipo === 'portas') {
+      if (sec.tipo === 'portas' || sec.tipo === 'correr') {
         h += interruptor('Divisória interna (atrás das portas)', base + 'divOn');
         if (sec.divOn) {
           var vmD = (st.modelo.vaos || []).filter(function (v) { return v.colunas.some(function (c) { return c.idx === st.sel.col; }); })[0];
@@ -679,6 +699,15 @@
     }
     if ((sec.tipo === 'temperos' || sec.tipo === 'fruteira') && !(sec.bib && sec.bib.id)) h += '<div class="campo"><label>Cestos aramados' + aj('aramados') + '</label>' + passo('cestos', 1, 6) + '</div>';
     if (sec.tipo === 'lixeira' && !(sec.bib && sec.bib.id)) h += '<div class="campo"><label>Cestos' + aj('lixeira') + '</label></div>' + pil('baldes', [[1, '1 cesto'], [2, '2 cestos (seletiva)']]);
+    if (sec.tipo === 'correr') {
+      h += '<div class="campo"><label>Folhas</label></div>' + pil('folhas', [[0, 'Auto'], [2, '2'], [3, '3'], [4, '4']]);
+      h += '<div class="linha-botoes"><button class="botao pequeno" data-act="correrTodas">Portas de correr em todas as colunas</button></div>';
+      h += '<p class="ajuda">Colunas vizinhas com portas de correr formam um só conjunto: as folhas passam por cima das divisórias, que ficam atrás segurando as prateleiras.</p>';
+      h += '<p class="ajuda">As folhas correm num trilho superior duplo (roldanas) com guia embaixo, em dois planos: a da frente passa por cima da de trás, com 30 mm de transpasse. Ficam ' + (2 * st.spec.esp.frente + 6) + ' mm à frente da caixa.</p>';
+      h += '<div class="campo"><label>Interior' + aj('interior') + '</label></div>' + pil('interior', [['prateleiras', 'Prateleiras'], ['cabideiro', 'Cabideiro'], ['vazio', 'Vazio']]);
+      if (sec.interior === 'prateleiras') h += '<div class="campo"><label>Prateleiras</label>' + passo('prateleiras', 0, 8) + '</div>';
+      h += '<div class="campo"><label>Kit do trilho</label></div>' + bibEscolha('correr', base + 'bibCorrer', 'Padrão', {});
+    }
     if (sec.tipo === 'temperos' || sec.tipo === 'fruteira' || sec.tipo === 'lixeira') h += '<div class="campo"><label>Modelo do fabricante</label></div>' + bibEscolha('aramado', base + 'bib', 'Padrão', {});
     if (sec.tipo === 'forno') h += '<p class="ajuda">Nicho para forno de embutir: interno ~56–57 × 59–60 cm, profundidade ≥ 55 cm.</p>';
     if (sec.tipo === 'micro') h += '<p class="ajuda">Nicho para micro-ondas: interno ≥ 50 × 38–46 cm, com ventilação.</p>';
@@ -925,6 +954,23 @@
         if (!enviar('bibAnexar', { modo: p[1], categoria: p[2] })) toast('Anexar arquivos funciona dentro do SketchUp');
         return;
       case 'bibGerenciar': bibGerenciar(); return;
+      case 'correrTodas': {
+        // a faixa escolhida vira portas de correr em todas as colunas (mesma altura)
+        var secR = colSel().secoes[st.sel.secao];
+        // em cada coluna, a faixa que está na mesma altura da escolhida (ex.: a faixa alta, não o maleiro)
+        var vmR = (st.modelo.vaos || []).filter(function (v) { return v.colunas.some(function (c) { return c.idx === st.sel.col; }); })[0];
+        var smR = vmR && vmR.secoes.filter(function (x) { return x.idx === st.sel.secao; })[0];
+        s.colunas.forEach(function (c, ci) {
+          var vmC = (st.modelo.vaos || []).filter(function (v) { return v.colunas.some(function (cc) { return cc.idx === ci; }); })[0];
+          (vmC ? vmC.secoes : []).forEach(function (sc) {
+            var mesma = smR && Math.abs(sc.z0 - smR.z0) < 30 && Math.abs(sc.z1 - smR.z1) < 30;
+            var alvoS = c.secoes[sc.idx];
+            if (mesma && alvoS && (alvoS.tipo === 'portas' || alvoS.tipo === 'correr')) { alvoS.tipo = 'correr'; alvoS.folhas = secR ? secR.folhas : 0; }
+          });
+        });
+        toast('Portas de correr em todas as colunas');
+        break;
+      }
       case 'pratAuto': { var sp = colSel().secoes[st.sel.secao]; if (sp) sp.pratAlturas = []; break; }
       case 'gavAuto': { var sg = colSel().secoes[st.sel.secao]; if (sg && sg.itens[+p[1]]) sg.itens[+p[1]].altura = null; break; }
       case 'liberarMedidas': s.origemVolume = false; break;
@@ -1321,7 +1367,8 @@
           if (an && an.partes) bibEscolherPartes(an);
           else if (an && an.itens) toast(an.itens.length ? (an.itens.length === 1 ? '"' + an.itens[0].nome + '" anexado à biblioteca' : an.itens.length + ' ferragens anexadas à biblioteca') + (an.erros && an.erros.length ? ' · ' + an.erros.length + ' com erro' : '') : 'Nenhum arquivo .skp anexado');
           if (document.querySelector('.modal-fundo.bib-ger')) bibGerenciar();
-          if (st.spec) { renderPainel(); }
+          if (st.spec && (msg.fabrica === 'pronta' || st.modo !== 'editar')) { atualizar(); }
+          else if (st.spec) { renderPainel(); }
           break;
         }
         case 'fotos':

@@ -224,6 +224,10 @@
       if (meta.tipo === 'porta') {
         var hx = meta.dobradica === 'esq' ? x : x + w, ox2 = meta.dobradica === 'esq' ? x + w : x;
         s.push('<path class="abertura" d="M' + X(hx) + ' ' + Y(z + h) + ' L' + X(ox2) + ' ' + Y(z + h / 2) + ' L' + X(hx) + ' ' + Y(z) + '" stroke="' + linhaFrente + '"/>');
+      } else if (meta.tipo === 'correr') {
+        // seta de correr: a folha da frente corre para a esquerda, a de trás fica (símbolo de planta de marcenaria)
+        var ym = Y(z + h / 2), xa = x + w * 0.3, xb = x + w * 0.7, ah = Math.min(w, h) * 0.06;
+        s.push('<path class="abertura" d="M' + X(xa) + ' ' + ym + ' H' + X(xb) + ' M' + X(xa) + ' ' + ym + ' l' + n1(ah) + ' ' + n1(-ah * 0.6) + ' M' + X(xa) + ' ' + ym + ' l' + n1(ah) + ' ' + n1(ah * 0.6) + ' M' + X(xb) + ' ' + ym + ' l' + n1(-ah) + ' ' + n1(-ah * 0.6) + ' M' + X(xb) + ' ' + ym + ' l' + n1(-ah) + ' ' + n1(ah * 0.6) + '" stroke="' + linhaFrente + '" style="stroke-dasharray:none"/>');
       } else if (meta.tipo === 'basculante') {
         s.push('<path class="abertura" d="M' + X(x) + ' ' + Y(z + h) + ' L' + X(x + w / 2) + ' ' + Y(z) + ' L' + X(x + w) + ' ' + Y(z + h) + '" stroke="' + linhaFrente + '"/>');
       }
@@ -386,7 +390,7 @@
       var c = mapa[cid];
       if (!c) return p;
       var q = p;
-      if (c.tipo === 'corre') q = [p[0], p[1] - c.curso, p[2]];
+      if (c.tipo === 'corre') q = c.eixo === 'x' ? [p[0] + c.curso, p[1], p[2]] : [p[0], p[1] - c.curso, p[2]];
       else if (c.tipo === 'giro') {
         var a = c.angulo * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a);
         var pv = [c.pivot.x, c.pivot.y, c.pivot.z];
@@ -794,6 +798,11 @@
         s.push('<path d="M' + X(hx) + ' ' + Y(p.z + p.dz) + ' L' + X(ox2) + ' ' + Y(p.z + p.dz / 2) + ' L' + X(hx) + ' ' + Y(p.z) + '" ' + tr + '/>');
       } else if (m.tipo === 'basculante') {
         s.push('<path d="M' + X(p.x) + ' ' + Y(p.z + p.dz) + ' L' + X(p.x + p.dx / 2) + ' ' + Y(p.z) + ' L' + X(p.x + p.dx) + ' ' + Y(p.z + p.dz) + '" ' + tr + '/>');
+      } else if (m.tipo === 'correr') {
+        // folha de correr: seta dupla no meio (a da frente com traço cheio, a de trás tracejada)
+        var ymC = p.z + p.dz / 2, xaC = p.x + p.dx * 0.28, xbC = p.x + p.dx * 0.72, ahC = Math.min(p.dx, p.dz) * 0.05;
+        var trC = 'stroke="' + fina + '" stroke-width="' + n1(lw) + '" fill="none"' + (m.plano === 'tras' ? ' stroke-dasharray="' + n1(2.4 * E) + ' ' + n1(1.4 * E) + '"' : '');
+        s.push('<path d="M' + X(xaC) + ' ' + Y(ymC) + ' H' + X(xbC) + ' M' + X(xaC + ahC) + ' ' + Y(ymC + ahC * 0.7) + ' L' + X(xaC) + ' ' + Y(ymC) + ' L' + X(xaC + ahC) + ' ' + Y(ymC - ahC * 0.7) + ' M' + X(xbC - ahC) + ' ' + Y(ymC + ahC * 0.7) + ' L' + X(xbC) + ' ' + Y(ymC) + ' L' + X(xbC - ahC) + ' ' + Y(ymC - ahC * 0.7) + '" ' + trC + '/>');
       }
       if (p.forma && p.forma.cava) {
         var cz = p.forma.cava === 'base' ? p.z + 12 : p.z + p.dz - 12;
