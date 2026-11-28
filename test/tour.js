@@ -29,7 +29,7 @@ const UI = path.join(__dirname, '..', 'src', 'marce', 'ui');
   await p.waitForTimeout(300);
   await foto('janela-movel');
   // passo a passo e ajuda ilustrada
-  await clica('#btn-guia'); await foto('passo-a-passo'); await clica('.modal [data-fechar-modal]');
+  await clica('.trilho [data-guia]'); await foto('passo-a-passo'); await clica('.modal [data-fechar-modal]');
   await clica('[data-ajuda="base"]'); await foto('ajuda-ilustrada'); await p.keyboard.press('Escape');
   // montagem: clicar numa frente seleciona a coluna
   const alvos = await p.$$('.alvo');

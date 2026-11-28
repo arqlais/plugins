@@ -35,7 +35,7 @@ const assert = require('assert');
   assert.ok(g, 'chamou gerar');
   assert.ok(g[1].modelo.pecas.length > 30 && g[1].modelo.conjuntos.length > 3, 'enviou peças e conjuntos');
   assert.strictEqual(g[1].spec.cuba.origem, 'modelo');
-  assert.strictEqual(await p.textContent('[data-act="gerar"]'), 'Gerando…');
+  assert.strictEqual(await p.textContent('[data-act="gerar"]'), 'gerando…');
 
   // resposta do Ruby com imagens -> abre relatório (salvarRelatorio)
   await p.evaluate(() => window.App.receber({ tipo: 'gerado', ok: true, msg: 'Móvel gerado', relatorio: true, imagens: { iso: 'data:image/png;base64,iVBORw0KGgo=', topo: null } }));

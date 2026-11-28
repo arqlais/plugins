@@ -14,8 +14,8 @@
   var st = {
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
-    picker: null, marcaPicker: 'Todas', busca: '', confAberta: true, relatorioJunto: false, bib: [], bibBusca: {}, bibFiltro: 'todos',
-    padroes: null, projeto: {}, versao: '1.17.0', gerando: false, atualizacao: null, atualizando: false
+    picker: null, marcaPicker: 'Todas', busca: '', confAberta: false, relatorioJunto: false, bib: [], bibBusca: {}, bibFiltro: 'todos',
+    padroes: null, projeto: {}, versao: '1.18.0', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -87,6 +87,7 @@
     botao: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="4" width="14" height="24" rx="1"/><circle cx="18.5" cy="16" r="2.4" fill="currentColor"/></svg>',
     testeira: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="8" width="14" height="20" rx="1"/><path d="M8 8l4-4h16l-5 4z" fill="#d6b3ab" fill-opacity=".5"/></svg>',
     alca: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="4" width="14" height="24" rx="1"/><path d="M19 10v10" stroke-width="2.5"/></svg>',
+    livre: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 27V6h18v21"/><path d="M7 10h18"/><path d="M12 27v-8l4-3 4 3v8" stroke-dasharray="2 2"/></svg>',
     meu: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="4" width="14" height="24" rx="1"/><path d="M18 10h3v12h-3"/><path d="M4 26l4-4M4 22v4h4" stroke-width="1.3"/></svg>',
     bibArq: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M12 11v6M9 14h6"/></svg>',
     bibSel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 5h4M5 5v4M19 5h-4M19 5v4M5 19h4M5 19v-4M19 19h-4M19 19v-4"/><rect x="9" y="9" width="6" height="6"/></svg>',
@@ -105,6 +106,7 @@
     abaBib: '<svg viewBox="0 0 24 24"><path d="M4 19V5M8 19V5M12 19l3-14 4 1-3 14z"/><path d="M3 19h18"/></svg>',
     abaGuia: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.5v.7M12 17h.01"/></svg>',
     seta: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+    ajustes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>',
     abaRel: '<svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7M9 7h4"/></svg>'
   };
 
@@ -243,13 +245,13 @@
     if (st.atualizando) htmlVersao += '<span class="pilula-atualizar ocupado">atualizando…</span>';
     else if (at && at.nova) htmlVersao += '<button class="pilula-atualizar nova" data-act="atualizar" title="' + esc((at.notas || []).join(' · ')) + '">nova versão ' + esc(at.versao) + ' · atualizar</button>';
     else htmlVersao += '<button class="pilula-atualizar" data-act="verificarAtualizacao">' + (at && at.verificado ? (at.erro ? 'sem conexão · tentar de novo' : 'está atualizado') : 'verificar atualização') + '</button>';
-    $('#rodape').innerHTML = '<div class="bloco-versao">' + htmlVersao + '</div><div class="resumo-conf">' +
-      (r.erros ? '<span class="contador erro">' + r.erros + ' erro' + (r.erros > 1 ? 's' : '') + '</span>' : '') +
-      '<span class="contador aviso">' + r.avisos + ' aviso' + (r.avisos === 1 ? '' : 's') + '</span>' +
-      '<span class="contador ok">' + r.dicas + ' dica' + (r.dicas === 1 ? '' : 's') + '</span></div>' +
-      '<button class="botao fantasma" data-act="cancelar">Cancelar</button>' +
-      '<button class="botao" data-act="relatorio" title="Monta as pranchas e a lista de peças, sem mexer no modelo"' + (r.erros ? ' disabled' : '') + '>Gerar relatório</button>' +
-      '<button class="botao primario" data-act="gerar"' + (r.erros || st.gerando ? ' disabled' : '') + '>' + (st.gerando ? 'Gerando…' : txt) + '</button>';
+    $('#rodape').innerHTML = '<div class="rodape-topo"><button class="resumo-conf" data-act="confAbrir" title="Ver a conferência técnica">' +
+      (r.erros ? '<span class="contador erro">' + r.erros + ' erro' + (r.erros > 1 ? 's' : '') + '</span>' : '<span class="contador ok">' + ILU.st_ok + 'pronto para gerar</span>') +
+      (r.avisos ? '<span class="contador aviso">' + r.avisos + ' aviso' + (r.avisos === 1 ? '' : 's') + '</span>' : '') + '</button>' +
+      '<div class="bloco-versao">' + htmlVersao + '</div></div>' +
+      '<div class="rodape-botoes"><button class="botao fantasma pequeno" data-act="cancelar">cancelar</button>' +
+      '<button class="botao" data-act="relatorio" title="Monta as pranchas e a lista de peças, sem mexer no modelo"' + (r.erros ? ' disabled' : '') + '>' + IC.abaRel + 'relatório</button>' +
+      '<button class="botao primario" data-act="gerar"' + (r.erros || st.gerando ? ' disabled' : '') + '>' + (st.gerando ? 'gerando…' : esc(txt.toLowerCase())) + '</button></div>';
   }
 
   // ---------------------------------------------------------------- painel
@@ -268,7 +270,8 @@
     st.visitadas = st.visitadas || {};
     st.visitadas[st.aba] = true;
     var r = (st.modelo && st.modelo.resumo) || {};
-    var h = '<div class="trilho-etapas">' + ABAS.map(function (a, k) {
+    var h = '<div class="trilho-logo" title="planê.mob"><svg viewBox="0 0 100 100"><path d="M17 79C18 62 18 46 21 38C25 27 37 27 41 38C44 47 44 62 43 71C42 80 35 82 34 75C33 66 43 40 52 32C60 25 71 28 73 40C75 52 74 65 75 74C76 83 83 85 89 77" fill="none" stroke="#f5f1ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>planê<i>.mob</i></span></div>';
+    h += '<div class="trilho-etapas">' + ABAS.map(function (a, k) {
       var alerta = a[0] === 'montagem' && r.erros ? '<i class="trilho-alerta" title="' + r.erros + ' erro(s) na conferência"></i>' : '';
       return '<button data-act="aba:' + a[0] + '" class="etapa' + (st.aba === a[0] ? ' ativo' : '') + (st.visitadas[a[0]] ? ' visitada' : '') + '" title="' + esc(a[1] + ' · ' + a[3]) + '">' +
         '<span class="bolinha">' + a[2] + alerta + '</span><span class="num">' + (k + 1) + '</span><span class="rot">' + a[1] + '</span></button>';
@@ -276,6 +279,34 @@
     h += '<div class="trilho-pe"><button class="etapa extra" data-act="bibGerenciar" title="Minha biblioteca de ferragens (.skp)"><span class="bolinha">' + IC.abaBib + '</span><span class="rot">biblioteca</span></button>' +
       '<button class="etapa extra" data-guia="1" title="Como usar a planê.mob"><span class="bolinha">' + IC.abaGuia + '</span><span class="rot">guia</span></button></div>';
     $('#abas').innerHTML = h;
+  }
+
+  // configurações avançadas: ficam recolhidas no fim de cada etapa (o essencial aparece primeiro)
+  var AVANCADAS = {
+    movel: ['umidade', 'estrutura', 'roda-teto', 'chapa'],
+    montagem: [],
+    frentes: ['montagem das frentes', 'prateleiras', 'desempenho'],
+    ferragens: ['dobradiças', 'minha biblioteca'],
+    acabamento: ['gavetas e fundos', 'padrão próprio', 'meus padrões'],
+    relatorio: ['código do móvel', 'no modelo']
+  };
+  try { st.avancadas = localStorage.getItem('marce-avancadas') === '1'; } catch (e) { st.avancadas = false; }
+  function organizarAvancadas(cont, aba) {
+    var lista = AVANCADAS[aba] || [];
+    var grupos = Array.prototype.filter.call(cont.children, function (g) {
+      if (!g.classList || !g.classList.contains('grupo')) return false;
+      var t = ((g.querySelector('h4') || {}).textContent || '').toLowerCase().trim();
+      return lista.some(function (n) { return t.indexOf(n) === 0; });
+    });
+    if (!grupos.length) return;
+    var nomes = grupos.map(function (g) { return ((g.querySelector('h4') || {}).textContent || '').replace('?', '').trim().toLowerCase(); });
+    var box = document.createElement('div');
+    box.className = 'avancadas' + (st.avancadas ? ' aberto' : '');
+    box.innerHTML = '<button class="botao-avancadas" data-act="avancadas">' + IC.ajustes + '<span><b>configurações avançadas</b><small>' + esc(nomes.join(' · ')) + '</small></span>' + IC.seta + '</button><div class="corpo-avancadas"></div>';
+    var corpo = box.querySelector('.corpo-avancadas');
+    var prox = cont.querySelector('.proxima-etapa');
+    cont.insertBefore(box, prox || null);
+    grupos.forEach(function (g) { corpo.appendChild(g); });
   }
 
   function renderPainel() {
@@ -288,6 +319,7 @@
     var f = { movel: abaMovel, montagem: abaMontagem, frentes: abaFrentes, ferragens: abaFerragens, acabamento: abaAcabamento, relatorio: abaRelatorio }[aba[0]];
     cont.innerHTML = '<div class="cab-etapa"><span class="eyebrow-etapa">etapa ' + (k + 1) + ' de ' + ABAS.length + '</span><h3>' + tt[0] + ' <em>' + tt[1] + '</em></h3><p>' + aba[3] + '</p></div>' + f() +
       (prox ? '<button class="proxima-etapa" data-act="aba:' + prox[0] + '"><span>próxima etapa</span><b>' + prox[1] + '</b>' + IC.seta + '</button>' : '');
+    organizarAvancadas(cont, aba[0]);
     cont.scrollTop = top;
   }
 
@@ -347,16 +379,17 @@
       h += '<button class="bib-card' + (atual && atual.id === i.id ? ' ativo' : '') + (i.existe === false ? ' faltando' : '') + '" data-act="bibUsar" data-path="' + path + '" data-id="' + esc(i.id) + '" title="' + esc(i.nome + (i.marca ? ' · ' + i.marca : '')) + '">' +
         bibMini(i) + '<b>' + esc(i.nome) + '</b><small>' + esc((i.marca ? i.marca + ' · ' : '') + bibMedidas(i.medidas)) + '</small></button>';
     });
+    h += '<button class="bib-card anexar" data-act="bibAnexar:arquivo:' + cat + '" title="Anexar arquivo do SketchUp (.skp)"><span class="mais">+</span><b>anexar .skp</b><small>do fabricante ou seu</small></button>';
     h += '</div>';
     if (!todos.length) h += '<p class="ajuda">Sua biblioteca ainda não tem ' + BIB_CAT[cat].toLowerCase() + '. Anexe o arquivo do SketchUp (.skp) do fabricante, de uma pasta ou o componente que já está no seu modelo.</p>';
     else if (!itens.length) h += '<p class="ajuda">Nada encontrado para "' + esc(busca) + '".</p>';
-    h += bibBotoes(cat);
+    h += '<p class="bib-mais"><button class="link" data-act="bibAnexar:selecao:' + cat + '">usar o componente selecionado</button> · <button class="link" data-act="bibAnexar:pasta:' + cat + '">anexar pasta</button> · <button class="link" data-act="bibGerenciar">organizar</button></p>';
     if (atual && opcoes) {
       if (atual.existe === false) h += '<p class="ajuda">O arquivo desta ferragem não está mais na biblioteca: o móvel usa o desenho da planê.mob.</p>';
       if (opcoes.encaixe) h += '<div class="campo"><label>Tamanho no móvel</label></div>' + pilulas(path + '.encaixe', [['real', 'Tamanho real'], ['esticar', 'Esticar no comprimento']], true);
       if (opcoes.comprimento && atual.encaixe === 'esticar') h += deslizante('Comprimento', opcoes.comprimento, 60, 1200, 10, fmtMm);
-      h += interruptor('Girar 180° (virar)', path + '.virar');
-      if (opcoes.deitar) h += interruptor('Deitar (troca altura e profundidade)', path + '.deitar', 'Use se o componente entrou de lado: cada arquivo é desenhado numa posição.');
+      h += '<details class="ajuste-peca"><summary>a peça entrou de lado ou virada?</summary>' + interruptor('Girar 180° (virar)', path + '.virar') +
+        (opcoes.deitar ? interruptor('Deitar (troca altura e profundidade)', path + '.deitar') : '') + '<p class="ajuda">Cada arquivo do fabricante é desenhado numa posição; ajuste aqui se precisar.</p></details>';
     }
     return h + '</div>';
   }
@@ -464,7 +497,7 @@
   }
 
   // altura recomendada da frente (mm): gaveta de talheres/utensílios, gavetão de panelas, gavetão com gaveta interna
-  var GAV_REC = { gaveta: [120, 250], gavetao: [250, 450], interna: [300, 450] };
+  var GAV_REC = { gaveta: [100, 300], gavetao: [250, 450], interna: [300, 450] };
   function fmtMm(v) { return Math.round(v) + ' mm'; }
   function fmtM(v) { return m2(v) + ' m'; }
 
@@ -571,7 +604,7 @@
 
     h += '<div class="campo"><label>Esta faixa é' + aj('tipoFaixa') + '</label></div><div class="icone-tipo">';
     Object.keys(E.TIPOS_SECAO).forEach(function (k) {
-      h += '<button class="card-op' + (sec.tipo === k ? ' ativo' : '') + '" data-act="secTipo:' + k + '">' + IC[k] + '<span>' + E.TIPOS_SECAO[k] + '</span></button>';
+      h += '<button class="card-op' + (sec.tipo === k ? ' ativo' : '') + '" data-act="secTipo:' + k + '">' + (IC[k] || IC['sec_' + k] || '') + '<span>' + E.TIPOS_SECAO[k] + '</span></button>';
     });
     h += '</div>';
     h += opcoesSecao(sec);
@@ -849,6 +882,8 @@
       case 'vista': st.vista = p[1]; renderCabecalho(); renderVisao(); return;
       case 'aberto': st.aberto3d = p[1] === '1'; renderVisao(); return;
       case 'interno': st.interno = p[1] === '1'; renderVisao(); return;
+      case 'avancadas': st.avancadas = !st.avancadas; try { localStorage.setItem('marce-avancadas', st.avancadas ? '1' : '0'); } catch (e) { /* */ } renderPainel(); return;
+      case 'confAbrir': st.confAberta = true; renderConferencia(); var ce = $('#conferencia'); if (ce && ce.scrollIntoView) ce.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); return;
       case 'aba': st.aba = p[1]; renderPainel(); return;
       case 'conf': st.confAberta = !st.confAberta; renderConferencia(); return;
       case 'comodo': {

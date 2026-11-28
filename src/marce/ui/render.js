@@ -174,18 +174,18 @@
         if (p.furo) {
           var fx = p.x + p.furo.x, fz = p.z + p.furo.z;
           s.push('<circle cx="' + X(fx) + '" cy="' + Y(fz) + '" r="' + n1(p.furo.d / 2) + '" fill="' + shade(intCor, 0.45) + '" stroke="' + shade(intCor, 0.3) + '" stroke-width="0.7" vector-effect="non-scaling-stroke"/>');
-          s.push('<text class="rotulo" x="' + n1(+X(fx) - p.furo.d / 2 - fs * 0.4) + '" y="' + n1(+Y(fz) + fs * 0.25) + '" font-size="' + n1(fs * 0.6) + '" text-anchor="end">furo Ø' + p.furo.d + ' p/ sifão</text>');
         }
       });
       if (M.cuba) {
-        // sifão desenhado: da válvula da cuba até a saída na parede (ou para baixo, sem fundo)
-        var fundoC = M.pecas.filter(function (p) { return p.furo; })[0];
-        var zs = d.zTop - Math.min(220, d.Hc * 0.35), xs = M.cuba.centro;
-        var zSaida = fundoC ? fundoC.z + fundoC.furo.z : Math.max(d.z0 + 80, zs - 330);
-        // válvula → desce → curva em "U" (fecho hídrico) → sobe até a altura da saída e volta para o furo
-        var r = Math.max(30, fs * 1.2), zU = Math.max(d.z0 + 40, zSaida - 2.2 * r);
-        s.push('<path class="sifao" d="M' + X(xs) + ' ' + Y(zs) + ' V' + Y(zU + r) + ' A' + n1(r) + ' ' + n1(r) + ' 0 0 0 ' + X(xs + 2 * r) + ' ' + Y(zU + r) + ' V' + Y(zSaida) + ' H' + X(xs) + '" fill="none" stroke="#9aa3ab" stroke-width="' + n1(fs * 0.35) + '" stroke-linecap="round" stroke-linejoin="round"/>');
-        s.push('<rect class="cuba-proj" x="' + X(M.cuba.x0) + '" y="' + Y(d.zTop) + '" width="' + n1(M.cuba.x1 - M.cuba.x0) + '" height="' + n1(Math.min(220, d.Hc * 0.35)) + '"/>');
+        // área reservada para sifão e registros (sem desenhar o sifão: cada obra é de um jeito)
+        var cubaH = Math.min(220, d.Hc * 0.35), zBaseZ = d.z0 + (spec.esp ? spec.esp.caixa : 18), zTopoZ = d.zTop - cubaH;
+        if (!defs['hachura-sifao']) defs['hachura-sifao'] = '<pattern id="hachura-sifao" patternUnits="userSpaceOnUse" width="16" height="16" patternTransform="rotate(45)"><rect width="16" height="16" fill="rgba(244,232,229,.55)"/><line x1="0" y1="0" x2="0" y2="16" stroke="rgba(168,138,128,.45)" stroke-width="3"/></pattern>';
+        s.push('<rect class="cuba-proj" x="' + X(M.cuba.x0) + '" y="' + Y(d.zTop) + '" width="' + n1(M.cuba.x1 - M.cuba.x0) + '" height="' + n1(cubaH) + '"/>');
+        s.push('<rect class="zona-sifao" x="' + X(M.cuba.x0) + '" y="' + Y(zTopoZ) + '" width="' + n1(M.cuba.x1 - M.cuba.x0) + '" height="' + n1(Math.max(0, zTopoZ - zBaseZ)) + '"/>');
+        s.push('<text class="zona-txt" x="' + X(M.cuba.centro) + '" y="' + Y(zTopoZ - fs * 1.3) + '" font-size="' + n1(fs * 0.62) + '" text-anchor="middle">área livre</text>');
+        s.push('<text class="zona-txt" x="' + X(M.cuba.centro) + '" y="' + Y(zTopoZ - fs * 2.2) + '" font-size="' + n1(fs * 0.62) + '" text-anchor="middle">sifão e registros</text>');
+        var fFuro = M.pecas.filter(function (p) { return p.furo; })[0];
+        if (fFuro) s.push('<text class="zona-txt" x="' + X(M.cuba.centro) + '" y="' + Y(zBaseZ + fs * 0.6) + '" font-size="' + n1(fs * 0.58) + '" text-anchor="middle">furo Ø' + fFuro.furo.d + ' a ' + Math.round(fFuro.z + fFuro.furo.z) + ' mm</text>');
       }
     }
     // prateleiras visíveis em nichos

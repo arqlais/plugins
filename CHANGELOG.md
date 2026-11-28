@@ -1,5 +1,13 @@
 # Novidades da planê.mob
 
+## 1.18.0
+- Janela repaginada: menu flutuante à esquerda com cantos arredondados, prévia num palco central e painel flutuante à direita, tudo na identidade da planê
+- Mais simples: cada etapa mostra só o essencial; o resto fica em "configurações avançadas", que abre quando você precisar (e lembra a escolha)
+- Ações sempre à mão no pé do painel: conferência, relatório e gerar móvel
+- Vista interna: no lugar do desenho do sifão, a área livre reservada para sifão e registros (com o furo, quando houver)
+- Biblioteca mais enxuta: cartão "+ anexar .skp" junto dos modelos e ajustes de posição só quando a peça entra virada
+- Cores só da paleta planê (sem verde nem vermelho)
+
 ## 1.17.0
 - Menu lateral com as etapas na ordem (móvel, montagem, frentes, ferragens, acabamento, relatório) e a etapa Ferragens separada das Frentes
 - Minha biblioteca: anexe puxadores, corrediças, dobradiças, porta-temperos e lixeiras do fabricante (.skp), um arquivo, uma pasta inteira ou o componente selecionado no modelo; busca por nome, marca ou medida, e o móvel usa a peça real
