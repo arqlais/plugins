@@ -1,5 +1,9 @@
 # Novidades do marcê
 
+## 1.11.0
+- Tamanho da folha editável no editor de pranchas: A4 a A0 ou personalizada (largura e altura em mm), deitada ou em pé
+- Carimbo, margens e textos se ajustam ao tamanho da folha; detalhes construtivos reorganizam as colunas conforme o formato
+
 ## 1.10.1
 - Simbologia virou "legenda": coluna estreita no alto, à direita da prancha, com ícones e textos pequenos; as vistas ganham o espaço
 

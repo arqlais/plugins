@@ -12,6 +12,13 @@ function embutir(html) {
     .replace(/url\(fonts\//g, 'url(file://' + path.join(UI, 'fonts') + '/');
 }
 
+// A4, A3..., "A4-retrato" ou "500x350" (personalizada)
+function folhaDe(f, visual) {
+  const m = /^(\d+)x(\d+)$/.exec(f);
+  const base = { visual, unidade: 'cm', corCota: '#c0392b', orientacao: /-retrato$/.test(f) ? 'retrato' : 'paisagem' };
+  return m ? Object.assign(base, { folha: 'personalizada', larguraFolha: m[1], alturaFolha: m[2] }) : Object.assign(base, { folha: f.replace('-retrato', '') });
+}
+
 (async () => {
   const out = path.resolve(process.argv[2] || path.join(__dirname, 'prints'));
   const folha = process.argv[3] || 'A4';
@@ -39,7 +46,7 @@ function embutir(html) {
     { codigo: 'M02', nome: 'Aéreo cozinha', atual: false, cantos: [[0.52, 0.12], [0.85, 0.12], [0.85, 0.18], [0.52, 0.18]] },
     { codigo: 'M03', nome: 'Painel TV', atual: false, cantos: [[0.14, 0.78], [0.4, 0.78], [0.4, 0.83], [0.14, 0.83]] }] };
   const html = embutir(REL.gerar(E.calcular(s), {
-    imagens: { mapa }, versao: 'teste', prancha: { folha, visual, unidade: 'cm', corCota: '#c0392b' },
+    imagens: { mapa }, versao: 'teste', prancha: folhaDe(folha, visual),
     projeto: { cliente: 'Laura e Pedro', obra: 'Apto 1203 · Integrada', etapa: 'Detalhamento de marcenaria', revisao: 'R00' },
     escritorio: { nome: 'Estúdio Exemplo', responsavel: 'Arq. Fulana', registro: 'CAU A000000', email: 'contato@exemplo.com', contato: '@estudio' }
   }));

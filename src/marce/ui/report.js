@@ -21,6 +21,12 @@
     return null;
   }
 
+  // tamanho da folha (mm): padrão ABNT ou personalizada; deitada ou em pé
+  function dimFolha(est) {
+    var d = est.folha === 'personalizada' ? [Math.max(150, Number(est.larguraFolha) || 420), Math.max(105, Number(est.alturaFolha) || 297)] : (FOLHAS[est.folha] || FOLHAS.A4).slice();
+    var maior = Math.max(d[0], d[1]), menor = Math.min(d[0], d[1]);
+    return est.orientacao === 'retrato' ? [menor, maior] : [maior, menor];
+  }
   var ESC_PRANCHA = [10, 20, 25, 50, 75, 100, 200, 250, 500];
   var FOLHAS = { A4: [297, 210], A3: [420, 297], A2: [594, 420], A1: [841, 594], A0: [1189, 841] };
   var LACO = 'M17 79C18 62 18 46 21 38C25 27 37 27 41 38C44 47 44 62 43 71C42 80 35 82 34 75C33 66 43 40 52 32C60 25 71 28 73 40C75 52 74 65 75 74C76 83 83 85 89 77';
@@ -103,7 +109,7 @@
     '.vista{margin:0;display:flex;flex-direction:column;min-height:0;min-width:0}.vista .img{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}.vista .img img,.vista .img>svg.perspectiva{max-width:100%;max-height:100%;width:auto;height:100%;object-fit:contain}',
     '.tv{display:flex;align-items:center;gap:calc(var(--k)*1.8mm);margin-top:calc(var(--k)*1.2mm)}.tv .n{flex:none;min-width:calc(var(--k)*8mm);height:calc(var(--k)*8mm);padding:0 calc(var(--k)*1mm);border:calc(var(--k)*.3mm) solid var(--t);border-radius:99px;display:grid;place-items:center;font-size:calc(var(--k)*2.6mm);font-weight:600;background:var(--tint)}.tv b{display:block;font-size:calc(var(--k)*3.3mm);font-weight:500;border-bottom:calc(var(--k)*.3mm) solid var(--t);padding:0 calc(var(--k)*8mm) calc(var(--k)*.2mm) 0;line-height:1.2;white-space:nowrap}.tv small{display:block;font-size:calc(var(--k)*2.1mm);font-style:italic;text-transform:uppercase;letter-spacing:.03em;margin-top:calc(var(--k)*.4mm)}',
     '.vistas2{flex:1;min-height:0;display:flex;flex-direction:column;gap:calc(var(--k)*2mm)}.vistas2 .vista{flex:1;justify-content:center;align-items:center}.vistas2 .vista .img,.lat .vista .img{flex:none}.vistas2 .tv{align-self:center}.lat{display:flex;gap:calc(var(--k)*5mm);align-items:center;justify-content:center;flex:1;min-height:0}.lat .vista{align-items:flex-start}.lat-simb{display:grid;grid-template-columns:1fr;gap:calc(var(--k)*3mm)}.lat-simb .simb ul{grid-template-columns:repeat(3,1fr)}',
-    '.dt-dir{display:flex;flex-direction:column;gap:calc(var(--k)*2.2mm);min-height:0;border-left:calc(var(--k)*.25mm) solid var(--b);padding-left:calc(var(--k)*3.5mm)}.dt-dir h2{font-size:calc(var(--k)*2.2mm);text-transform:uppercase;letter-spacing:.05em;text-align:center;line-height:1.25}',
+    '.dt-dir{display:flex;flex-direction:column;gap:calc(var(--k)*1.8mm);min-height:0;overflow:hidden;border-left:calc(var(--k)*.25mm) solid var(--b);padding-left:calc(var(--k)*3.5mm)}.dt-dir h2{font-size:calc(var(--k)*2.2mm);text-transform:uppercase;letter-spacing:.05em;text-align:center;line-height:1.25}',
     '.md{background:#fbf7f5;border:calc(var(--k)*.25mm) solid var(--b);border-radius:calc(var(--k)*2.6mm);padding:calc(var(--k)*1.6mm) calc(var(--k)*2mm) calc(var(--k)*1.2mm);display:flex;flex-direction:column;gap:calc(var(--k)*.6mm);min-width:0}.md header{display:flex;align-items:center;gap:calc(var(--k)*1.5mm)}.md header span{flex:none;background:var(--t);color:#fff;border-radius:99px;padding:calc(var(--k)*.25mm) calc(var(--k)*1.6mm);font-size:calc(var(--k)*1.9mm);font-weight:600;letter-spacing:.04em}.md header b{font-size:calc(var(--k)*2.35mm);font-weight:600;text-transform:lowercase;line-height:1.15}.md svg{width:100%;height:auto;display:block}.md footer{display:flex;justify-content:space-between;font-size:calc(var(--k)*1.75mm);color:var(--m);text-transform:lowercase}.md footer i{font-style:normal;color:var(--ink)}',
     '.mapa{position:relative;margin:0 auto;max-width:100%}.mapa img{position:absolute;inset:0;width:100%;height:100%;display:block}.mapa svg{position:absolute;inset:0;width:100%;height:100%}',
     '.pm{flex:1;min-height:0;display:grid;grid-template-columns:1fr calc(var(--k)*62mm);gap:calc(var(--k)*5mm)}.pm .lado{display:flex;flex-direction:column;gap:calc(var(--k)*2mm)}.pm table{border-collapse:collapse;font-size:.9em;width:100%}.pm td{padding:calc(var(--k)*1mm) calc(var(--k)*1.2mm);border-top:calc(var(--k)*.2mm) solid #eee6e2}.pm td:first-child{width:calc(var(--k)*13mm)}.pm .cod{display:inline-block;background:#9a3b2f;color:#fff;border-radius:99px;padding:0 calc(var(--k)*1.6mm);font-weight:600;font-size:.86em}.pm tr.atual td{background:var(--tint);font-weight:600}.loc{margin-top:calc(var(--k)*1mm)}.loc h2{margin-bottom:calc(var(--k)*1mm)}',
@@ -243,8 +249,8 @@
     var spec = dados.spec;
     var M = E.calcular(spec);
     var d = M.dims;
-    var dim = FOLHAS[est.folha] || FOLHAS.A4;
-    var Wf = dim[0], Hf = dim[1], k = Wf / 297;
+    var dim = dimFolha(est);
+    var Wf = dim[0], Hf = dim[1], k = Math.sqrt(Wf * Hf / (297 * 210));
     var mE = 15 * k, mO = 7 * k, carH = 27 * k;
     var areaW = Wf - mE - mO - 12 * k, areaH = Hf - 2 * mO - carH - 8 * k;
     var amb = E.AMBIENTES[spec.ambiente] || E.AMBIENTES.seco;
@@ -263,7 +269,7 @@
       return '<div class="carimbo">' +
         '<div class="tit"><div class="lg">' + logo + '</div><small>' + esc(proj.etapa || 'detalhamento de marcenaria') + '</small><div class="nome">' + esc(spec.nome) + '</div></div>' +
         '<div class="kv"><small>cliente</small><span>' + esc(proj.cliente || '—') + '</span><small>obra</small><span>' + esc(proj.obra || '—') + '</span><small>ambiente</small><span>' + esc(amb.label) + '</span><small>móvel</small><span>' + esc(tipoLabel) + '</span></div>' +
-        '<div class="kv"><small>data</small><span>' + esc(proj.data || dataHoje()) + '</span><small>escala</small><span>' + (escala ? '1/' + escala : 'indicada') + '</span><small>folha</small><span>' + esc(est.folha) + '</span><small>revisão</small><span>' + esc(proj.revisao || 'R00') + '</span></div>' +
+        '<div class="kv"><small>data</small><span>' + esc(proj.data || dataHoje()) + '</span><small>escala</small><span>' + (escala ? '1/' + escala : 'indicada') + '</span><small>folha</small><span>' + esc(est.folha === 'personalizada' ? Math.round(Wf) + '×' + Math.round(Hf) : est.folha) + '</span><small>revisão</small><span>' + esc(proj.revisao || 'R00') + '</span></div>' +
         '<div class="notas"><small>notas</small>' + (est.notas ? esc(est.notas).replace(/\n/g, '<br>') : 'Conferir medidas no local antes da produção. Cotas em ' + ({ m: 'metros', cm: 'centímetros', mm: 'milímetros' }[est.unidade]) + '. Imprimir em 100% (escala real). Detalhamento a ser revisado com o marceneiro.') + '</div>' +
         '<div class="kv"><small>escritório</small><span><b>' + esc(escr.nome || '—') + '</b></span><small>resp.</small><span>' + esc(escr.responsavel || '—') + '</span><small>registro</small><span>' + esc(escr.registro || '—') + '</span><small>contato</small><span>' + esc([escr.email, escr.contato].filter(Boolean).join(' · ') || '—') + '</span></div>' +
         '<div class="num"><b>' + ('0' + num).slice(-2) + '</b><small>de ' + ('0' + total).slice(-2) + '</small></div></div>';
@@ -308,7 +314,7 @@
     if (M.pecas.some(function (p) { return p.nome === 'Vidro canelado'; })) sw.push('<div><span style="background:#cfdde2"></span>Vidro canelado<small>temperado</small></div>');
     if (M.pecas.some(function (p) { return p.grupo === 'pedra'; })) sw.push('<div><span style="background:' + esc(R.corMat ? R.corMat(spec, 'pedra') : '#dcd9d2') + '"></span>Tampo em pedra<small>a definir</small></div>');
     var dir = '<div class="dt-dir">' + dets.slice(0, 2).map(cartaoMd).join('') + (dets.length > 2 ? '<p class="nota" style="text-align:center;margin:0">+ ' + (dets.length - 2) + ' detalhes na prancha de detalhes construtivos</p>' : '') +
-      (img.mapa ? '<div class="loc"><h2>planta de localização</h2>' + mapaHtml(img.mapa, wDir - 4 * k, 34 * k, true) + '</div>' : '') +
+      (img.mapa ? '<div class="loc"><h2>planta de localização</h2>' + mapaHtml(img.mapa, wDir - 4 * k, 27 * k, true) + '</div>' : '') +
       '<h2 style="margin-top:' + n1(1 * k) + 'mm">materiais</h2><div class="sw">' + sw.join('') + '</div>' +
       '<div class="obs"><b>' + cm(d.L) + ' × ' + cm(d.D) + ' × ' + cm(d.H) + ' cm</b> · ' + esc(amb.label.toLowerCase()) + ' · ' + M.resumo.pecas + ' peças<br>' + M.resumo.portas + ' portas · ' + M.resumo.gavetas + ' gavetas' +
       (spec.led && spec.led.ativo ? ' · LED ' + spec.led.temperatura + 'K' : '') + '<br>Conferir todas as medidas no local antes da execução. Cotas em ' + ({ m: 'metros', cm: 'centímetros', mm: 'milímetros' }[est.unidade]) + '.</div></div>';
@@ -395,9 +401,16 @@
 
     secao = 'detalhes';
     // detalhes construtivos (todos os que valem para o móvel), 6 por prancha
-    for (var di = 0; di < dets.length; di += 6) {
-      pagina(cabeca('<span style="text-transform:none">' + esc(codigo) + '</span> · detalhes construtivos' + (dets.length > 6 ? ' · ' + (di / 6 + 1) + '/' + Math.ceil(dets.length / 6) : '')) +
-        '<div class="mds">' + dets.slice(di, di + 6).map(function (dt, i) { return cartaoMd(dt, di + i); }).join('') + '</div>');
+    // grade que se adapta ao formato da folha: menos colunas em folha alta, mais em folha comprida
+    var gapD = 4 * k, cabD = 14 * k, hD = areaH - 10 * k, cD = 3, porD = 6;
+    for (var cc = 2; cc <= 6; cc++) {
+      var cw = (areaW - gapD * (cc - 1)) / cc, chh = cw * 0.75 + cabD;
+      var rr = Math.max(1, Math.floor((hD + gapD) / (chh + gapD)));
+      if (rr * cc >= Math.min(6, dets.length) || cc === 6) { cD = cc; porD = rr * cc; break; }
+    }
+    for (var di = 0; di < dets.length; di += porD) {
+      pagina(cabeca('<span style="text-transform:none">' + esc(codigo) + '</span> · detalhes construtivos' + (dets.length > porD ? ' · ' + (di / porD + 1) + '/' + Math.ceil(dets.length / porD) : '')) +
+        '<div class="mds" style="grid-template-columns:repeat(' + cD + ',1fr)">' + dets.slice(di, di + porD).map(function (dt, i) { return cartaoMd(dt, di + i); }).join('') + '</div>');
     }
 
     secao = 'elementos';
@@ -496,7 +509,7 @@
   function montar(dados) {
     var doc = root.document;
     var chaveProj = 'marce-editor-projeto:' + String(dados.arquivo || dados.spec.nome || 'projeto');
-    var base = Object.assign({ folha: 'A4', visual: 'marce', unidade: 'cm', corCota: '#c0392b', corNumero: '', corPrincipal: '#3e4b57', corDestaque: '#a88a80', notas: '', paginas: {} }, dados.prancha || {});
+    var base = Object.assign({ folha: 'A4', orientacao: 'paisagem', larguraFolha: '', alturaFolha: '', visual: 'marce', unidade: 'cm', corCota: '#c0392b', corNumero: '', corPrincipal: '#3e4b57', corDestaque: '#a88a80', notas: '', paginas: {} }, dados.prancha || {});
     var salvoE = ler(CHAVE_ESC) || {}, salvoP = ler(chaveProj) || {};
     var est = Object.assign(base, salvoE.prancha || {});
     if (!est.corNumero) est.corNumero = est.corCota;
@@ -506,23 +519,24 @@
     var timer = null;
 
     function salvar() {
-      var pr = {}; ['folha', 'visual', 'unidade', 'corCota', 'corNumero', 'corPrincipal', 'corDestaque', 'notas', 'paginas'].forEach(function (k) { pr[k] = est[k]; });
+      var pr = {}; ['folha', 'larguraFolha', 'alturaFolha', 'orientacao', 'visual', 'unidade', 'corCota', 'corNumero', 'corPrincipal', 'corDestaque', 'notas', 'paginas'].forEach(function (k) { pr[k] = est[k]; });
       var ok = gravar(CHAVE_ESC, { prancha: pr, escritorio: est.escritorio }) & gravar(chaveProj, { projeto: est.projeto, codigo: est.codigo });
       var el = doc.getElementById('ed-ok'); if (el) el.textContent = ok ? 'salvo neste navegador' : 'não foi possível salvar neste navegador';
     }
     function desenhar() {
-      var dim = FOLHAS[est.folha];
+      var dim = dimFolha(est);
       doc.body.className = est.visual === 'neutro' ? 'neutro' : '';
       doc.getElementById('pagina').textContent = '@page{size:' + dim[0] + 'mm ' + dim[1] + 'mm;margin:0}';
       doc.getElementById('pranchas').innerHTML = montarPranchas(dados, est);
       ajustarZoom();
       Array.prototype.forEach.call(doc.querySelectorAll('[data-f]'), function (b) { b.classList.toggle('ativo', b.getAttribute('data-v') === String(est[b.getAttribute('data-f')])); });
+      var pers = doc.getElementById('ed-pers'); if (pers) pers.style.display = est.folha === 'personalizada' ? '' : 'none';
       var pv = doc.getElementById('ed-logo-pv'); if (pv) pv.innerHTML = est.escritorio.logo ? '<img src="' + esc(est.escritorio.logo) + '" alt="">' : logoSvg(est.corPrincipal, '#f5f1ee');
-      doc.getElementById('dica-papel').textContent = 'Na impressão: papel ' + est.folha + ' deitado, margens "nenhuma", escala 100%: os desenhos saem na escala indicada.';
+      doc.getElementById('dica-papel').textContent = 'Na impressão: papel ' + (est.folha === 'personalizada' ? Math.round(dim[0]) + ' × ' + Math.round(dim[1]) + ' mm' : est.folha) + (est.orientacao === 'retrato' ? ' em pé' : ' deitado') + ', margens "nenhuma", escala 100%: os desenhos saem na escala indicada.';
     }
     function depois() { clearTimeout(timer); timer = setTimeout(function () { desenhar(); salvar(); }, 250); }
     function ajustarZoom() {
-      var dim = FOLHAS[est.folha];
+      var dim = dimFolha(est);
       var px = dim[0] * 96 / 25.4;
       var livre = root.innerWidth - (doc.querySelector('.ed') ? 330 : 0) - 40;
       doc.getElementById('pranchas').style.zoom = Math.min(1, livre / px);
@@ -607,7 +621,9 @@
     function cor(rot, ch) { return '<label class="ed-cor"><span>' + rot + '</span><input type="color" data-e="' + ch + '"></label>'; }
     function sec(t, c) { return '<div class="ed-sec"><p class="ed-h">' + t + '</p>' + c + '</div>'; }
     var ed = '<aside class="ed"><div class="ed-top">' + logoSvg('#3e4b57', '#f5f1ee') + '<div><b>marc<i>ê</i> · pranchas</b><small>' + esc(spec.nome) + '</small></div></div><div class="ed-sc">' +
-      sec('folha', pills('folha', Object.keys(FOLHAS).map(function (f) { return [f, f]; })) + pills('visual', [['marce', 'com cores'], ['neutro', 'neutro (preto e cinza)']])) +
+      sec('folha', pills('folha', Object.keys(FOLHAS).map(function (f) { return [f, f]; }).concat([['personalizada', 'personalizada']])) +
+        '<div class="ed-dois" id="ed-pers">' + '<div class="ed-campo"><label>largura (mm)</label><input type="text" inputmode="numeric" data-e="est.larguraFolha" placeholder="420"></div><div class="ed-campo"><label>altura (mm)</label><input type="text" inputmode="numeric" data-e="est.alturaFolha" placeholder="297"></div></div>' +
+        pills('orientacao', [['paisagem', 'deitada'], ['retrato', 'em pé']]) + pills('visual', [['marce', 'com cores'], ['neutro', 'neutro (preto e cinza)']])) +
       sec('cores da prancha', cor('cor principal (textos e molduras)', 'est.corPrincipal') + cor('cor de destaque (títulos e selos)', 'est.corDestaque')) +
       sec('cotas', pills('unidade', [['cm', 'cm (80,0)'], ['m', 'metros'], ['mm', 'mm']]) + cor('linha da cota', 'est.corCota') + cor('número da cota', 'est.corNumero')) +
       sec('logotipo', '<div class="ed-logo"><div class="pv" id="ed-logo-pv"></div><div style="display:flex;flex-direction:column;gap:6px"><label class="ed-bt" style="text-align:center">escolher imagem<input type="file" id="ed-logo" accept="image/*" hidden></label><button class="ed-bt" data-acao="tirar-logo">usar o do marcê</button></div></div>') +
