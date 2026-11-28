@@ -1,4 +1,4 @@
-# marcê — leitura do volume selecionado e detecção da cuba
+# planê.mob — leitura do volume selecionado e detecção da cuba
 #
 # O volume é a "caixa" que a pessoa modela onde o móvel vai ficar.
 # Daqui saem: comprimento (L), profundidade (D), altura (H) e a âncora
@@ -38,7 +38,7 @@ module ArqLais
         end
         sel = sel.select { |e| e.valid? }
         return nil if sel.empty?
-        # um único grupo/componente que não seja um móvel do marcê
+        # um único grupo/componente que não seja um móvel da planê.mob
         if sel.length == 1 && (sel[0].is_a?(Sketchup::Group) || sel[0].is_a?(Sketchup::ComponentInstance))
           e = sel[0]
           return nil if e.get_attribute(DICT, 'spec')

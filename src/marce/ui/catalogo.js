@@ -1,5 +1,5 @@
 /*
- * marcê — catálogo de padrões de MDF por marca.
+ * planê.mob — catálogo de padrões de MDF por marca.
  * As cores são APROXIMADAS (servem para a prévia e para tingir a textura
  * no SketchUp). Confira sempre o mostruário físico do fornecedor.
  * Você pode adicionar padrões próprios pela janela (aba Acabamento).

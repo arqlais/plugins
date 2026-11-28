@@ -1,6 +1,6 @@
-# marcê — autoteste dentro do SketchUp
+# planê.mob — autoteste dentro do SketchUp
 #
-# Extensões → marcê → Autoteste. A janela (ui/autoteste.html) calcula vários móveis com o
+# Extensões → planê.mob → Autoteste. A janela (ui/autoteste.html) calcula vários móveis com o
 # motor e manda um por vez; aqui cada um é gerado de verdade no modelo, conferido (peças,
 # portas e gavetas, faces, medidas, materiais, etiquetas, abrir/fechar, edição) e tudo é
 # desfeito no fim (abort_operation): o modelo da usuária volta exatamente como estava.
@@ -15,7 +15,7 @@ module ArqLais
           return
         end
         d = UI::HtmlDialog.new(
-          dialog_title: 'marcê · autoteste',
+          dialog_title: 'planê.mob · autoteste',
           preferences_key: 'ArqLais_Marce_Autoteste',
           scrollable: true, resizable: true,
           width: 820, height: 820, min_width: 620, min_height: 520,
@@ -67,7 +67,7 @@ module ArqLais
           ok.call('captura de imagem da vista', false, e.message)
         end
         ok.call('download para atualização', defined?(Sketchup::Http::Request) ? true : false, defined?(Sketchup::Http::Request) ? 'Sketchup::Http disponível' : 'sem Sketchup::Http (usa Net::HTTP)')
-        ok.call("versão do marcê #{VERSAO}", true, PASTA)
+        ok.call("versão da planê.mob #{VERSAO}", true, PASTA)
         { 'versao' => VERSAO, 'itens' => itens }
       end
 
@@ -81,7 +81,7 @@ module ArqLais
         conjs = dados.dig('modelo', 'conjuntos') || []
         spec = dados['spec'] || {}
         t0 = Time.now
-        model.start_operation('marcê: autoteste', true)
+        model.start_operation('planê.mob: autoteste', true)
         begin
           grupo, erros = Construtor.gerar(model, dados, {}, operacao: false)
           ok.call('gera o móvel no modelo', grupo && grupo.valid?, "#{pecas.length} peças em #{((Time.now - t0) * 1000).round} ms")

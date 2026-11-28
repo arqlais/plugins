@@ -1,4 +1,4 @@
-// Testes do motor do marcê (node --test test/)
+// Testes do motor da planê.mob (node --test test/)
 const test = require('node:test');
 const assert = require('node:assert');
 const E = require('../src/marce/ui/engine.js');

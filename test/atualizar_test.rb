@@ -1,4 +1,4 @@
-# Teste do atualizador do marcê (sem rede: as "downloads" vêm dos arquivos do repositório)
+# Teste do atualizador da planê.mob (sem rede: as "downloads" vêm dos arquivos do repositório)
 require_relative 'sketchup_stub'
 require 'minitest/autorun'
 require 'digest'

@@ -1,4 +1,4 @@
-# Teste do lado Ruby do marcê com a API simulada (test/sketchup_stub.rb).
+# Teste do lado Ruby da planê.mob com a API simulada (test/sketchup_stub.rb).
 # Gera as peças com o motor JS real (node) e constrói no "modelo" simulado.
 # Uso: ruby test/ruby_test.rb
 require_relative 'sketchup_stub'
@@ -79,7 +79,7 @@ class TesteMarce < Minitest::Test
     grupo, erros = M::Construtor.gerar(@model, dados, { ancora: v, volume: inst })
     assert_equal 0, erros
     assert inst.hidden?, 'o volume deve ficar escondido'
-    assert_equal 'marcê · volumes', inst.layer.name
+    assert_equal 'planê.mob · volumes', inst.layer.name
     # todas as peças criadas (diretamente ou dentro de conjuntos)
     total = 0
     conj = 0
@@ -110,10 +110,10 @@ class TesteMarce < Minitest::Test
     # atributos para editar depois
     spec = JSON.parse(grupo.get_attribute('marce', 'spec'))
     assert_equal 3087, spec['L']
-    assert_equal [:start, 'marcê: gerar móvel'], @model.ops.first
+    assert_equal [:start, 'planê.mob: gerar móvel'], @model.ops.first
     assert_equal [:commit], @model.ops.last
     # materiais com textura de veio
-    mat = @model.materials['marcê · Arauco Carvalho']
+    mat = @model.materials['planê.mob · Arauco Carvalho']
     refute_nil mat
     refute_nil mat.texture
     # definições reaproveitadas (portas iguais compartilham a mesma)

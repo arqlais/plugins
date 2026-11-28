@@ -1,4 +1,4 @@
-# marcê — abrir/fechar portas, basculantes, gavetas e aramados (com animação)
+# planê.mob — abrir/fechar portas, basculantes, gavetas e aramados (com animação)
 #
 # O estado aberto/fechado é lido da própria posição do conjunto (comparada com
 # a posição fechada gravada na geração), então nada é escrito no modelo durante
@@ -123,7 +123,7 @@ module ArqLais
       # operacao: false quando quem chama já está dentro de uma operação (autoteste)
       def todos(movel, abrir, operacao: true)
         model = Sketchup.active_model
-        model.start_operation(abrir ? 'marcê: abrir tudo' : 'marcê: fechar tudo', true) if operacao
+        model.start_operation(abrir ? 'planê.mob: abrir tudo' : 'planê.mob: fechar tudo', true) if operacao
         conjuntos(movel).each { |g| g.transformation = movimento(g, abrir ? 1.0 : 0.0) * base(g) }
         model.commit_operation if operacao
         model.active_view.invalidate
@@ -133,7 +133,7 @@ module ArqLais
       def registrar(g, de, para)
         model = Sketchup.active_model
         aplicar(g, de)
-        model.start_operation(para > de ? 'marcê: abrir' : 'marcê: fechar', true)
+        model.start_operation(para > de ? 'planê.mob: abrir' : 'planê.mob: fechar', true)
         g.transformation = movimento(g, para) * base(g)
         model.commit_operation
       rescue StandardError
@@ -148,7 +148,7 @@ module ArqLais
         COR = Sketchup::Color.new(168, 138, 128)
 
         def activate
-          Sketchup.status_text = 'marcê: clique numa porta, gaveta ou aramado para abrir/fechar. Esc para sair.'
+          Sketchup.status_text = 'planê.mob: clique numa porta, gaveta ou aramado para abrir/fechar. Esc para sair.'
           @alvo = nil
           @tr = nil
         end

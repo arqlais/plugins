@@ -1,5 +1,5 @@
 /*
- * marcê — interface (janela HtmlDialog do SketchUp)
+ * planê.mob — interface (janela HtmlDialog do SketchUp)
  * Comunicação:
  *   JS -> Ruby : sketchup.<acao>(JSON)  (pronto, gerar, cancelar, detectarCuba, salvarRelatorio, salvarCsv, salvarPadroes)
  *   Ruby -> JS : App.receber({tipo, ...})
@@ -15,7 +15,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: true, relatorioJunto: true,
-    padroes: null, projeto: {}, versao: '1.13.0', gerando: false, atualizacao: null, atualizando: false
+    padroes: null, projeto: {}, versao: '1.14.0', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -128,7 +128,7 @@
     $('#vistas').innerHTML = vs.map(function (v) { return '<button data-act="vista:' + v[0] + '" class="' + (st.vista === v[0] ? 'ativo' : '') + '">' + v[1] + '</button>'; }).join('');
     if (!$('#btn-guia')) {
       var bg = document.createElement('button');
-      bg.id = 'btn-guia'; bg.className = 'btn-guia'; bg.type = 'button'; bg.title = 'Como usar o marcê'; bg.textContent = '?';
+      bg.id = 'btn-guia'; bg.className = 'btn-guia'; bg.type = 'button'; bg.title = 'Como usar a planê.mob'; bg.textContent = '?';
       bg.setAttribute('data-guia', '1');
       $('.cabecalho').appendChild(bg);
     }
@@ -209,7 +209,7 @@
     var txt = st.modo === 'editar' ? 'Atualizar móvel' : 'Gerar armário';
     if (st.relatorioJunto) txt += st.modo === 'editar' ? ' e relatório' : ' + relatório';
     var at = st.atualizacao;
-    var htmlVersao = '<span class="versao">marc<i>ê</i> ' + esc(st.versao) + '</span>';
+    var htmlVersao = '<span class="versao">planê<i>.mob</i> ' + esc(st.versao) + '</span>';
     if (st.atualizando) htmlVersao += '<span class="pilula-atualizar ocupado">atualizando…</span>';
     else if (at && at.nova) htmlVersao += '<button class="pilula-atualizar nova" data-act="atualizar" title="' + esc((at.notas || []).join(' · ')) + '">nova versão ' + esc(at.versao) + ' · atualizar</button>';
     else htmlVersao += '<button class="pilula-atualizar" data-act="verificarAtualizacao">' + (at && at.verificado ? (at.erro ? 'sem conexão · tentar de novo' : 'está atualizado') : 'verificar atualização') + '</button>';
@@ -280,7 +280,7 @@
       '<div><label>Largura (L) mm</label><input type="number" data-path="L" data-tipo="num" value="' + Math.round(s.L) + '"' + ro + '></div>' +
       '<div><label>Profund. (P) mm</label><input type="number" data-path="D" data-tipo="num" value="' + Math.round(s.D) + '"' + ro + '></div>' +
       '<div><label>Altura (A) mm</label><input type="number" data-path="H" data-tipo="num" value="' + Math.round(s.H) + '"' + ro + '></div></div>' +
-      (s.origemVolume ? '<p class="ajuda">Medidas do volume selecionado no modelo. <a href="#" data-act="liberarMedidas">Editar mesmo assim</a></p>' : '<p class="ajuda">Dica: selecione um volume (caixa) no SketchUp antes de abrir o marcê para puxar as medidas e a posição.</p>') + '</div>';
+      (s.origemVolume ? '<p class="ajuda">Medidas do volume selecionado no modelo. <a href="#" data-act="liberarMedidas">Editar mesmo assim</a></p>' : '<p class="ajuda">Dica: selecione um volume (caixa) no SketchUp antes de abrir a planê.mob para puxar as medidas e a posição.</p>') + '</div>';
 
     h += '<div class="grupo"><h4>Base · rodapé' + aj('base') + '</h4>' + cartoes('base.tipo', [['rodape', 'Rodapé recuado', 'base_rodape'], ['suspenso', 'Suspenso', 'base_suspenso'], ['pes', 'Pés', 'base_pes'], ['nenhum', 'Sem base', 'base_nenhum']]);
     if (s.base.tipo === 'rodape' || s.base.tipo === 'pes') h += deslizante('Altura', 'base.altura', 40, 200, 5, fmtMm) + deslizante('Recuo', 'base.recuo', 0, 120, 5, fmtMm);
@@ -403,7 +403,7 @@
       if (!sec.eletro) sec.eletro = { largura: 700, altura: 1800, profundidade: 700 };
       h += '<div class="campo"><label>Medidas da geladeira' + aj('geladeira') + '</label></div>' +
         campoNum('Largura', base + 'eletro.largura', 'mm') + campoNum('Altura', base + 'eletro.altura', 'mm') + campoNum('Profundidade', base + 'eletro.profundidade', 'mm') +
-        '<p class="ajuda">O nicho vai até o piso (sem base nem rodapé). O marcê confere 2 cm de folga de cada lado e 5 cm em cima. Use a medida do manual do modelo escolhido.</p>';
+        '<p class="ajuda">O nicho vai até o piso (sem base nem rodapé). A planê.mob confere 2 cm de folga de cada lado e 5 cm em cima. Use a medida do manual do modelo escolhido.</p>';
     }
     if (sec.tipo === 'espelho') h += '<p class="ajuda">Espelho 4 mm recortado em arco, colado no fundo do nicho.</p>';
     if (sec.tipo === 'painel') h += '<p class="ajuda">Faixa aberta com painel de fundo no material das frentes (ex.: entre balcão e aéreo, ou painel de TV).</p>';
@@ -515,7 +515,7 @@
     h += '<label class="interruptor"><input type="checkbox" data-act-chk="relatorioJunto"' + (st.relatorioJunto ? ' checked' : '') + '><span class="trilho"></span><span class="txt">Abrir o editor de pranchas junto ao gerar o móvel</span></label>';
     h += '<div class="linha-botoes"><button class="botao" data-act="relatorio">Abrir editor de pranchas</button><button class="botao" data-act="atualizarPrancha">Atualizar prancha</button><button class="botao" data-act="csv">Exportar lista de peças (CSV)</button></div></div>';
     h += '<div class="grupo"><h4>Código do móvel</h4><div class="campo"><label>Código na planta de marcenaria</label><input type="text" data-path="codigo" value="' + esc(st.spec.codigo || 'M01') + '" placeholder="M01" maxlength="8" style="max-width:90px"></div><p class="ajuda">Cada móvel novo recebe o próximo código livre (M01, M02...). Ele aparece no selo da isométrica, no topo das pranchas e na planta de marcenaria.</p></div>';
-    h += '<div class="grupo"><h4>No modelo</h4><p class="ajuda">Depois de gerar: use <b>Extensões → marcê → Abrir/fechar portas e gavetas</b> e clique numa porta ou gaveta para ver o interior. Para editar, selecione o móvel e clique em <b>Editar móvel</b> (ou botão direito → marcê).</p></div>';
+    h += '<div class="grupo"><h4>No modelo</h4><p class="ajuda">Depois de gerar: use <b>Extensões → planê.mob → Abrir/fechar portas e gavetas</b> e clique numa porta ou gaveta para ver o interior. Para editar, selecione o móvel e clique em <b>Editar móvel</b> (ou botão direito → planê.mob).</p></div>';
     return h;
   }
 
@@ -801,7 +801,7 @@
     var g = (window.MarceAjuda && window.MarceAjuda.guia) || [];
     var fundo = document.createElement('div');
     fundo.className = 'modal-fundo';
-    fundo.innerHTML = '<div class="modal guia" role="dialog" aria-modal="true"><p class="eyebrow-m">passo a passo</p><h2>como usar o <em>marcê</em></h2><p class="sub-m">do volume no SketchUp ao relatório do marceneiro</p><ol class="passos">' +
+    fundo.innerHTML = '<div class="modal guia" role="dialog" aria-modal="true"><p class="eyebrow-m">passo a passo</p><h2>como usar o <em>planê.mob</em></h2><p class="sub-m">do volume no SketchUp ao relatório do marceneiro</p><ol class="passos">' +
       g.map(function (p) { return '<li><b>' + esc(p[0]) + '</b><span>' + esc(p[1]) + '</span></li>'; }).join('') +
       '</ol><p class="sub-m" style="margin-top:12px">Em qualquer opção, clique no <span class="ajuda-btn falso">?</span> para ver para que serve e uma dica de marcenaria.</p><div class="botoes-m"><button class="botao primario" data-fechar-modal>começar</button></div></div>';
     document.body.appendChild(fundo);
@@ -823,7 +823,7 @@
     var lista = versoes.map(function (v) {
       return '<div class="ver"><span class="tag">versão ' + esc(v.versao) + '</span><ul>' + (v.notas || []).map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul></div>';
     }).join('');
-    fundo.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><p class="eyebrow-m">novidades</p><h2>marcê <em>atualizado</em></h2><p class="sub-m">você está na versão ' + esc(versao || st.versao) + ' · veja o que mudou</p><div class="lista-m">' + lista + '</div><div class="botoes-m"><button class="botao primario" data-fechar-modal>entendi</button></div></div>';
+    fundo.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><p class="eyebrow-m">novidades</p><h2>planê.mob <em>atualizada</em></h2><p class="sub-m">você está na versão ' + esc(versao || st.versao) + ' · veja o que mudou</p><div class="lista-m">' + lista + '</div><div class="botoes-m"><button class="botao primario" data-fechar-modal>entendi</button></div></div>';
     document.body.appendChild(fundo);
     fundo.addEventListener('click', function (ev) { if (ev.target === fundo || ev.target.hasAttribute('data-fechar-modal')) fundo.remove(); });
   }
@@ -889,7 +889,7 @@
         case 'atualizacao':
           st.atualizacao = { verificado: true, nova: !!msg.nova, versao: msg.versao, notas: msg.notas || [], erro: msg.erro || null };
           renderRodape();
-          if (msg.nova) toast('Tem versão nova do marcê: ' + msg.versao);
+          if (msg.nova) toast('Tem versão nova da planê.mob: ' + msg.versao);
           break;
         case 'salvo': toast(msg.msg || 'Arquivo salvo'); break;
         case 'aviso':

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Gera dist/marce.rbz e versao.json (lido pelo botão "Atualizar marcê")
+# Gera dist/marce.rbz e versao.json (lido pelo botão "Atualizar planê.mob")
 # Para lançar uma versão: troque VERSAO em src/marce/versao.rb, escreva as
 # novidades no topo do CHANGELOG.md, rode este script, faça commit e push.
 set -euo pipefail

@@ -1,5 +1,5 @@
-/* marcê — detalhes construtivos (desenhos próprios, sem escala).
-   Linguagem visual do marcê: peças cortadas com hachura no tom "ink" sobre rosé claro,
+/* planê.mob — detalhes construtivos (desenhos próprios, sem escala).
+   Linguagem visual da planê.mob: peças cortadas com hachura no tom "ink" sobre rosé claro,
    ferragens em cinza metálico, notas com marcador redondo e linha fina, cotas na cor
    escolhida para a prancha. Cada detalhe é um SVG 120 × 90. */
 (function (root, factory) {

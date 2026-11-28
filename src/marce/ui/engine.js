@@ -1,5 +1,5 @@
 /*
- * marcê — motor de marcenaria paramétrica
+ * planê.mob — motor de marcenaria paramétrica
  * ------------------------------------------------------------------
  * JavaScript puro (sem DOM, sem SketchUp). Recebe a especificação do
  * móvel (spec) e devolve o modelo completo: vãos, peças 3D, conjuntos

@@ -1,4 +1,9 @@
-# Novidades do marcê
+# Novidades da planê.mob
+
+## 1.14.0
+- O plugin agora se chama planê.mob, da família planê (o logo continua o mesmo)
+- Menus, janelas, pranchas e avisos com o nome novo; materiais e tags novos começam com "planê.mob ·" (móveis antigos mantêm os nomes até serem editados)
+- O menu com o nome novo aparece depois de reabrir o SketchUp
 
 ## 1.13.0
 - Prancha ligada ao móvel: depois de gerar o relatório uma vez, ao editar e atualizar o móvel a prancha aberta no navegador se redesenha sozinha (com fotos novas), mantendo cores, logotipo e dados do carimbo

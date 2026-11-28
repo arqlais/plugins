@@ -42,7 +42,7 @@ const assert = require('assert');
   await p.waitForTimeout(200);
   ch = await p.evaluate(() => window.__chamadas);
   const r = ch.find((c) => c[0] === 'salvarRelatorio');
-  assert.ok(r && r[1].html.includes('marc<i>ê</i> · pranchas') && r[1].html.includes('/*MARCE_FONTES*/') && r[1].html.includes('data:image/png'), 'relatório enviado ao Ruby com marcador de fontes e imagem');
+  assert.ok(r && r[1].html.includes('planê<i>.mob</i> · pranchas') && r[1].html.includes('/*MARCE_FONTES*/') && r[1].html.includes('data:image/png'), 'relatório enviado ao Ruby com marcador de fontes e imagem');
   assert.ok((await p.isVisible('#badge-modo')), 'passa para modo edição');
 
   // edição de um móvel existente
@@ -72,7 +72,7 @@ const assert = require('assert');
 
   // novidades depois de atualizar
   await p.evaluate(() => window.App.receber({ tipo: 'init', modo: 'novo', versao: '1.2.0', avisoAtualizado: 'ok', novidades: [{ versao: '1.2.0', notas: ['Aviso bonito'] }] }));
-  assert.ok(await p.isVisible('.modal'), 'mostra "marcê atualizado"');
+  assert.ok(await p.isVisible('.modal'), 'mostra "planê.mob atualizada"');
   assert.ok((await p.textContent('.modal')).includes('Aviso bonito'));
   await p.click('[data-fechar-modal]');
   assert.ok(!(await p.$('.modal')), 'fecha no "entendi"');

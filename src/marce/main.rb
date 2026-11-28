@@ -1,4 +1,4 @@
-# marcê — menus, barra de ferramentas e menu de contexto
+# planê.mob — menus, barra de ferramentas e menu de contexto
 require 'sketchup.rb'
 require 'json'
 
@@ -29,7 +29,7 @@ module ArqLais
       if grupo
         Dialogo.abrir_edicao(grupo)
       else
-        UI.messagebox('Selecione um móvel gerado pelo marcê para editar.')
+        UI.messagebox('Selecione um móvel gerado pela planê.mob para editar.')
       end
     end
 
@@ -38,16 +38,16 @@ module ArqLais
       if grupo
         Dialogo.abrir_edicao(grupo, relatorio: true)
       else
-        UI.messagebox('Selecione um móvel gerado pelo marcê para gerar o relatório.')
+        UI.messagebox('Selecione um móvel gerado pela planê.mob para gerar o relatório.')
       end
     end
 
     def self.cmd_atualizar_prancha
       model = Sketchup.active_model
       grupo = Util.movel_selecionado(model)
-      return UI.messagebox('Selecione um móvel gerado pelo marcê.') unless grupo
+      return UI.messagebox('Selecione um móvel gerado pela planê.mob.') unless grupo
       if Exportar.atualizar_prancha(model, grupo)
-        Sketchup.status_text = 'marcê: prancha atualizada (a página aberta no navegador se redesenha sozinha)'
+        Sketchup.status_text = 'planê.mob: prancha atualizada (a página aberta no navegador se redesenha sozinha)'
       else
         UI.messagebox('Este móvel ainda não tem prancha salva. Gere o relatório uma vez para ligar a prancha ao móvel; depois ela acompanha as mudanças.')
       end
@@ -62,7 +62,7 @@ module ArqLais
       if grupo
         AbrirFechar.todos(grupo, abrir)
       else
-        UI.messagebox('Selecione um móvel gerado pelo marcê.')
+        UI.messagebox('Selecione um móvel gerado pela planê.mob.')
       end
     end
 
@@ -71,12 +71,12 @@ module ArqLais
     end
 
     def self.cmd_sobre
-      UI.messagebox("marcê #{VERSAO}\nmarcenaria paramétrica para SketchUp\n\n" \
+      UI.messagebox("planê.mob #{VERSAO}\nmarcenaria paramétrica para SketchUp\n\n" \
                     "1. Modele um volume (caixa) onde vai o móvel e selecione.\n" \
-                    "2. Extensões → marcê → Novo móvel.\n" \
+                    "2. Extensões → planê.mob → Novo móvel.\n" \
                     "3. Configure e clique em Gerar armário.\n\n" \
                     "Selecione o móvel e use Editar para alterar depois.\n\n" \
-                    'Para atualizar: botão "Atualizar marcê" (barra ou menu).')
+                    'Para atualizar: botão "Atualizar planê.mob" (barra ou menu).')
     end
 
     def self.icone(nome)
@@ -104,10 +104,10 @@ module ArqLais
       c_rel = comando('Relatório executivo', 'Gera o relatório executivo do móvel selecionado', 'relatorio') { cmd_relatorio }
       c_abrir_tudo = comando('Abrir tudo', 'Abre todas as portas e gavetas do móvel selecionado', nil) { cmd_tudo(true) }
       c_fechar_tudo = comando('Fechar tudo', 'Fecha todas as portas e gavetas do móvel selecionado', nil) { cmd_tudo(false) }
-      c_atualizar = comando('Atualizar marcê', 'Procura a versão nova no GitHub e instala sem reinstalar', 'atualizar') { Atualizar.botao }
-      c_lista = comando('Lista de peças do projeto (CSV)', 'Soma as peças de todos os móveis do marcê no modelo', nil) { cmd_lista_projeto }
+      c_atualizar = comando('Atualizar planê.mob', 'Procura a versão nova no GitHub e instala sem reinstalar', 'atualizar') { Atualizar.botao }
+      c_lista = comando('Lista de peças do projeto (CSV)', 'Soma as peças de todos os móveis da planê.mob no modelo', nil) { cmd_lista_projeto }
 
-      menu = UI.menu('Extensions').add_submenu('marcê')
+      menu = UI.menu('Extensions').add_submenu('planê.mob')
       menu.add_item(c_novo)
       menu.add_item(c_editar)
       menu.add_separator
@@ -121,9 +121,9 @@ module ArqLais
       menu.add_separator
       menu.add_item('Autoteste (confere o plugin neste SketchUp)') { Autoteste.abrir }
       menu.add_item(c_atualizar)
-      menu.add_item('Sobre o marcê') { cmd_sobre }
+      menu.add_item('Sobre a planê.mob') { cmd_sobre }
 
-      tb = UI::Toolbar.new('marcê')
+      tb = UI::Toolbar.new('planê.mob')
       tb.add_item(c_novo)
       tb.add_item(c_editar)
       tb.add_item(c_abrir)
@@ -142,13 +142,13 @@ module ArqLais
         model = Sketchup.active_model
         grupo = Util.movel_selecionado(model)
         if grupo
-          sub = ctx.add_submenu('marcê')
+          sub = ctx.add_submenu('planê.mob')
           sub.add_item(c_editar)
           sub.add_item(c_abrir_tudo)
           sub.add_item(c_fechar_tudo)
           sub.add_item(c_rel)
         elsif Volume.provavel?(model)
-          ctx.add_submenu('marcê').add_item('Criar móvel neste volume') { cmd_novo }
+          ctx.add_submenu('planê.mob').add_item('Criar móvel neste volume') { cmd_novo }
         end
       end
 

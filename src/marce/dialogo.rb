@@ -1,4 +1,4 @@
-# marcê — janela (UI::HtmlDialog) e ponte com a interface em JavaScript
+# planê.mob — janela (UI::HtmlDialog) e ponte com a interface em JavaScript
 module ArqLais
   module Marce
     module Dialogo
@@ -54,7 +54,7 @@ module ArqLais
 
       def criar
         d = UI::HtmlDialog.new(
-          dialog_title: 'marcê · marcenaria paramétrica',
+          dialog_title: 'planê.mob · marcenaria paramétrica',
           preferences_key: 'ArqLais_Marce_Janela',
           scrollable: false, resizable: true,
           width: 1400, height: 880, min_width: 980, min_height: 620,
@@ -93,7 +93,7 @@ module ArqLais
             txt += ' · prancha atualizada' if prancha
             enviar('tipo' => 'gerado', 'ok' => true, 'msg' => txt, 'relatorio' => dados['relatorio'] ? true : false, 'imagens' => imagens)
           rescue StandardError => e
-            puts "marcê: #{e.class}: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
+            puts "planê.mob: #{e.class}: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
             enviar('tipo' => 'gerado', 'ok' => false, 'msg' => "Não foi possível gerar: #{e.message}")
           end
         end
@@ -147,7 +147,7 @@ module ArqLais
           dados = Util.ler_json(j)
           model = Sketchup.active_model
           if dados['projeto'].is_a?(Hash)
-            model.start_operation('marcê: dados do projeto', true, false, true) # transparente: não vira passo do Ctrl+Z
+            model.start_operation('planê.mob: dados do projeto', true, false, true) # transparente: não vira passo do Ctrl+Z
             model.set_attribute(DICT, 'projeto', Util.json(dados['projeto']))
             model.commit_operation
           end

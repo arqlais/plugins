@@ -1,10 +1,10 @@
-# marcê — utilidades
+# planê.mob — utilidades
 module ArqLais
   module Marce
     module Util
       module_function
 
-      # Móvel do marcê na seleção (grupo/componente com o dicionário 'marce' e spec)
+      # Móvel da planê.mob na seleção (grupo/componente com o dicionário 'marce' e spec)
       def movel_selecionado(model)
         return nil unless model
         model.selection.each do |e|
@@ -28,7 +28,7 @@ module ArqLais
         e.respond_to?(:definition) ? e.definition : e.entities.parent
       end
 
-      # Todos os móveis do marcê no modelo (primeiro nível e dentro de grupos)
+      # Todos os móveis da planê.mob no modelo (primeiro nível e dentro de grupos)
       def moveis_do_modelo(model)
         out = []
         visitar = lambda do |ents, nivel|

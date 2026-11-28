@@ -1,6 +1,6 @@
-# marcê — avisos de atualização (janelinha no visual planê)
+# planê.mob — avisos de atualização (janelinha no visual planê)
 #   • "Tem versão nova" (atualizar agora / depois)
-#   • "marcê atualizado" com as novidades, uma vez por versão
+#   • "planê.mob atualizada" com as novidades, uma vez por versão
 require 'json'
 
 module ArqLais
@@ -34,7 +34,7 @@ module ArqLais
         Sketchup.write_default(CHAVE, 'versao_vista', VERSAO)
       end
 
-      # Mostra "marcê atualizado" se houver novidade não vista. Retorna true se mostrou.
+      # Mostra "planê.mob atualizada" se houver novidade não vista. Retorna true se mostrou.
       def novidades_se_houver
         lista = nao_vistas
         marcar_vista
@@ -63,10 +63,10 @@ module ArqLais
         end.join
         if tipo == :disponivel
           titulo = "tem versão <em>nova</em>"
-          sub = "marcê #{esc(dados['versao'])} está disponível · você tem a #{esc(dados['atual'])}"
+          sub = "planê.mob #{esc(dados['versao'])} está disponível · você tem a #{esc(dados['atual'])}"
           botoes = "<button class='sec' onclick=\"sketchup.depois('')\">depois</button><button class='pri' id='bt' onclick=\"this.textContent='atualizando…';this.disabled=true;sketchup.atualizar('')\">atualizar agora</button>"
         else
-          titulo = "marcê <em>atualizado</em>"
+          titulo = "planê.mob <em>atualizada</em>"
           sub = "você está na versão #{esc(dados['versao'])} · veja o que mudou"
           botoes = "<button class='pri' onclick=\"sketchup.fechar('')\">entendi</button>"
         end
@@ -89,7 +89,7 @@ module ArqLais
           .pri{background:#3e4b57;border-color:#3e4b57;color:#fff;box-shadow:0 10px 24px -8px rgba(62,75,87,.45)}.pri:disabled{opacity:.5}
           .marca{font-weight:600;letter-spacing:-.03em}.marca i{font-style:normal;color:#d6b3ab}
           </style></head><body>
-          <div class="topo"><svg viewBox="0 0 100 100" width="34" height="34"><rect width="100" height="100" rx="24" fill="#3e4b57"/><path d="M17 79C18 62 18 46 21 38C25 27 37 27 41 38C44 47 44 62 43 71C42 80 35 82 34 75C33 66 43 40 52 32C60 25 71 28 73 40C75 52 74 65 75 74C76 83 83 85 89 77" fill="none" stroke="#f5f1ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="marca">marc<i>ê</i></span></div>
+          <div class="topo"><svg viewBox="0 0 100 100" width="34" height="34"><rect width="100" height="100" rx="24" fill="#3e4b57"/><path d="M17 79C18 62 18 46 21 38C25 27 37 27 41 38C44 47 44 62 43 71C42 80 35 82 34 75C33 66 43 40 52 32C60 25 71 28 73 40C75 52 74 65 75 74C76 83 83 85 89 77" fill="none" stroke="#f5f1ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="marca">planê<i>.mob</i></span></div>
           <p class="eyebrow">#{tipo == :disponivel ? 'atualização' : 'novidades'}</p>
           <h1>#{titulo}</h1><p class="sub">#{sub}</p>
           <div class="lista">#{lista.empty? ? '<p>Melhorias e correções.</p>' : lista}</div>
@@ -100,7 +100,7 @@ module ArqLais
 
       def mostrar(tipo, dados)
         @janela.close if @janela && @janela.visible?
-        d = UI::HtmlDialog.new(dialog_title: 'marcê', preferences_key: 'ArqLais_Marce_Aviso', width: 460, height: 520,
+        d = UI::HtmlDialog.new(dialog_title: 'planê.mob', preferences_key: 'ArqLais_Marce_Aviso', width: 460, height: 520,
                                resizable: false, scrollable: false, style: UI::HtmlDialog::STYLE_DIALOG)
         d.set_html(html(tipo, dados))
         d.add_action_callback('fechar') { |_c, _j| d.close }

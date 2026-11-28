@@ -1,8 +1,8 @@
-# marcê — materiais e etiquetas (tags) do SketchUp
+# planê.mob — materiais e etiquetas (tags) do SketchUp
 module ArqLais
   module Marce
     module Materiais
-      PREFIXO = 'marcê · '.freeze
+      PREFIXO = 'planê.mob · '.freeze
 
       FIXOS = {
         'metal' => ['Metal escovado', [154, 158, 163], 1.0],
@@ -16,14 +16,14 @@ module ArqLais
       TEMP_LED = { 2700 => [255, 207, 138], 3000 => [255, 217, 160], 4000 => [255, 241, 214], 6000 => [238, 244, 255] }.freeze
 
       TAGS = {
-        'caixa' => 'marcê · caixaria',
-        'frente' => 'marcê · frentes',
-        'fundo' => 'marcê · fundos',
-        'gaveta' => 'marcê · gavetas',
-        'ferragem' => 'marcê · ferragens',
-        'rodape' => 'marcê · rodapé e roda-teto',
-        'pedra' => 'marcê · tampo',
-        'led' => 'marcê · iluminação'
+        'caixa' => 'planê.mob · caixaria',
+        'frente' => 'planê.mob · frentes',
+        'fundo' => 'planê.mob · fundos',
+        'gaveta' => 'planê.mob · gavetas',
+        'ferragem' => 'planê.mob · ferragens',
+        'rodape' => 'planê.mob · rodapé e roda-teto',
+        'pedra' => 'planê.mob · tampo',
+        'led' => 'planê.mob · iluminação'
       }.freeze
 
       module_function
@@ -86,7 +86,7 @@ module ArqLais
       end
 
       def tag(model, grupo, cache)
-        nome = TAGS[grupo] || 'marcê'
+        nome = TAGS[grupo] || 'planê.mob'
         cache[nome] ||= (model.layers[nome] || model.layers.add(nome))
       end
     end

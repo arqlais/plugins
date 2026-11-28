@@ -1,4 +1,4 @@
-// Gera os ícones da barra de ferramentas do marcê (SVG + PNG 24/32 px)
+// Gera os ícones da barra de ferramentas da planê.mob (SVG + PNG 24/32 px)
 // Uso: node tools/gerar_icones.js
 const fs = require('fs');
 const path = require('path');

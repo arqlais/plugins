@@ -1,10 +1,10 @@
 {
-  "versao": "1.13.0",
+  "versao": "1.14.0",
   "rbz": "dist/marce.rbz",
-  "sha256": "5c1308b6efbf4ffe9d00bf324763fd0c6349f236b5ea5badf5012339112e670e",
+  "sha256": "6716039304d11884a5c940728136ccdcce3d9f403ee9d9bfcca73dd4e75d5d9b",
   "notas": [
-    "Prancha ligada ao móvel: depois de gerar o relatório uma vez, ao editar e atualizar o móvel a prancha aberta no navegador se redesenha sozinha (com fotos novas), mantendo cores, logotipo e dados do carimbo",
-    "Botão \"Atualizar prancha\" na aba Relatório e no menu Extensões → marcê",
-    "No painel do editor de pranchas, um indicador mostra se a prancha está ligada ao móvel"
+    "O plugin agora se chama planê.mob, da família planê (o logo continua o mesmo)",
+    "Menus, janelas, pranchas e avisos com o nome novo; materiais e tags novos começam com \"planê.mob ·\" (móveis antigos mantêm os nomes até serem editados)",
+    "O menu com o nome novo aparece depois de reabrir o SketchUp"
   ]
 }

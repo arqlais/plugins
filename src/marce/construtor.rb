@@ -1,4 +1,4 @@
-# marcê — construção do móvel no modelo
+# planê.mob — construção do móvel no modelo
 #
 # Recebe as peças calculadas pelo motor (ui/engine.js) e cria:
 #  - um grupo principal com a transformação da âncora (volume);
@@ -22,7 +22,7 @@ module ArqLais
 
         iniciou = false
         if operacao
-          model.start_operation('marcê: gerar móvel', true)
+          model.start_operation('planê.mob: gerar móvel', true)
           iniciou = true
         end
         grupo = alvo[:grupo]
@@ -85,7 +85,7 @@ module ArqLais
             criar_peca(model, spec, destino, p, cache_def, cache_mat, cache_tag)
           rescue StandardError => e
             erros += 1
-            puts "marcê: falha na peça #{p['nome']}: #{e.message}"
+            puts "planê.mob: falha na peça #{p['nome']}: #{e.message}"
           end
         end
 
@@ -124,12 +124,12 @@ module ArqLais
           model.definitions.remove(d) if model.definitions.respond_to?(:remove)
         end
       rescue StandardError => e
-        puts "marcê: não foi possível limpar definições antigas: #{e.message}"
+        puts "planê.mob: não foi possível limpar definições antigas: #{e.message}"
       end
 
       def esconder_volume(model, volume, grupo)
         return unless volume && volume.valid?
-        tag = model.layers['marcê · volumes'] || model.layers.add('marcê · volumes')
+        tag = model.layers['planê.mob · volumes'] || model.layers.add('planê.mob · volumes')
         volume.layer = tag
         volume.hidden = true
         grupo.set_attribute(DICT, 'volume_pid', volume.persistent_id) if volume.respond_to?(:persistent_id)
@@ -155,7 +155,7 @@ module ArqLais
         defi = cache_def[k]
         unless defi
           defi = model.definitions.add(nome_def(p))
-          defi.set_attribute(DICT, 'gerada', true) # do marcê: pode ser limpa quando sair de uso
+          defi.set_attribute(DICT, 'gerada', true) # da planê.mob: pode ser limpa quando sair de uso
           begin
             desenhar(defi.entities, p, dx, dy, dz)
           rescue StandardError

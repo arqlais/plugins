@@ -1,4 +1,4 @@
-# marcê — relatório, CSV, lista do projeto, imagens do modelo e padrões
+# planê.mob — relatório, CSV, lista do projeto, imagens do modelo e padrões
 module ArqLais
   module Marce
     module Exportar
@@ -52,7 +52,7 @@ module ArqLais
         html = embutir_scripts(html.to_s.sub('/*MARCE_FONTES*/') { css_fontes }).sub(%r{</body>\s*</html>\s*\z}) { vigia + '</body></html>' }
         File.open(caminho, 'wb') { |f| f.write(html) }
         if grupo && grupo.valid?
-          model.start_operation('marcê: ligar relatório', true, false, true)
+          model.start_operation('planê.mob: ligar relatório', true, false, true)
           grupo.set_attribute(DICT, 'relatorio', caminho)
           model.commit_operation
         end
@@ -84,7 +84,7 @@ module ArqLais
         escrever_dados(caminho, dados)
         caminho
       rescue StandardError => e
-        puts "marcê: não foi possível atualizar a prancha: #{e.message}"
+        puts "planê.mob: não foi possível atualizar a prancha: #{e.message}"
         nil
       end
 
@@ -96,11 +96,11 @@ module ArqLais
         caminho
       end
 
-      # Soma as peças de todos os móveis do marcê do modelo
+      # Soma as peças de todos os móveis da planê.mob do modelo
       def lista_do_projeto(model)
         moveis = Util.moveis_do_modelo(model)
         if moveis.empty?
-          UI.messagebox('Nenhum móvel do marcê encontrado no modelo.')
+          UI.messagebox('Nenhum móvel da planê.mob encontrado no modelo.')
           return
         end
         linhas = []
@@ -127,7 +127,7 @@ module ArqLais
       # Imagens do móvel isolado para o relatório (perspectiva e vista superior sem frentes)
       def capturar_imagens(model, movel, operacao: true)
         # só no nível do modelo (dentro de outro grupo a câmera e o isolamento sairiam errados;
-        # nesse caso o relatório usa a perspectiva desenhada pelo próprio marcê)
+        # nesse caso o relatório usa a perspectiva desenhada pela própria planê.mob)
         return {} unless movel && movel.valid? && model.entities.include?(movel)
         view = model.active_view
         cam = view.camera
@@ -137,7 +137,7 @@ module ArqLais
         camada = model.layers[Materiais::TAGS['frente']]
         camada_p = model.layers[Materiais::TAGS['pedra']]
         vis = [camada && camada.visible?, camada_p && camada_p.visible?]
-        model.start_operation('marcê: captura', true) if operacao
+        model.start_operation('planê.mob: captura', true) if operacao
         begin
           mapa = capturar_mapa(model, view, movel)
           imagens['mapa'] = mapa if mapa
@@ -169,7 +169,7 @@ module ArqLais
           view.zoom(movel)
           imagens['topo'] = capturar(view, 'topo')
         rescue StandardError => e
-          puts "marcê: falha ao capturar imagens: #{e.message}"
+          puts "planê.mob: falha ao capturar imagens: #{e.message}"
         ensure
           model.abort_operation if operacao
           (originais || []).each { |g, tr| g.transformation = tr if g.valid? && !AbrirFechar.mesma?(g.transformation, tr) }
@@ -183,7 +183,7 @@ module ArqLais
         imagens
       end
 
-      # Próximo código livre (M01, M02...) entre os móveis do marcê no modelo
+      # Próximo código livre (M01, M02...) entre os móveis da planê.mob no modelo
       def proximo_codigo(model)
         usados = Util.moveis_do_modelo(model).map do |g|
           (Util.ler_json(g.get_attribute(DICT, 'spec') || '{}') || {})['codigo'].to_s
@@ -195,7 +195,7 @@ module ArqLais
         format('M%02d', n)
       end
 
-      # Planta de marcenaria: o modelo visto de cima (ortogonal) e a posição de cada móvel do marcê
+      # Planta de marcenaria: o modelo visto de cima (ortogonal) e a posição de cada móvel da planê.mob
       # (cantos projetados na imagem, de 0 a 1). O relatório desenha os códigos por cima.
       def capturar_mapa(model, view, atual)
         moveis = Util.moveis_do_modelo(model).select { |g| model.entities.include?(g) }
@@ -224,7 +224,7 @@ module ArqLais
         end
         { 'img' => img, 'w' => larg, 'h' => alt, 'itens' => itens }
       rescue StandardError => e
-        puts "marcê: planta de marcenaria não capturada: #{e.message}"
+        puts "planê.mob: planta de marcenaria não capturada: #{e.message}"
         nil
       end
 

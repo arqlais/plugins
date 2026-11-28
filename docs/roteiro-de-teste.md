@@ -1,12 +1,12 @@
-# marcê · roteiro de teste por etapas
+# planê.mob · roteiro de teste por etapas
 
 O objetivo é garantir que o plugin funciona de verdade no SketchUp antes de avançar. Cada etapa só começa depois que a anterior está ok. Quando algo falhar, anote o passo e mande a mensagem de erro (ou o resultado do autoteste).
 
 ## Etapa 1 · instalação e autoteste
 
-1. Aperte **Atualizar marcê** (barra ou menu Extensões → marcê). Deve aparecer o aviso "marcê atualizado" com as novidades.
+1. Aperte **Atualizar planê.mob** (barra ou menu Extensões → planê.mob). Deve aparecer o aviso "planê.mob atualizada" com as novidades.
 2. Abra um arquivo **novo** (ou salve o seu antes; o autoteste desfaz tudo, mas é bom ter cópia).
-3. **Extensões → marcê → Autoteste**. Espere terminar (de 1 a 3 minutos).
+3. **Extensões → planê.mob → Autoteste**. Espere terminar (de 1 a 3 minutos).
 4. Se aparecer "tudo certo", siga para a etapa 2. Se houver falhas, clique em **copiar resultado** e cole na conversa.
 5. Confira depois do autoteste: o modelo continua vazio (nada sobrou) e o Ctrl+Z não traz móveis de teste.
 
@@ -15,7 +15,7 @@ O objetivo é garantir que o plugin funciona de verdade no SketchUp antes de ava
 1. Desenhe uma caixa (retângulo + empurrar/puxar) do tamanho do móvel e transforme em grupo. Selecione.
 2. **Novo móvel**: a janela abre com as medidas da caixa e o tipo sugerido (balcão, aéreo, torre...).
 3. Troque o tipo, as colunas e as faixas; clique numa frente da prévia para editar a coluna. A prévia, a planta, o 3D e as peças atualizam juntos.
-4. **Gerar**: o móvel aparece exatamente no lugar da caixa (que fica escondida na tag "marcê · volumes").
+4. **Gerar**: o móvel aparece exatamente no lugar da caixa (que fica escondida na tag "planê.mob · volumes").
 5. Gire a câmera e dê zoom: nada pisca, nada some.
 6. **Abrir/fechar portas e gavetas**: clique em portas, gavetas, porta-temperos e lixeira. Elas abrem com animação e voltam ao lugar exato. A gaveta interna abre junto com o gavetão.
 7. Selecione o móvel → **Editar móvel**: mude algo e atualize. O móvel muda no mesmo lugar; o Painel de Componentes não acumula peças velhas.

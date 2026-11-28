@@ -1,5 +1,5 @@
 /*
- * marcê — plano de corte
+ * planê.mob — plano de corte
  * Otimizador MaxRects (Best Short Side Fit) com espessura de serra,
  * refilo e respeito ao veio (peças com veio não giram).
  */

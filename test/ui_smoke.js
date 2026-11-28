@@ -1,4 +1,4 @@
-// Teste de fumaça da janela do marcê no Chromium (Playwright).
+// Teste de fumaça da janela da planê.mob no Chromium (Playwright).
 // Uso: node test/ui_smoke.js <pasta-de-prints>
 const { chromium } = require('playwright');
 const fs = require('fs');

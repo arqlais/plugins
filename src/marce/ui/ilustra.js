@@ -1,5 +1,5 @@
 /*
- * marcê — ilustrações técnicas das opções (traço, sem emojis).
+ * planê.mob — ilustrações técnicas das opções (traço, sem emojis).
  * Cada desenho é um SVG 64×48 em linha, usando currentColor e o rosé de destaque.
  * Usadas nos cartões de opção, na ajuda "?" e nos ícones de status.
  */

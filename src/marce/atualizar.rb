@@ -1,4 +1,4 @@
-# marcê — atualização automática pelo GitHub
+# planê.mob — atualização automática pelo GitHub
 #
 # Lê versao.json no repositório (branch main e branch de desenvolvimento),
 # escolhe a versão mais nova, baixa o .rbz, confere o SHA-256, instala por
@@ -130,7 +130,7 @@ module ArqLais
             instalou = Sketchup.install_from_archive(arq)
             recarregar
             if instalou != false && VERSAO == info['versao'].to_s
-              bloco.call(true, "marcê atualizado para a versão #{VERSAO}.")
+              bloco.call(true, "planê.mob atualizada para a versão #{VERSAO}.")
             else
               bloco.call(false, "A instalação não terminou (continua a versão #{VERSAO}). Feche e abra o SketchUp e tente de novo.")
             end
@@ -160,12 +160,12 @@ module ArqLais
 
       # Fluxo completo do botão "atualizar" (fora da janela)
       def botao
-        Sketchup.status_text = 'marcê: procurando atualização…'
+        Sketchup.status_text = 'planê.mob: procurando atualização…'
         verificar do |info, erro|
           if erro || info.nil?
             UI.messagebox("Não foi possível verificar atualizações agora.\n#{erro}")
           elsif !info['nova']
-            UI.messagebox("O marcê já está na versão mais nova (#{VERSAO}).")
+            UI.messagebox("A planê.mob já está na versão mais nova (#{VERSAO}).")
           else
             Aviso.disponivel(info)
           end

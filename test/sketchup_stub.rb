@@ -1,4 +1,4 @@
-# Simulação mínima da API do SketchUp para testar o marcê fora do SketchUp.
+# Simulação mínima da API do SketchUp para testar a planê.mob fora do SketchUp.
 # Não é completa: cobre só o que o plugin usa.
 require 'json'
 

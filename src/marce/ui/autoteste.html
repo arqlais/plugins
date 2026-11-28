@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>marcê · autoteste</title>
+<title>planê.mob · autoteste</title>
 <style>
 @font-face{font-family:Poppins;font-weight:400;src:url(fonts/poppins-400.woff2) format("woff2")}
 @font-face{font-family:Poppins;font-weight:600;src:url(fonts/poppins-600.woff2) format("woff2")}
@@ -27,7 +27,7 @@ main{padding:14px 22px 40px;display:flex;flex-direction:column;gap:12px}
 <body>
 <header>
   <div class="marca"><svg viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="#3e4b57"/><path d="M17 79C18 62 18 46 21 38C25 27 37 27 41 38C44 47 44 62 43 71C42 80 35 82 34 75C33 66 43 40 52 32C60 25 71 28 73 40C75 52 74 65 75 74C76 83 83 85 89 77" fill="none" stroke="#f5f1ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    <div><b>marc<i>ê</i> · autoteste</b><small>gera cada tipo de móvel no seu SketchUp, confere tudo e desfaz no final: o seu modelo não muda</small></div></div>
+    <div><b>planê<i>.mob</i> · autoteste</b><small>gera cada tipo de móvel no seu SketchUp, confere tudo e desfaz no final: o seu modelo não muda</small></div></div>
   <div class="barra"><span id="barra"></span></div>
   <div class="status"><p id="status">preparando…</p><div><button class="bt" id="copiar" disabled>copiar resultado</button> <button class="bt" id="salvar" disabled>salvar .txt</button> <button class="bt pri" id="denovo" disabled>rodar de novo</button></div></div>
 </header>
@@ -123,7 +123,7 @@ main{padding:14px 22px 40px;display:flex;flex-direction:column;gap:12px}
   }
 
   function texto() {
-    var out = ['marcê ' + versao + ' · autoteste · ' + new Date().toLocaleString('pt-BR'), ''];
+    var out = ['planê.mob ' + versao + ' · autoteste · ' + new Date().toLocaleString('pt-BR'), ''];
     function bloco(titulo, itens) {
       out.push('## ' + titulo);
       (itens || []).forEach(function (i) { out.push((i.ok ? '[ok]   ' : '[FALHA] ') + i.nome + (i.detalhe ? ' · ' + i.detalhe : '')); });

@@ -1,4 +1,4 @@
-# marcê · marcenaria paramétrica para SketchUp
+# planê.mob · marcenaria paramétrica para SketchUp
 
 Plugin para **SketchUp 2026 (Windows)** que gera marcenaria completa a partir de um volume: caixaria, portas, gavetas, aramados, lixeira, nichos, ferragens modeladas, conferência técnica, lista de peças, plano de corte e relatório executivo — tudo separado em componentes, como uma maquete de marcenaria de verdade.
 
@@ -10,11 +10,11 @@ Identidade visual da família **planê** (areia, grafite e rosé · Poppins + Th
 
 1. Baixe [`dist/marce.rbz`](dist/marce.rbz).
 2. No SketchUp: **Extensões → Gerenciador de Extensões → Instalar extensão** e escolha o `marce.rbz`.
-3. Aparece a barra **marcê** e o menu **Extensões → marcê**.
+3. Aparece a barra **planê.mob** e o menu **Extensões → planê.mob**.
 
 ## Atualizar (sem reinstalar)
 
-Instale o `.rbz` **uma vez**. Depois, quando sair versão nova, é só apertar **Atualizar marcê** — na barra de ferramentas, em **Extensões → marcê**, ou no rodapé da janela (aparece "nova versão · atualizar" em rosé quando tem novidade). O marcê baixa do GitHub, confere a assinatura do arquivo, instala por cima e recarrega na hora, sem reiniciar o SketchUp. Ao abrir o SketchUp ele também avisa sozinho (uma vez por dia).
+Instale o `.rbz` **uma vez**. Depois, quando sair versão nova, é só apertar **Atualizar planê.mob** — na barra de ferramentas, em **Extensões → planê.mob**, ou no rodapé da janela (aparece "nova versão · atualizar" em rosé quando tem novidade). A planê.mob baixa do GitHub, confere a assinatura do arquivo, instala por cima e recarrega na hora, sem reiniciar o SketchUp. Ao abrir o SketchUp ele também avisa sozinho (uma vez por dia).
 
 Para lançar uma versão: troque `VERSAO` em `src/marce/versao.rb`, escreva as novidades no topo do `CHANGELOG.md`, rode `./tools/empacotar.sh` (gera `dist/marce.rbz` e `versao.json`), faça commit e push.
 
@@ -23,28 +23,28 @@ Para lançar uma versão: troque `VERSAO` em `src/marce/versao.rb`, escreva as n
 1. Modele uma **caixa (volume)** onde o móvel vai ficar e selecione (grupo, componente ou faces).
    - A **frente** é o lado comprido voltado para a câmera.
    - Se houver uma **cuba/pia** no modelo sobre o volume (componente com "cuba" ou "pia" no nome), ela é detectada.
-2. Clique em **Novo móvel** (ou botão direito → marcê → Criar móvel neste volume).
+2. Clique em **Novo móvel** (ou botão direito → planê.mob → Criar móvel neste volume).
 3. Configure na janela (clique em qualquer **?** para ver como usar a opção, ou no **?** do topo para o passo a passo):
    - **Móvel** — tipo (balcão, aéreo, torre, gaveteiro, guarda-roupa, estante, gabinete, personalizado), ambiente (seco, cozinha, banheiro, lavanderia), base (rodapé recuado, suspenso, pés), roda-teto, topo (travessas ou chapa), fundo, espessuras, cuba e tampo, chapa.
    - **Montagem** — largura máxima de porta, divisórias (cada porta / cada par / nenhuma), prateleiras por vão. **Clique numa frente** na vista frontal para transformar a coluna em porta, gavetas (com gavetão e gaveta interna oculta), basculante, porta-temperos, lixeira, fruteira, nicho, nicho em arco, espelho em arco, painel, forno ou micro-ondas. Dá para empilhar faixas (ex.: gavetas embaixo, forno, micro, porta em cima).
    - **Frentes** — puxador (cava 45° usinada, perfil, passante, alça, toque, sem), posição, sobreposta/embutida, folgas, veio, corrediça telescópica/oculta.
    - **Acabamento** — padrões por marca (Arauco, Berneck, Duratex, Guararapes, genéricos), busca, padrão próprio, MDF interno branco, escala da textura. "Salvar como meu padrão" guarda tudo para os próximos móveis.
    - **Relatório** — gera o relatório executivo junto com o móvel.
-4. **Gerar armário**. O volume fica escondido (tag `marcê · volumes`) e o móvel é criado no lugar.
+4. **Gerar armário**. O volume fica escondido (tag `planê.mob · volumes`) e o móvel é criado no lugar.
 
 Depois:
 
 - **Editar móvel** (selecione o móvel): reabre a janela com tudo como estava e atualiza no mesmo lugar.
 - **Abrir/fechar portas e gavetas**: clique numa porta, gaveta ou aramado para animar a abertura. **Abrir tudo / Fechar tudo** no menu.
-- **Relatório executivo**: salva um HTML na pasta `marcê - relatórios` ao lado do .skp e abre no navegador (Imprimir → Salvar como PDF). As perspectivas saem do próprio modelo.
-- **Lista de peças do projeto (CSV)**: soma as peças de todos os móveis do marcê no modelo.
+- **Relatório executivo**: salva um HTML na pasta `planê.mob - relatórios` ao lado do .skp e abre no navegador (Imprimir → Salvar como PDF). As perspectivas saem do próprio modelo.
+- **Lista de peças do projeto (CSV)**: soma as peças de todos os móveis da planê.mob no modelo.
 
 ## O que vai no modelo
 
 - Grupo do móvel com subgrupos por porta/gaveta/aramado (a gaveta interna fica dentro do gavetão) — é isso que permite abrir e fechar.
 - Cada peça é um **componente** com nome, material e atributos de corte (funciona com o OpenCutList).
-- Tags: `marcê · caixaria`, `frentes`, `gavetas`, `fundos`, `ferragens`, `rodapé e roda-teto`, `tampo`.
-- Materiais `marcê · …` com textura de veio tingida na cor do padrão — troque a textura do material no SketchUp e todas as peças atualizam.
+- Tags: `planê.mob · caixaria`, `frentes`, `gavetas`, `fundos`, `ferragens`, `rodapé e roda-teto`, `tampo`.
+- Materiais `planê.mob · …` com textura de veio tingida na cor do padrão — troque a textura do material no SketchUp e todas as peças atualizam.
 - Dobradiças (canecos), corrediças, cestos aramados, cesto de lixeira, tubo de cabideiro, puxadores, pés e espelho modelados.
 
 ## Regras de marcenaria aplicadas (conferência técnica)

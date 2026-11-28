@@ -1,8 +1,8 @@
 /*
- * marcê — relatório executivo em PRANCHAS (A4…A0 deitadas, com carimbo)
+ * planê.mob — relatório executivo em PRANCHAS (A4…A0 deitadas, com carimbo)
  *
  * gerar(M, opts) devolve um HTML "vivo": ele traz o spec do móvel e os scripts
- * do marcê, e monta as pranchas no navegador. A barra do topo troca folha,
+ * da planê.mob, e monta as pranchas no navegador. A barra do topo troca folha,
  * visual, unidade e cor da cota sem voltar ao SketchUp. Os desenhos técnicos
  * saem em escala real (imprima em 100%, sem margens).
  *
@@ -299,7 +299,7 @@
     var baixo = '<div class="dt-lin" style="height:' + n1(hBx + hTit) + 'mm">' + vfig(fT1.svg, 'Vista Frontal', fT1.escala, null, null, 'flex:1') +
       (cT1 ? vfig(cT1.svg, 'Corte', cT1.escala, null, 'coluna C' + (cPrinc.idx + 1)) : '') + '</div>';
     var dets = D ? D.doMovel(M, est.corCota, oc.corCotaTexto) : [];
-    function cartaoMd(dt, i) { return '<div class="md"><header><span>D' + (i + 1) + '</span><b>' + esc(dt.titulo) + '</b></header>' + dt.svg + '<footer><span>sem escala</span><i>marcê</i></footer></div>'; }
+    function cartaoMd(dt, i) { return '<div class="md"><header><span>D' + (i + 1) + '</span><b>' + esc(dt.titulo) + '</b></header>' + dt.svg + '<footer><span>sem escala</span><i>planê.mob</i></footer></div>'; }
     var mats = [['frentes', 'frente'], ['caixaria', 'caixa']];
     if (spec.caixaInternaBranca) mats.push(['interno', 'caixaInterna']);
     if (spec.materiais.gaveta && spec.materiais.gaveta.nome !== spec.materiais.caixa.nome) mats.push(['gavetas', 'gaveta']);
@@ -323,15 +323,15 @@
     pagina('<p class="ey"><span style="text-transform:none">' + esc(codigo) + '</span> · detalhamento · ' + esc(tipoLabel.toLowerCase()) + '</p><div class="dt" style="grid-template-columns:1fr ' + n1(wDir) + 'mm"><div class="dt-esq">' + topo + baixo + '</div>' + dir + '</div>', fT1.escala);
 
     secao = 'planta';
-    // planta de marcenaria (todos os móveis do marcê no arquivo, com código)
+    // planta de marcenaria (todos os móveis da planê.mob no arquivo, com código)
     if (img.mapa && img.mapa.itens && img.mapa.itens.length) {
       var itensM = img.mapa.itens.slice().sort(function (a, b) { return String(a.codigo).localeCompare(String(b.codigo)); });
       pagina(cabeca('planta de marcenaria') + '<div class="pm">' + vfig(mapaHtml(img.mapa, areaW - 67 * k, areaH - 26 * k, false), 'Planta Marcenaria', 0) +
-        '<div class="lado"><h2>quadro de marcenaria</h2><table>' + itensM.map(function (it) { return '<tr' + (it.atual ? ' class="atual"' : '') + '><td><span class="cod">' + esc(it.codigo || '—') + '</span></td><td>' + esc(it.nome) + '</td></tr>'; }).join('') + '</table><p class="nota">Destaque: o móvel desta prancha. Os outros móveis do marcê no arquivo aparecem com o código de cada um.</p></div></div>');
+        '<div class="lado"><h2>quadro de marcenaria</h2><table>' + itensM.map(function (it) { return '<tr' + (it.atual ? ' class="atual"' : '') + '><td><span class="cod">' + esc(it.codigo || '—') + '</span></td><td>' + esc(it.nome) + '</td></tr>'; }).join('') + '</table><p class="nota">Destaque: o móvel desta prancha. Os outros móveis da planê.mob no arquivo aparecem com o código de cada um.</p></div></div>');
     }
 
     secao = 'vistas';
-    // vistas e cortes: o marcê monta na prancha o máximo de vistas na mesma escala (a maior que couber).
+    // vistas e cortes: a planê.mob monta na prancha o máximo de vistas na mesma escala (a maior que couber).
     // Planta com as linhas de corte A, B, C...; cortes de cada tipo de coluna; simbologia no fim.
     var letras = 'ABCDEFGH';
     var tipicas = R.colunasTipicas(M, est.folha === 'A4' ? 3 : 4);
@@ -653,13 +653,13 @@
     function campo(rot, ch, ph) { return '<div class="ed-campo"><label>' + rot + '</label><input type="text" data-e="' + ch + '" placeholder="' + esc(ph || '') + '"></div>'; }
     function cor(rot, ch) { return '<label class="ed-cor"><span>' + rot + '</span><input type="color" data-e="' + ch + '"></label>'; }
     function sec(t, c) { return '<div class="ed-sec"><p class="ed-h">' + t + '</p>' + c + '</div>'; }
-    var ed = '<aside class="ed"><div class="ed-top">' + logoSvg('#3e4b57', '#f5f1ee') + '<div><b>marc<i>ê</i> · pranchas</b><small>' + esc(spec.nome) + '</small></div></div><div class="ed-sc">' +
+    var ed = '<aside class="ed"><div class="ed-top">' + logoSvg('#3e4b57', '#f5f1ee') + '<div><b>planê<i>.mob</i> · pranchas</b><small>' + esc(spec.nome) + '</small></div></div><div class="ed-sc">' +
       sec('folha', pills('folha', Object.keys(FOLHAS).map(function (f) { return [f, f]; }).concat([['personalizada', 'personalizada']])) +
         '<div class="ed-dois" id="ed-pers">' + '<div class="ed-campo"><label>largura (mm)</label><input type="text" inputmode="numeric" data-e="est.larguraFolha" placeholder="420"></div><div class="ed-campo"><label>altura (mm)</label><input type="text" inputmode="numeric" data-e="est.alturaFolha" placeholder="297"></div></div>' +
         pills('orientacao', [['paisagem', 'deitada'], ['retrato', 'em pé']]) + pills('visual', [['marce', 'com cores'], ['neutro', 'neutro (preto e cinza)']])) +
       sec('cores da prancha', cor('cor principal (textos e molduras)', 'est.corPrincipal') + cor('cor de destaque (títulos e selos)', 'est.corDestaque')) +
       sec('cotas', pills('unidade', [['cm', 'cm (80,0)'], ['m', 'metros'], ['mm', 'mm']]) + cor('linha da cota', 'est.corCota') + cor('número da cota', 'est.corNumero')) +
-      sec('logotipo', '<div class="ed-logo"><div class="pv" id="ed-logo-pv"></div><div style="display:flex;flex-direction:column;gap:6px"><label class="ed-bt" style="text-align:center">escolher imagem<input type="file" id="ed-logo" accept="image/*" hidden></label><button class="ed-bt" data-acao="tirar-logo">usar o do marcê</button></div></div>') +
+      sec('logotipo', '<div class="ed-logo"><div class="pv" id="ed-logo-pv"></div><div style="display:flex;flex-direction:column;gap:6px"><label class="ed-bt" style="text-align:center">escolher imagem<input type="file" id="ed-logo" accept="image/*" hidden></label><button class="ed-bt" data-acao="tirar-logo">usar o da planê.mob</button></div></div>') +
       sec('escritório', campo('nome', 'escritorio.nome', 'Nome do escritório') + campo('responsável técnico', 'escritorio.responsavel', 'Arq. Nome Sobrenome') + '<div class="ed-dois">' + campo('CAU / CREA', 'escritorio.registro', 'A000000-0') + campo('telefone / instagram', 'escritorio.contato', '@escritorio') + '</div>' + campo('e-mail', 'escritorio.email', 'contato@...')) +
       sec('projeto', campo('cliente', 'projeto.cliente') + campo('obra / endereço', 'projeto.obra') + campo('etapa', 'projeto.etapa', 'detalhamento de marcenaria') + '<div class="ed-dois">' + campo('revisão', 'projeto.revisao', 'R00') + campo('data', 'projeto.data') + '</div>' + campo('código do móvel', 'est.codigo', 'M01')) +
       sec('notas do carimbo', '<div class="ed-campo"><textarea data-e="est.notas" placeholder="Conferir medidas no local antes da produção..."></textarea></div>') +

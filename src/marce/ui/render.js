@@ -1,5 +1,5 @@
 /*
- * marcê — desenhos em SVG: vista frontal, planta e perspectiva 3D.
+ * planê.mob — desenhos em SVG: vista frontal, planta e perspectiva 3D.
  * Usado na janela do plugin e no relatório executivo.
  */
 (function (root, factory) {
