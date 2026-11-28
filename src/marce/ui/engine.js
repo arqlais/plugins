@@ -554,6 +554,7 @@
         conj: o.conj || null, forma: o.forma || null, obs: o.obs || '', meta: o.meta || null
       };
       if (o.biblio) p.biblio = o.biblio;
+      if (o.trocaPorBib) p.trocaPorBib = o.trocaPorBib;
       lista.push(p);
       return p;
     }
@@ -1049,7 +1050,7 @@
 
     // Dobradiça de caneco como a peça real: caneco Ø35 embutido na porta (vai com a porta) e, presos na
     // lateral (fixos), a base (calço) com furos a 37 mm da frente e o braço até o caneco.
-    // (A dobradiça .skp da biblioteca entra só no nome e na lista: o desenho é sempre este, que não solta da lateral.)
+    // Com dobradiça .skp da biblioteca, o bloco entra no lugar destas peças (encaixado pelo caneco).
     function dobradicasVisuais(px, pw, pz, ph, lado, nd, conj, refs, xLat) {
       if (estilo === 'vidro') return; // porta de vidro usa dobradiça própria do perfil de alumínio
       var nomeD = bibDob ? 'Dobradiça ' + bibDob.nome : 'Dobradiça';
@@ -1063,13 +1064,17 @@
         var r0 = { vao: refs.vao, col: refs.col, secao: refs.secao };
         var circ = [];
         for (var kc = 0; kc < 24; kc++) { var ac = kc * Math.PI / 12; circ.push([r1(17.5 + 17.5 * Math.cos(ac)), r1(17.5 + 17.5 * Math.sin(ac))]); }
-        fab.objeto(Object.assign({ nome: nomeD + ' (caneco)', grupo: 'ferragem', mat: 'metal', x: xc, y: yBack - 11, z: zz - 17.5, dx: 35, dy: 12.5, dz: 35, conj: conj, forma: spec.leve ? null : { plano: 'xz', pts: circ } }, r0));
+        // bloco do fabricante (.skp): encaixado pelo caneco no furo da porta (o Ruby acha o caneco no bloco);
+        // se não der, ficam o caneco, a base e o braço desenhados abaixo
+        var troca = bibDob && !spec.leve ? bibDob.id : null;
+        fab.objeto(Object.assign({ nome: nomeD + ' (caneco)', grupo: 'ferragem', mat: 'metal', x: xc, y: yBack - 11, z: zz - 17.5, dx: 35, dy: 12.5, dz: 35, conj: conj, forma: spec.leve ? null : { plano: 'xz', pts: circ },
+          biblio: troca ? { id: bibDob.id, modo: 'dobradica', alvo: { x: r1(xc + 17.5), y: yBack, z: r1(zz) }, sinal: lado === 'esq' ? -1 : 1 } : null }, r0));
         if (spec.leve) continue;
         var eB = 10; // base (calço) saindo 10 mm da lateral
         var xB = lado === 'esq' ? xLat : xLat - eB;
-        fab.objeto(Object.assign({ nome: nomeD + ' (base na lateral)', grupo: 'ferragem', mat: 'metal', x: xB, y: yBack + 17, z: zz - 25, dx: eB, dy: 40, dz: 50, obs: 'Parafusada na lateral · furos a 37 mm da frente' }, r0));
+        fab.objeto(Object.assign({ nome: nomeD + ' (base na lateral)', grupo: 'ferragem', mat: 'metal', x: xB, y: yBack + 17, z: zz - 25, dx: eB, dy: 40, dz: 50, obs: 'Parafusada na lateral · furos a 37 mm da frente', trocaPorBib: troca }, r0));
         var xa0 = lado === 'esq' ? xLat + eB : xc + 17.5, xa1 = lado === 'esq' ? xc + 17.5 : xLat - eB;
-        if (xa1 - xa0 > 1) fab.objeto(Object.assign({ nome: nomeD + ' (braço)', grupo: 'ferragem', mat: 'metal', x: xa0, y: yBack + 1.5, z: zz - 7, dx: xa1 - xa0, dy: 10, dz: 14 }, r0));
+        if (xa1 - xa0 > 1) fab.objeto(Object.assign({ nome: nomeD + ' (braço)', grupo: 'ferragem', mat: 'metal', x: xa0, y: yBack + 1.5, z: zz - 7, dx: xa1 - xa0, dy: 10, dz: 14, trocaPorBib: troca }, r0));
       }
     }
 

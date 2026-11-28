@@ -1,5 +1,10 @@
 # Novidades da planê.mob
 
+## 1.22.6
+- Dobradiça do fabricante (.skp) de volta e no lugar certo: a planê.mob acha o caneco no bloco (o círculo de 35 mm) e encaixa ele no furo da porta, com o braço virado para a lateral, em qualquer posição que o fabricante tenha desenhado
+- A parte do caneco vai com a porta e o resto do bloco fica preso na lateral; se o arquivo não tiver o caneco reconhecível, entra o desenho da planê.mob (base na lateral, caneco na porta)
+- Dobradiça reta do fabricante volta a ser o padrão nos móveis novos
+
 ## 1.22.5
 - Dobradiça como a de verdade: a base fica parafusada na lateral (não abre junto) e só o caneco vai com a porta; a de cima desce quando há travessa da cava
 - A dobradiça .skp da biblioteca não é mais desenhada solta: o nome e a marca vão para a lista, e o desenho é sempre o da planê.mob

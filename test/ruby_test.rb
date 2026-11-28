@@ -413,3 +413,26 @@ class TesteFerragemFunciona < Minitest::Test
     assert_equal 3, Biblioteca.partes_de(defi).count { |e| Biblioteca.parte_util?(e) }
   end
 end
+
+# encaixe da dobradiça do fabricante pelo caneco (qualquer posição do bloco)
+class TesteDobradicaBloco < Minitest::Test
+  include ArqLais::Marce
+  def test_caneco_vai_para_o_furo_e_braco_para_a_lateral
+    # bloco desenhado "deitado": caneco em (10, 20, 5) olhando para +z, braço indo para +y
+    an = { centro: Geom::Point3d.new(10.mm, 20.mm, 5.mm), normal: Geom::Vector3d.new(0, 0, 1), braco: Geom::Vector3d.new(0, 1, 0) }
+    alvo = Geom::Point3d.new(100.mm, 0, 900.mm)
+    [-1, 1].each do |sinal|
+      tr = Biblioteca.encaixe_dobradica(an, alvo, sinal)
+      c = tr.aplicar(an[:centro])
+      assert_in_delta 100, c.x.to_mm, 0.01
+      assert_in_delta 0, c.y.to_mm, 0.01
+      assert_in_delta 900, c.z.to_mm, 0.01
+      # ponto 10 mm na direção do caneco (normal) vai para dentro do móvel (+y)
+      q = tr.aplicar(Geom::Point3d.new(10.mm, 20.mm, 15.mm))
+      assert_in_delta 10, q.y.to_mm, 0.01
+      # ponto no braço vai para o lado da dobradiça
+      w = tr.aplicar(Geom::Point3d.new(10.mm, 50.mm, 5.mm))
+      assert_in_delta 100 + sinal * 30, w.x.to_mm, 0.01
+    end
+  end
+end

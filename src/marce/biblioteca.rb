@@ -408,10 +408,93 @@ module ArqLais
       # Com "mover", as partes do arquivo vão cada uma para o seu lugar e a ferragem FUNCIONA:
       #  - corrediça: a parte junto da lateral fica no móvel, a do meio anda a metade e a de dentro sai com a gaveta;
       #  - dobradiça: a base (a parte mais funda) fica na lateral e o braço com o caneco gira com a porta.
+      # ------------------------------------------------------------ dobradiça do fabricante
+      # Acha o caneco no bloco: o círculo de raio ~17,5 mm (Ø35). Dá o centro do caneco, para que lado ele
+      # aponta e para que lado vai o braço. Com isso o bloco é encaixado no furo da porta, qualquer que seja
+      # a posição em que o fabricante desenhou. nil se não achar (fica o desenho da planê.mob).
+      def analisar_dobradica(defi)
+        @analises ||= {}
+        return @analises[defi] if @analises.key?(defi)
+        achados = []
+        andar = lambda do |ents, tr, topo, nivel|
+          ents.each do |e|
+            if e.is_a?(Sketchup::Edge) && e.curve.is_a?(Sketchup::ArcCurve)
+              c = e.curve
+              r = c.radius.to_mm
+              volta = (c.end_angle - c.start_angle).abs
+              achados << { r: r, centro: c.center.transform(tr), normal: c.normal.transform(tr), topo: topo } if r.between?(15.5, 19.5) && volta > 5.5
+            elsif (e.is_a?(Sketchup::Group) || e.is_a?(Sketchup::ComponentInstance)) && nivel < 6
+              andar.call(def_de(e).entities, tr * e.transformation, topo || e, nivel + 1)
+            end
+          end
+        end
+        andar.call(defi.entities, Geom::Transformation.new, nil, 0)
+        @analises[defi] = nil
+        return nil if achados.empty?
+        # o caneco: o círculo mais perto de 17,5 mm de raio
+        a = achados.min_by { |h| (h[:r] - 17.5).abs }
+        centro = a[:centro]
+        n = a[:normal].normalize
+        massa = defi.bounds.center
+        v = massa - centro
+        # o caneco entra na porta; o resto (braço e base) fica do lado de dentro do móvel
+        n = n.reverse if v.dot(n) < 0
+        braco = v - Geom::Vector3d.new(n.x * v.dot(n), n.y * v.dot(n), n.z * v.dot(n))
+        return nil if braco.length < 1.mm
+        @analises[defi] = { centro: centro, normal: n, braco: braco.normalize, parte: a[:topo] }
+      rescue StandardError => e
+        puts "planê.mob: análise da dobradiça: #{e.message}"
+        nil
+      end
+
+      # transformação que leva o caneco do bloco para o furo da porta: centro → alvo, normal → +y (para
+      # dentro do móvel), braço → para o lado da dobradiça (−x na porta que abre pela esquerda, +x pela direita)
+      def encaixe_dobradica(an, alvo, sinal)
+        n = an[:normal]
+        a = an[:braco]
+        s = Geom::Transformation.axes(an[:centro], a, n, a * n)
+        at = Geom::Vector3d.new(sinal.to_f, 0, 0)
+        nt = Geom::Vector3d.new(0, 1, 0)
+        d = Geom::Transformation.axes(alvo, at, nt, at * nt)
+        d * s.inverse
+      end
+
+      def colocar_dobradica(model, defi, destino, p, raiz)
+        b = p['biblio'] || {}
+        an = analisar_dobradica(defi)
+        return nil unless an
+        al = b['alvo'] || {}
+        tr = encaixe_dobradica(an, Geom::Point3d.new(Util.mm(al['x']), Util.mm(al['y']), Util.mm(al['z'])), b['sinal'].to_f.negative? ? -1 : 1)
+        partes = partes_de(defi).select { |e| parte_util?(e) }
+        primeira = nil
+        if partes.length >= 2 && an[:parte] && partes.include?(an[:parte])
+          # a parte do caneco vai com a porta; braço e base ficam presos na lateral
+          partes.each do |e|
+            inst = (e.equal?(an[:parte]) ? destino : (raiz || destino)).add_instance(def_de(e), tr * e.transformation)
+            inst.material = e.material if e.material
+            inst.set_attribute(DICT, 'biblio', b['id'].to_s)
+            primeira ||= inst
+          end
+        else
+          # bloco inteiro (sem partes separadas): fica preso na lateral, como a base
+          primeira = (raiz || destino).add_instance(defi, tr)
+          primeira.set_attribute(DICT, 'biblio', b['id'].to_s)
+        end
+        primeira
+      end
+
+      def dobradica_ok?(model, id)
+        defi = definicao(model, id.to_s)
+        defi && analisar_dobradica(defi) ? true : false
+      rescue StandardError
+        false
+      end
+
       def colocar(model, destino, p, grupos = {}, raiz = nil)
         b = p['biblio'] || {}
         defi = definicao(model, b['id'].to_s)
         return nil unless defi
+        return colocar_dobradica(model, defi, destino, p, raiz) if b['modo'] == 'dobradica'
         caixa = [p['dx'].to_f, p['dy'].to_f, p['dz'].to_f]
         tr = Geom::Transformation.translation([Util.mm(p['x']), Util.mm(p['y']), Util.mm(p['z'])]) * encaixe(defi.bounds, caixa, b)
         mv = b['mover']

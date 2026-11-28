@@ -1,11 +1,10 @@
 {
-  "versao": "1.22.5",
+  "versao": "1.22.6",
   "rbz": "dist/marce.rbz",
-  "sha256": "f43e9e90eeac50196eef6d1386e1a67acb36e294f724515620b2df33cdee5777",
+  "sha256": "fce672c4db5bba45413f75839ebe8954a312fb7a93477274a413b7f9351d1e8b",
   "notas": [
-    "Dobradiça como a de verdade: a base fica parafusada na lateral (não abre junto) e só o caneco vai com a porta; a de cima desce quando há travessa da cava",
-    "A dobradiça .skp da biblioteca não é mais desenhada solta: o nome e a marca vão para a lista, e o desenho é sempre o da planê.mob",
-    "Cabideiro de tubo oval 30 × 15 mm com suporte (flange) parafusado em cada lateral; aviso de suporte central em vão acima de 1 m",
-    "Barra da sapateira livre das dobradiças"
+    "Dobradiça do fabricante (.skp) de volta e no lugar certo: a planê.mob acha o caneco no bloco (o círculo de 35 mm) e encaixa ele no furo da porta, com o braço virado para a lateral, em qualquer posição que o fabricante tenha desenhado",
+    "A parte do caneco vai com a porta e o resto do bloco fica preso na lateral; se o arquivo não tiver o caneco reconhecível, entra o desenho da planê.mob (base na lateral, caneco na porta)",
+    "Dobradiça reta do fabricante volta a ser o padrão nos móveis novos"
   ]
 }

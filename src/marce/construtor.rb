@@ -155,6 +155,8 @@ module ArqLais
         dy = p['dy'].to_f
         dz = p['dz'].to_f
         return if dx <= 0.05 || dy <= 0.05 || dz <= 0.05
+        # desenho da planê.mob que só entra se o bloco do fabricante não puder ser usado
+        return if p['trocaPorBib'] && Biblioteca.dobradica_ok?(model, p['trocaPorBib'])
         if p['biblio']
           # ferragem da minha biblioteca (.skp): mantém o material do fabricante
           inst = Biblioteca.colocar(model, destino, p, grupos, raiz)
