@@ -677,8 +677,8 @@
       }
       h += '</div><p class="ajuda">Gaveta 1 é a de cima. Digite a altura da frente para fixar; vazio fica automática e divide o espaço que sobra entre as outras. Recomendado: gaveta ' + GAV_REC.gaveta.join(' a ') + ' mm, gavetão ' + GAV_REC.gavetao.join(' a ') + ' mm, gavetão c/ interna ' + GAV_REC.interna.join(' a ') + ' mm (cria uma gaveta oculta de 80 mm dentro).</p>';
     }
-    if (sec.tipo === 'temperos' || sec.tipo === 'fruteira') h += '<div class="campo"><label>Cestos aramados' + aj('aramados') + '</label>' + passo('cestos', 1, 6) + '</div>';
-    if (sec.tipo === 'lixeira') h += '<div class="campo"><label>Cestos' + aj('lixeira') + '</label></div>' + pil('baldes', [[1, '1 cesto'], [2, '2 cestos (seletiva)']]);
+    if ((sec.tipo === 'temperos' || sec.tipo === 'fruteira') && !(sec.bib && sec.bib.id)) h += '<div class="campo"><label>Cestos aramados' + aj('aramados') + '</label>' + passo('cestos', 1, 6) + '</div>';
+    if (sec.tipo === 'lixeira' && !(sec.bib && sec.bib.id)) h += '<div class="campo"><label>Cestos' + aj('lixeira') + '</label></div>' + pil('baldes', [[1, '1 cesto'], [2, '2 cestos (seletiva)']]);
     if (sec.tipo === 'temperos' || sec.tipo === 'fruteira' || sec.tipo === 'lixeira') h += '<div class="campo"><label>Modelo do fabricante</label></div>' + bibEscolha('aramado', base + 'bib', 'Padrão', {});
     if (sec.tipo === 'forno') h += '<p class="ajuda">Nicho para forno de embutir: interno ~56–57 × 59–60 cm, profundidade ≥ 55 cm.</p>';
     if (sec.tipo === 'micro') h += '<p class="ajuda">Nicho para micro-ondas: interno ≥ 50 × 38–46 cm, com ventilação.</p>';
