@@ -17,6 +17,7 @@ module ArqLais
     require File.join(PASTA, 'atualizar')
     require File.join(PASTA, 'aviso')
     require File.join(PASTA, 'dialogo')
+    require File.join(PASTA, 'autoteste')
 
     # ------------------------------------------------------------ comandos
     def self.cmd_novo
@@ -105,6 +106,7 @@ module ArqLais
       menu.add_item(c_rel)
       menu.add_item(c_lista)
       menu.add_separator
+      menu.add_item('Autoteste (confere o plugin neste SketchUp)') { Autoteste.abrir }
       menu.add_item(c_atualizar)
       menu.add_item('Sobre o marcê') { cmd_sobre }
 

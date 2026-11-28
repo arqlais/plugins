@@ -13,15 +13,18 @@ module ArqLais
 
       # dados: hash vindo do JS ({ 'spec', 'modelo' => { 'pecas', 'conjuntos', ... }, 'lista' })
       # alvo: { grupo: existente } ou { ancora: {...}, volume: entidade }
-      def gerar(model, dados, alvo)
+      # operacao: false quando quem chama já abriu a operação (ex.: autoteste, que desfaz tudo no fim)
+      def gerar(model, dados, alvo, operacao: true)
         spec = dados['spec']
         pecas = dados.dig('modelo', 'pecas') || []
         conjuntos = dados.dig('modelo', 'conjuntos') || []
         raise 'Nenhuma peça para gerar.' if pecas.empty?
 
         iniciou = false
-        model.start_operation('marcê: gerar móvel', true)
-        iniciou = true
+        if operacao
+          model.start_operation('marcê: gerar móvel', true)
+          iniciou = true
+        end
         grupo = alvo[:grupo]
         defs_antigas = []
         if grupo && grupo.valid?
@@ -89,7 +92,7 @@ module ArqLais
         grupo.set_attribute(DICT, 'lista', Util.json(dados['lista'] || []))
         grupo.set_attribute(DICT, 'gerado_em', Time.now.strftime('%d/%m/%Y %H:%M'))
         limpar_definicoes(model, defs_antigas)
-        model.commit_operation
+        model.commit_operation if iniciou
         [grupo, erros]
       rescue StandardError => e
         model.abort_operation if iniciou

@@ -14,7 +14,7 @@ module ArqLais
     DICT = 'marce'.freeze
   end
 end
-%w[util materiais volume construtor abrir_fechar exportar].each { |f| require File.join(RAIZ, 'src', 'marce', f) }
+%w[util materiais volume construtor abrir_fechar exportar autoteste].each { |f| require File.join(RAIZ, 'src', 'marce', f) }
 
 def dados_do_motor(cenario)
   js = <<~JS
@@ -236,5 +236,27 @@ class TesteMarce < Minitest::Test
     assert_equal 500, cuba['largura']
     assert_equal 400, cuba['profundidade']
     refute inst.nil?
+  end
+end
+
+class TesteAutoteste < Minitest::Test
+  M = ArqLais::Marce
+  def setup
+    Sketchup.reset!
+    @model = Sketchup.active_model
+  end
+
+  def test_autoteste_confere_um_movel_e_desfaz
+    dados = dados_do_motor('video').merge('nome' => 'cozinha')
+    r = M::Autoteste.rodar_caso(dados)
+    falhas = r['itens'].reject { |i| i['ok'] }
+    assert_empty falhas.map { |i| "#{i['nome']}: #{i['detalhe']}" }, 'autoteste aponta falha num móvel correto'
+    assert_equal [:abort], @model.ops.last, 'autoteste desfaz tudo no fim'
+    refute @model.ops.include?([:commit]), 'nada fica gravado no modelo'
+  end
+
+  def test_autoteste_ambiente
+    amb = M::Autoteste.ambiente
+    assert amb['itens'].find { |i| i['nome'] == 'arquivos da janela' }['ok'], 'arquivos da janela presentes'
   end
 end

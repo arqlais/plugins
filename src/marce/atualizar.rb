@@ -13,7 +13,7 @@ module ArqLais
       REPO = 'arqlais/plugins'.freeze
       RAMOS = ['main', 'claude/elegant-archimedes-k2hbjw'].freeze
       CHAVE = 'ArqLais_Marce'.freeze
-      ARQUIVOS = %w[util materiais volume construtor abrir_fechar exportar atualizar aviso dialogo main].freeze
+      ARQUIVOS = %w[util materiais volume construtor abrir_fechar exportar atualizar aviso dialogo autoteste main].freeze
       @pedidos ||= []
 
       module_function

@@ -148,7 +148,7 @@ module Sketchup
   class Face
     attr_reader :normal, :pts
     def initialize(pts, ents)
-      @pts = pts; @ents = ents
+      @pts = pts; @ents = ents; ents.faces << self
       a = pts[0].vector_to(pts[1]); b = pts[0].vector_to(pts[2])
       n = a * b
       @normal = n.valid? ? n.normalize : Geom::Vector3d.new(0, 0, 1)
@@ -158,6 +158,7 @@ module Sketchup
     def pushpull(d)
       raise 'pushpull invertido' if d <= 0
       @ents.extrusoes << [@pts, @normal, d]
+      (@pts.length + 1).times { @ents.faces << self } # laterais e tampa da extrusão
       @pts.each { |p| @ents.bb.add(p) }
       @pts.each { |p| @ents.bb.add(p.offset(@normal, d)) }
     end
@@ -165,8 +166,9 @@ module Sketchup
 
   class Entities
     include Enumerable
-    attr_reader :itens, :extrusoes, :bb, :parent
-    def initialize(parent = nil); @itens = []; @extrusoes = []; @bb = Geom::BoundingBox.new; @parent = parent; end
+    attr_reader :itens, :extrusoes, :bb, :parent, :faces
+    def initialize(parent = nil); @itens = []; @extrusoes = []; @faces = []; @bb = Geom::BoundingBox.new; @parent = parent; end
+    def grep(cls); cls == Sketchup::Face ? @faces : @itens.grep(cls); end
     def each(&b); @itens.each(&b); end
     def add_group; g = Group.new; g.instance_variable_set(:@pai, self); @itens << g; g; end
     def add_instance(d, t); i = ComponentInstance.new(d, t); @itens << i; i; end
@@ -174,7 +176,7 @@ module Sketchup
       raise 'face com pontos repetidos' if pts.uniq { |p| p.to_a.map { |v| v.round(6) } }.length != pts.length
       Face.new(pts, self)
     end
-    def clear!; @itens.clear; @extrusoes.clear; end
+    def clear!; @itens.clear; @extrusoes.clear; @faces.clear; end
     def length; @itens.length; end
   end
 
@@ -235,6 +237,7 @@ module Sketchup
     attr_accessor :camera
     def initialize; @camera = Camera.new(Geom::Point3d.new(1000, -5000, 2000), Geom::Point3d.new(0, 0, 0), Geom::Vector3d.new(0, 0, 1)); end
     def invalidate; end
+    def write_image(o); File.write(o[:filename], 'png'); true; end
   end
   class Model
     attr_reader :entities, :definitions, :materials, :layers, :selection, :active_view, :ops
@@ -256,6 +259,7 @@ module Sketchup
   def self.active_model; @model; end
   def self.reset!; @model = Model.new; end
   def self.temp_dir; Dir.tmpdir; end
+  def self.version; '26.0.0'; end
   @defaults = {}
   def self.write_default(s, k, v); @defaults[[s, k]] = v; end
   def self.read_default(s, k, d = nil); @defaults.fetch([s, k], d); end

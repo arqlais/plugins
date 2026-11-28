@@ -87,7 +87,7 @@ module ArqLais
       end
 
       # Imagens do móvel isolado para o relatório (perspectiva e vista superior sem frentes)
-      def capturar_imagens(model, movel)
+      def capturar_imagens(model, movel, operacao: true)
         # só no nível do modelo (dentro de outro grupo a câmera e o isolamento sairiam errados;
         # nesse caso o relatório usa a perspectiva desenhada pelo próprio marcê)
         return {} unless movel && movel.valid? && model.entities.include?(movel)
@@ -99,7 +99,7 @@ module ArqLais
         camada = model.layers[Materiais::TAGS['frente']]
         camada_p = model.layers[Materiais::TAGS['pedra']]
         vis = [camada && camada.visible?, camada_p && camada_p.visible?]
-        model.start_operation('marcê: captura', true)
+        model.start_operation('marcê: captura', true) if operacao
         begin
           mapa = capturar_mapa(model, view, movel)
           imagens['mapa'] = mapa if mapa
@@ -133,7 +133,7 @@ module ArqLais
         rescue StandardError => e
           puts "marcê: falha ao capturar imagens: #{e.message}"
         ensure
-          model.abort_operation
+          model.abort_operation if operacao
           (originais || []).each { |g, tr| g.transformation = tr if g.valid? && !AbrirFechar.mesma?(g.transformation, tr) }
           camada.visible = vis[0] if camada && camada.valid?
           camada_p.visible = vis[1] if camada_p && camada_p.valid?

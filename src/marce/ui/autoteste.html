@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>marcê · autoteste</title>
+<style>
+@font-face{font-family:Poppins;font-weight:400;src:url(fonts/poppins-400.woff2) format("woff2")}
+@font-face{font-family:Poppins;font-weight:600;src:url(fonts/poppins-600.woff2) format("woff2")}
+:root{--fundo:#f5f1ee;--t:#3e4b57;--m:#8b939a;--b:#e3d9d4;--rose:#d6b3ab;--ink:#a88a80;--tint:#f4e8e5;--ok:#4f6f8f;--erro:#a8564b}
+*{box-sizing:border-box}html,body{margin:0}body{background:var(--fundo);color:var(--t);font:13px/1.45 Poppins,"Segoe UI",system-ui,sans-serif}
+header{position:sticky;top:0;z-index:2;background:rgba(245,241,238,.96);backdrop-filter:blur(6px);padding:18px 22px 12px;border-bottom:1px solid var(--b)}
+.marca{display:flex;align-items:center;gap:10px}.marca svg{width:34px;height:34px}.marca b{font-size:17px;letter-spacing:-.02em}.marca b i{font-style:normal;color:var(--rose)}.marca small{display:block;color:var(--m)}
+.barra{height:6px;border-radius:99px;background:#eadfda;margin:14px 0 8px;overflow:hidden}.barra span{display:block;height:100%;width:0;background:var(--t);transition:width .25s}
+.status{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.status p{margin:0;color:var(--m)}
+.bt{border:1px solid var(--b);background:#fff;border-radius:99px;padding:7px 14px;font:600 12px Poppins,sans-serif;color:var(--t);cursor:pointer}.bt.pri{background:var(--t);border-color:var(--t);color:#fff}.bt:disabled{opacity:.45;cursor:default}
+main{padding:14px 22px 40px;display:flex;flex-direction:column;gap:12px}
+.eyebrow{display:flex;align-items:center;gap:10px;font-size:11px;font-weight:600;letter-spacing:.14em;color:var(--ink);margin:6px 0 0}.eyebrow:before{content:"";width:22px;height:1.5px;background:var(--ink)}
+.caso{background:#fff;border:1px solid var(--b);border-radius:16px;padding:12px 14px}
+.caso h3{margin:0 0 6px;font-size:13.5px;display:flex;align-items:center;gap:8px}.caso h3 .pill{margin-left:auto;font-size:11px;font-weight:600;border-radius:99px;padding:2px 9px;background:var(--tint);color:var(--ink)}.caso h3 .pill.ok{background:#e8eef4;color:var(--ok)}.caso h3 .pill.rodando{background:#f1f1f1;color:var(--m)}
+.caso ul{list-style:none;margin:0;padding:0}.caso li{display:grid;grid-template-columns:18px 1fr auto;gap:8px;align-items:start;padding:4px 0;border-top:1px solid #f3ece9}.caso li:first-child{border-top:0}
+.caso li small{color:var(--m);text-align:right;max-width:330px;overflow-wrap:anywhere}.caso li.falha span{color:var(--erro);font-weight:600}
+.ic{width:16px;height:16px;margin-top:2px}
+.resumo{display:none;background:#fff;border:1px solid var(--b);border-radius:16px;padding:14px 16px}.resumo.mostra{display:block}.resumo b{font-size:15px}
+</style>
+</head>
+<body>
+<header>
+  <div class="marca"><svg viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="#3e4b57"/><path d="M17 79C18 62 18 46 21 38C25 27 37 27 41 38C44 47 44 62 43 71C42 80 35 82 34 75C33 66 43 40 52 32C60 25 71 28 73 40C75 52 74 65 75 74C76 83 83 85 89 77" fill="none" stroke="#f5f1ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div><b>marc<i>ê</i> · autoteste</b><small>gera cada tipo de móvel no seu SketchUp, confere tudo e desfaz no final: o seu modelo não muda</small></div></div>
+  <div class="barra"><span id="barra"></span></div>
+  <div class="status"><p id="status">preparando…</p><div><button class="bt" id="copiar" disabled>copiar resultado</button> <button class="bt" id="salvar" disabled>salvar .txt</button> <button class="bt pri" id="denovo" disabled>rodar de novo</button></div></div>
+</header>
+<main id="lista"></main>
+<script src="engine.js"></script>
+<script src="nesting.js"></script>
+<script src="render.js"></script>
+<script src="detalhes.js"></script>
+<script src="report.js"></script>
+<script>
+(function () {
+  'use strict';
+  var E = window.MarceEngine, REL = window.MarceRelatorio;
+  var IC = {
+    ok: '<svg class="ic" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7.2" fill="#e8eef4"/><path d="M4.6 8.3l2.2 2.2 4.6-4.9" fill="none" stroke="#4f6f8f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    erro: '<svg class="ic" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7.2" fill="#f6e4e1"/><path d="M5.4 5.4l5.2 5.2M10.6 5.4l-5.2 5.2" stroke="#a8564b" stroke-width="1.7" stroke-linecap="round"/></svg>'
+  };
+  function esc(s) { return String(s === null || s === undefined ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  var naSketchUp = typeof window.sketchup !== 'undefined';
+  var casos = [], fila = [], resultados = [], ambienteR = null, versao = '';
+
+  function spec(tipo, f) { var s = E.specPadrao(tipo); s.colunas = E.autoColunas(s); if (f) f(s); return s; }
+  function montarCasos() {
+    var c = [];
+    Object.keys(E.TIPOS).forEach(function (t) { c.push({ nome: E.TIPOS[t].label, spec: spec(t) }); });
+    Object.keys(E.COMPOSICOES).forEach(function (k) { c.push({ nome: 'Personalizado · ' + E.COMPOSICOES[k], spec: spec('personalizado', function (s) { s.composicao = k; s.L = k === 'torre_geladeira' ? 2400 : s.L; s.H = k === 'torre_geladeira' ? 2400 : s.H; s.colunas = E.autoColunas(s); }) }); });
+    c.push({ nome: 'Cozinha com cuba, porta-temperos, gaveta interna e lixeira', captura: true, spec: spec('balcao', function (s) {
+      s.L = 3087; s.D = 580; s.H = 776; s.base.tipo = 'suspenso'; s.elevacao = 0; s.cuba.ativa = true; s.cuba.centro = 900; s.colunas = E.autoColunas(s);
+      s.colunas[0].secoes = [E.novaSecao('temperos')]; s.colunas[0].largura = 250;
+      s.colunas[3].secoes = [E.novaSecao('gavetas', { itens: [{ tipo: 'interna' }, { tipo: 'gaveta' }, { tipo: 'gaveta' }] })];
+      s.colunas[5].secoes = [E.novaSecao('lixeira', { baldes: 2 })];
+    }) });
+    c.push({ nome: 'Aéreo ripado com LED embutido e toque', spec: spec('aereo', function (s) { s.frentes.estilo = 'ripada'; s.puxador.tipo = 'toque'; s.led.ativo = true; s.led.local = 'base'; }) });
+    c.push({ nome: 'Aéreo com portas de vidro e perfil', spec: spec('aereo', function (s) { s.frentes.estilo = 'vidro'; s.puxador.tipo = 'perfil'; }) });
+    c.push({ nome: 'Portas embutidas com alça', spec: spec('balcao', function (s) { s.frentes.montagem = 'embutida'; s.puxador.tipo = 'alca'; }) });
+    c.push({ nome: 'Gaveteiro com corrediça oculta', spec: spec('gaveteiro', function (s) { s.gavetas.corredica = 'oculta'; }) });
+    c.push({ nome: 'Roupeiro com pés, roda-teto e fundo encaixado', spec: spec('roupeiro', function (s) { s.base.tipo = 'pes'; s.rodaTeto.ativo = true; s.fundo.tipo = 'encaixado'; }) });
+    c.push({ nome: 'Estante com moldura e LED nas prateleiras', spec: spec('estante', function (s) { s.frentes.estilo = 'moldura'; s.led.ativo = true; s.led.local = 'prateleiras'; s.led.tipo = 'sobreposto'; }) });
+    return c;
+  }
+
+  function linha(it) { return '<li class="' + (it.ok ? '' : 'falha') + '">' + (it.ok ? IC.ok : IC.erro) + '<span>' + esc(it.nome) + '</span><small>' + esc(it.detalhe) + '</small></li>'; }
+  function cartao(id, titulo, itens, rodando) {
+    var falhas = (itens || []).filter(function (i) { return !i.ok; }).length;
+    var pill = rodando ? '<span class="pill rodando">testando…</span>' : (falhas ? '<span class="pill">' + falhas + ' falha' + (falhas > 1 ? 's' : '') + '</span>' : '<span class="pill ok">ok</span>');
+    var el = document.getElementById(id);
+    var html = '<h3>' + esc(titulo) + pill + '</h3><ul>' + (itens || []).map(linha).join('') + '</ul>';
+    if (!el) { el = document.createElement('section'); el.className = 'caso'; el.id = id; document.getElementById('lista').appendChild(el); }
+    el.innerHTML = html;
+  }
+  function progresso() {
+    var feito = resultados.length, total = casos.length + 1;
+    document.getElementById('barra').style.width = Math.round(100 * feito / total) + '%';
+  }
+
+  function proximo() {
+    progresso();
+    var c = fila.shift();
+    if (!c) return terminar();
+    document.getElementById('status').textContent = 'testando: ' + c.nome;
+    if (c.relatorio) {
+      cartao('c-rel', 'relatório e lista de peças', [], true);
+      var M0 = E.calcular(casos[0].spec);
+      var html = REL.gerar(M0, { versao: versao });
+      var csv = E.csvLista(E.listaDePecas(M0.pecas, M0.spec.materiais));
+      enviar('relatorio', { html: html, csv: csv }, function (r) { r.id = 'c-rel'; return r; });
+      return;
+    }
+    var id = 'c' + c.idx;
+    var M = E.calcular(c.spec);
+    var erros = (M.avisos || []).filter(function (a) { return a.nivel === 'erro'; });
+    var motor = [{ nome: 'motor calcula o móvel', ok: M.ok, detalhe: M.ok ? M.pecas.length + ' peças · ' + (M.conjuntos || []).length + ' portas/gavetas' : erros.map(function (a) { return a.msg; }).join(' | ') }];
+    if (!M.ok) { resultados.push({ nome: c.nome, itens: motor }); cartao(id, c.nome, motor); return setTimeout(proximo, 10); }
+    cartao(id, c.nome, motor, true);
+    var dados = { nome: c.nome, captura: !!c.captura, spec: M.spec, modelo: { pecas: M.pecas, conjuntos: M.conjuntos, resumo: M.resumo }, lista: E.listaDePecas(M.pecas, M.spec.materiais) };
+    enviar('caso', dados, function (r) { r.itens = motor.concat(r.itens || []); r.id = id; r.nome = c.nome; return r; });
+  }
+
+  var aguardando = null;
+  function enviar(acao, dados, ajuste) {
+    aguardando = ajuste;
+    if (naSketchUp) window.sketchup[acao](JSON.stringify(dados));
+    else setTimeout(function () { Auto.resultado({ nome: dados.nome || 'relatório', itens: [{ nome: 'fora do SketchUp', ok: true, detalhe: 'só o motor foi testado (abra pelo SketchUp)' }] }); }, 30);
+  }
+
+  function terminar() {
+    var falhas = 0, total = 0;
+    resultados.forEach(function (r) { (r.itens || []).forEach(function (i) { total++; if (!i.ok) falhas++; }); });
+    (ambienteR ? ambienteR.itens : []).forEach(function (i) { total++; if (!i.ok) falhas++; });
+    document.getElementById('status').textContent = falhas ? falhas + ' de ' + total + ' conferências falharam: copie o resultado e mande para ajuste' : 'tudo certo: ' + total + ' conferências passaram';
+    document.getElementById('barra').style.width = '100%';
+    ['copiar', 'salvar', 'denovo'].forEach(function (b) { document.getElementById(b).disabled = false; });
+  }
+
+  function texto() {
+    var out = ['marcê ' + versao + ' · autoteste · ' + new Date().toLocaleString('pt-BR'), ''];
+    function bloco(titulo, itens) {
+      out.push('## ' + titulo);
+      (itens || []).forEach(function (i) { out.push((i.ok ? '[ok]   ' : '[FALHA] ') + i.nome + (i.detalhe ? ' · ' + i.detalhe : '')); });
+      out.push('');
+    }
+    if (ambienteR) bloco('ambiente', ambienteR.itens);
+    resultados.forEach(function (r) { bloco(r.nome, r.itens); });
+    return out.join('\n');
+  }
+
+  window.Auto = {
+    iniciar: function (amb) {
+      ambienteR = amb; versao = (amb && amb.versao) || '';
+      document.getElementById('lista').innerHTML = '<p class="eyebrow">ambiente</p>';
+      cartao('c-amb', 'SketchUp e arquivos do plugin', amb ? amb.itens : []);
+      var t = document.createElement('p'); t.className = 'eyebrow'; t.textContent = 'móveis gerados de verdade e desfeitos no fim'; document.getElementById('lista').appendChild(t);
+      casos = montarCasos(); resultados = [];
+      fila = casos.map(function (c, i) { c.idx = i; return c; }).concat([{ relatorio: true }]);
+      ['copiar', 'salvar', 'denovo'].forEach(function (b) { document.getElementById(b).disabled = true; });
+      setTimeout(proximo, 50);
+    },
+    resultado: function (r) {
+      var ajuste = aguardando; aguardando = null;
+      if (ajuste) r = ajuste(r);
+      resultados.push(r);
+      cartao(r.id, r.nome, r.itens);
+      setTimeout(proximo, 30);
+    },
+    salvo: function (caminho) { document.getElementById('status').textContent = 'salvo em: ' + caminho; }
+  };
+
+  document.getElementById('copiar').addEventListener('click', function () {
+    var t = texto(), ta = document.createElement('textarea');
+    ta.value = t; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); document.getElementById('status').textContent = 'resultado copiado: é só colar na conversa'; } catch (e) { /* sem área de transferência */ }
+    ta.remove();
+  });
+  document.getElementById('salvar').addEventListener('click', function () { if (naSketchUp) window.sketchup.salvar(JSON.stringify({ texto: texto() })); });
+  document.getElementById('denovo').addEventListener('click', function () { if (naSketchUp) window.sketchup.pronto(''); else Auto.iniciar(null); });
+
+  if (naSketchUp) window.sketchup.pronto('');
+  else Auto.iniciar(null);
+})();
+</script>
+</body>
+</html>
