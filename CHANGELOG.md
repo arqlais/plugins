@@ -1,5 +1,9 @@
 # Novidades da planê.mob
 
+## 1.15.0
+- Antes de abrir o navegador, a planê.mob pergunta: "abrir no navegador" ou "depois"; a prancha fica salva e o botão "Abrir prancha salva" (aba Relatório) abre quando você quiser
+- Balcão novo vem com 3 gavetas no gaveteiro (4 só em balcões mais altos): a gaveta de cima não fica rasa demais com puxador cava
+
 ## 1.14.0
 - O plugin agora se chama planê.mob, da família planê (o logo continua o mesmo)
 - Menus, janelas, pranchas e avisos com o nome novo; materiais e tags novos começam com "planê.mob ·" (móveis antigos mantêm os nomes até serem editados)

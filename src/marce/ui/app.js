@@ -15,7 +15,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: true, relatorioJunto: true,
-    padroes: null, projeto: {}, versao: '1.14.0', gerando: false, atualizacao: null, atualizando: false
+    padroes: null, projeto: {}, versao: '1.15.0', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -513,7 +513,7 @@
   function abaRelatorio() {
     var h = '<div class="grupo"><h4>Relatório executivo' + aj('relatorio') + '</h4><p class="ajuda amb">O relatório abre no navegador como um <b>editor de pranchas</b>: lá você escolhe folha, cores, cota, logotipo, dados do escritório e do projeto e quais pranchas entram. Fica salvo no navegador e não pesa no SketchUp.</p><p class="ajuda">A prancha aberta acompanha o móvel: ao atualizar o móvel, ela se redesenha sozinha (ou use <b>Atualizar prancha</b>).</p>';
     h += '<label class="interruptor"><input type="checkbox" data-act-chk="relatorioJunto"' + (st.relatorioJunto ? ' checked' : '') + '><span class="trilho"></span><span class="txt">Abrir o editor de pranchas junto ao gerar o móvel</span></label>';
-    h += '<div class="linha-botoes"><button class="botao" data-act="relatorio">Abrir editor de pranchas</button><button class="botao" data-act="atualizarPrancha">Atualizar prancha</button><button class="botao" data-act="csv">Exportar lista de peças (CSV)</button></div></div>';
+    h += '<div class="linha-botoes"><button class="botao" data-act="relatorio">Abrir editor de pranchas</button><button class="botao" data-act="atualizarPrancha">Atualizar prancha</button>' + (st.prancha ? '<button class="botao" data-act="abrirPrancha">Abrir prancha salva</button>' : '') + '<button class="botao" data-act="csv">Exportar lista de peças (CSV)</button></div></div>';
     h += '<div class="grupo"><h4>Código do móvel</h4><div class="campo"><label>Código na planta de marcenaria</label><input type="text" data-path="codigo" value="' + esc(st.spec.codigo || 'M01') + '" placeholder="M01" maxlength="8" style="max-width:90px"></div><p class="ajuda">Cada móvel novo recebe o próximo código livre (M01, M02...). Ele aparece no selo da isométrica, no topo das pranchas e na planta de marcenaria.</p></div>';
     h += '<div class="grupo"><h4>No modelo</h4><p class="ajuda">Depois de gerar: use <b>Extensões → planê.mob → Abrir/fechar portas e gavetas</b> e clique numa porta ou gaveta para ver o interior. Para editar, selecione o móvel e clique em <b>Editar móvel</b> (ou botão direito → planê.mob).</p></div>';
     return h;
@@ -621,6 +621,7 @@
         renderPainel(); return;
       case 'detectarCuba': enviar('detectarCuba', { L: s.L, D: s.D, H: s.H }); toast('Procurando cuba no modelo…'); return;
       case 'relatorio': abrirRelatorio(null); return;
+      case 'abrirPrancha': enviar('abrirPrancha', {}); return;
       case 'atualizarPrancha': if (!enviar('atualizarPrancha', {})) toast('Abra pelo SketchUp para atualizar a prancha.'); return;
       case 'csv': exportarCsv(); return;
       case 'gerar': gerar(); return;
@@ -816,6 +817,22 @@
   document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') { fecharAjuda(); var m = document.querySelector('.modal-fundo'); if (m) m.remove(); } });
   document.getElementById('conteudo').addEventListener('scroll', function () { if (Date.now() - abertoEm > 500) fecharAjuda(); });
 
+  // prancha salva: pergunta antes de levar a pessoa para o navegador
+  function perguntarNavegador(msg) {
+    var fundo = document.createElement('div');
+    fundo.className = 'modal-fundo';
+    fundo.innerHTML = '<div class="modal pequeno" role="dialog" aria-modal="true"><p class="eyebrow-m">prancha salva</p><h2>abrir o <em>editor de pranchas</em>?</h2>' +
+      '<p class="sub-m">As pranchas abrem no navegador, onde você ajusta folha, cores, cotas, logotipo e carimbo e imprime ou salva em PDF.' + (msg.ligada ? ' Ela fica ligada a este móvel e se atualiza sozinha quando você editar.' : '') + '</p>' +
+      '<div class="caminho-m">' + esc(String(msg.caminho || '').split(/[\\/]/).pop()) + '</div>' +
+      '<div class="botoes-m"><button class="botao" data-fechar-modal>depois</button><button class="botao primario" data-abrir-prancha>abrir no navegador</button></div>' +
+      '<p class="sub-m" style="margin:10px 0 0;font-size:11.5px">Para abrir depois: aba Relatório → Abrir prancha salva.</p></div>';
+    document.body.appendChild(fundo);
+    fundo.addEventListener('click', function (ev) {
+      if (ev.target.hasAttribute('data-abrir-prancha')) { enviar('abrirPrancha', {}); fundo.remove(); return; }
+      if (ev.target === fundo || ev.target.hasAttribute('data-fechar-modal')) fundo.remove();
+    });
+  }
+
   function mostrarNovidades(versoes, versao) {
     if (!versoes || !versoes.length) return;
     var fundo = document.createElement('div');
@@ -844,6 +861,7 @@
           st.padroes = msg.padroes || null;
           st.projeto = msg.projeto || st.projeto || {};
           st.arquivo = msg.arquivo || st.arquivo || '';
+          st.prancha = msg.prancha || null;
           st.versao = msg.versao || st.versao;
           var spec;
           if (msg.spec) spec = E.normalizar(msg.spec);
@@ -892,6 +910,7 @@
           if (msg.nova) toast('Tem versão nova da planê.mob: ' + msg.versao);
           break;
         case 'salvo': toast(msg.msg || 'Arquivo salvo'); break;
+        case 'pranchaSalva': st.prancha = msg.caminho; renderPainel(); perguntarNavegador(msg); break;
         case 'aviso':
           if (st.atualizando && !/Baixando/.test(msg.msg || '')) { st.atualizando = false; renderRodape(); }
           toast(msg.msg); break;

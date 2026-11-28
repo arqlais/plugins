@@ -11,7 +11,7 @@ const assert = require('assert');
   await p.addInitScript(() => {
     window.__chamadas = [];
     const reg = (n) => (j) => window.__chamadas.push([n, JSON.parse(j)]);
-    window.sketchup = { verificarAtualizacao: reg('verificarAtualizacao'), atualizar: reg('atualizar'), pronto: reg('pronto'), gerar: reg('gerar'), cancelar: reg('cancelar'), detectarCuba: reg('detectarCuba'), salvarRelatorio: reg('salvarRelatorio'), salvarCsv: reg('salvarCsv'), salvarPadroes: reg('salvarPadroes') };
+    window.sketchup = { verificarAtualizacao: reg('verificarAtualizacao'), atualizar: reg('atualizar'), pronto: reg('pronto'), gerar: reg('gerar'), cancelar: reg('cancelar'), detectarCuba: reg('detectarCuba'), salvarRelatorio: reg('salvarRelatorio'), salvarCsv: reg('salvarCsv'), salvarPadroes: reg('salvarPadroes'), abrirPrancha: reg('abrirPrancha'), atualizarPrancha: reg('atualizarPrancha'), salvarProjeto: reg('salvarProjeto') };
   });
   await p.goto('file://' + path.join(__dirname, '..', 'src', 'marce', 'ui', 'index.html'));
   await p.waitForTimeout(300);
@@ -44,6 +44,15 @@ const assert = require('assert');
   const r = ch.find((c) => c[0] === 'salvarRelatorio');
   assert.ok(r && r[1].html.includes('planê<i>.mob</i> · pranchas') && r[1].html.includes('/*MARCE_FONTES*/') && r[1].html.includes('data:image/png'), 'relatório enviado ao Ruby com marcador de fontes e imagem');
   assert.ok((await p.isVisible('#badge-modo')), 'passa para modo edição');
+
+  // prancha salva: pergunta antes de abrir o navegador
+  await p.evaluate(() => window.App.receber({ tipo: 'pranchaSalva', caminho: 'C:/Projetos/marce-relatorios/Relatorio - Balcão.html', ligada: true }));
+  await p.waitForTimeout(100);
+  assert.ok(await p.isVisible('[data-abrir-prancha]'), 'pergunta se abre o navegador');
+  await p.screenshot({ path: require('path').join(__dirname, 'prints', '18-pergunta-navegador.png') });
+  await p.click('[data-abrir-prancha]');
+  ch = await p.evaluate(() => window.__chamadas);
+  assert.ok(ch.some((c) => c[0] === 'abrirPrancha'), 'abre o navegador só depois de confirmar');
 
   // edição de um móvel existente
   const spec = await p.evaluate(() => { const s = MarceEngine.specPadrao('roupeiro'); s.nome = 'Roupeiro casal'; return s; });

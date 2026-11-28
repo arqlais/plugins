@@ -23,6 +23,8 @@ module ArqLais
       def abrir_edicao(grupo, relatorio: false)
         spec = Util.ler_json(grupo.get_attribute(DICT, 'spec'))
         msg = { 'tipo' => 'init', 'modo' => 'editar', 'versao' => VERSAO, 'spec' => spec, 'padroes' => Exportar.ler_padroes }
+        rel = grupo.get_attribute(DICT, 'relatorio').to_s
+        msg['prancha'] = rel if !rel.empty? && File.exist?(rel)
         if relatorio
           msg['acao'] = 'relatorio'
           msg['imagens'] = Exportar.capturar_imagens(Sketchup.active_model, grupo)
@@ -120,10 +122,22 @@ module ArqLais
           dados = Util.ler_json(j)
           begin
             grupo = @ctx && @ctx[:grupo] && @ctx[:grupo].valid? ? @ctx[:grupo] : nil
-            caminho = Exportar.salvar_relatorio(Sketchup.active_model, dados['html'], dados['nome'], dados['dados'], grupo)
-            enviar('tipo' => 'salvo', 'msg' => "Relatório salvo em #{caminho}" + (grupo ? ' · a prancha acompanha as mudanças deste móvel' : ''))
+            caminho = Exportar.salvar_relatorio(Sketchup.active_model, dados['html'], dados['nome'], dados['dados'], grupo, abrir: false)
+            @ultima_prancha = caminho
+            enviar('tipo' => 'pranchaSalva', 'caminho' => caminho, 'ligada' => grupo ? true : false)
           rescue StandardError => e
             enviar('tipo' => 'aviso', 'msg' => "Não foi possível salvar o relatório: #{e.message}")
+          end
+        end
+
+        d.add_action_callback('abrirPrancha') do |_c, _j|
+          grupo = @ctx && @ctx[:grupo]
+          caminho = grupo && grupo.valid? ? grupo.get_attribute(DICT, 'relatorio').to_s : ''
+          caminho = @ultima_prancha.to_s if caminho.empty? || !File.exist?(caminho)
+          if !caminho.empty? && File.exist?(caminho)
+            Util.abrir_no_navegador(caminho)
+          else
+            enviar('tipo' => 'aviso', 'msg' => 'Ainda não há prancha salva para este móvel.')
           end
         end
 

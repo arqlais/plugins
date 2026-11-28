@@ -292,7 +292,7 @@
         var c0 = i * largura, c1 = (i + 1) * largura;
         if (!(cuba && c1 > spec.cuba.centro - spec.cuba.largura / 2 - 50 && c0 < spec.cuba.centro + spec.cuba.largura / 2 + 50)) { alvo = i; break; }
       }
-      if (alvo >= 0) cols[alvo].secoes = [novaSecao('gavetas', { gavetas: 4 })];
+      if (alvo >= 0) cols[alvo].secoes = [novaSecao('gavetas', { itens: itensGaveta(H - (spec.base && spec.base.tipo !== 'suspenso' ? spec.base.altura : 0) > 820 ? 4 : 3) })];
     }
     return cols;
   }

@@ -1,10 +1,9 @@
 {
-  "versao": "1.14.0",
+  "versao": "1.15.0",
   "rbz": "dist/marce.rbz",
-  "sha256": "6716039304d11884a5c940728136ccdcce3d9f403ee9d9bfcca73dd4e75d5d9b",
+  "sha256": "f1cbadff840620b07ff71ea8d32f364113e461469771d43f626b0e5a6a96a774",
   "notas": [
-    "O plugin agora se chama planê.mob, da família planê (o logo continua o mesmo)",
-    "Menus, janelas, pranchas e avisos com o nome novo; materiais e tags novos começam com \"planê.mob ·\" (móveis antigos mantêm os nomes até serem editados)",
-    "O menu com o nome novo aparece depois de reabrir o SketchUp"
+    "Antes de abrir o navegador, a planê.mob pergunta: \"abrir no navegador\" ou \"depois\"; a prancha fica salva e o botão \"Abrir prancha salva\" (aba Relatório) abre quando você quiser",
+    "Balcão novo vem com 3 gavetas no gaveteiro (4 só em balcões mais altos): a gaveta de cima não fica rasa demais com puxador cava"
   ]
 }
