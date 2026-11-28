@@ -261,7 +261,9 @@ test('ferragens da minha biblioteca: viram peças com "biblio" no lugar das dese
     assert.ok(pux.length > 0 && cor.length > 0 && dob.length > 0, corr + ': puxador, corrediça e dobradiça da biblioteca');
     assert.ok(!m.pecas.some((p) => /perfil (fixo|interno|intermediário)|trilho/.test(p.nome)), 'não desenha a corrediça genérica junto');
     pux.forEach((p) => { assert.strictEqual(p.biblio.longo, 'x'); assert.ok(p.dx <= 600); assert.strictEqual(p.dy, 40); });
-    cor.forEach((p) => assert.strictEqual(p.biblio.longo, 'y'));
+    cor.forEach((p) => { assert.strictEqual(p.biblio.longo, 'y'); assert.ok(p.biblio.mover && p.biblio.mover.movel && p.biblio.mover.meio, 'corrediça do fabricante abre com a gaveta'); });
+    assert.ok(m.conjuntos.some((c) => c.segue && c.curso < 0), 'perfil intermediário segue a gaveta voltando a metade');
+    dob.forEach((p) => assert.strictEqual(p.biblio.mover.tipo, 'dobradica'));
     assert.ok(m.ferragens.some((f) => /Leo M13/.test(f.item)), 'lista de ferragens cita o puxador');
   }
   // sem modelo escolhido: volta para alça e avisa

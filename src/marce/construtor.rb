@@ -83,7 +83,7 @@ module ArqLais
         pecas.each do |p|
           destino = p['conj'] && grupos_conj[p['conj']] ? grupos_conj[p['conj']].entities : ents
           begin
-            criar_peca(model, spec, destino, p, cache_def, cache_mat, cache_tag)
+            criar_peca(model, spec, destino, p, cache_def, cache_mat, cache_tag, grupos_conj, ents)
           rescue StandardError => e
             erros += 1
             puts "planê.mob: falha na peça #{p['nome']}: #{e.message}"
@@ -148,14 +148,14 @@ module ArqLais
         "#{p['nome']} #{dims}"
       end
 
-      def criar_peca(model, spec, destino, p, cache_def, cache_mat, cache_tag)
+      def criar_peca(model, spec, destino, p, cache_def, cache_mat, cache_tag, grupos = nil, raiz = nil)
         dx = p['dx'].to_f
         dy = p['dy'].to_f
         dz = p['dz'].to_f
         return if dx <= 0.05 || dy <= 0.05 || dz <= 0.05
         if p['biblio']
           # ferragem da minha biblioteca (.skp): mantém o material do fabricante
-          inst = Biblioteca.colocar(model, destino, p)
+          inst = Biblioteca.colocar(model, destino, p, grupos, raiz)
           if inst
             inst.name = p['nome'].to_s
             inst.layer = Materiais.tag(model, p['grupo'], cache_tag)

@@ -67,6 +67,8 @@ module ArqLais
           ok.call('captura de imagem da vista', false, e.message)
         end
         ok.call('download para atualização', defined?(Sketchup::Http::Request) ? true : false, defined?(Sketchup::Http::Request) ? 'Sketchup::Http disponível' : 'sem Sketchup::Http (usa Net::HTTP)')
+        fab = Biblioteca.itens.count { |i| i['origem'] == 'fabrica' }
+        ok.call('ferragens da planê.mob na biblioteca', !Biblioteca.fabrica_pendente?, Biblioteca.fabrica_pendente? ? 'ainda não baixadas: abra a etapa Ferragens com internet' : "#{fab} ferragens")
         ok.call("versão da planê.mob #{VERSAO}", true, PASTA)
         { 'versao' => VERSAO, 'itens' => itens }
       end

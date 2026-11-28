@@ -15,7 +15,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: false, relatorioJunto: false, bib: [], bibBusca: {}, bibFiltro: 'todos',
-    padroes: null, projeto: {}, versao: '1.18.0', gerando: false, atualizacao: null, atualizando: false
+    padroes: null, projeto: {}, versao: '1.19.0', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -377,7 +377,7 @@
     if (padraoTxt) h += '<button class="bib-card' + (!atual ? ' ativo' : '') + '" data-act="bibUsar" data-path="' + path + '" data-id="">' + IC.bibVazio + '<b>' + padraoTxt + '</b><small>desenho da planê.mob</small></button>';
     itens.forEach(function (i) {
       h += '<button class="bib-card' + (atual && atual.id === i.id ? ' ativo' : '') + (i.existe === false ? ' faltando' : '') + '" data-act="bibUsar" data-path="' + path + '" data-id="' + esc(i.id) + '" title="' + esc(i.nome + (i.marca ? ' · ' + i.marca : '')) + '">' +
-        bibMini(i) + '<b>' + esc(i.nome) + '</b><small>' + esc((i.marca ? i.marca + ' · ' : '') + bibMedidas(i.medidas)) + '</small></button>';
+        bibMini(i) + (i.origem === 'fabrica' ? '<i class="selo-fabrica">planê</i>' : '') + '<b>' + esc(i.nome) + '</b><small>' + esc((i.marca ? i.marca + ' · ' : '') + bibMedidas(i.medidas)) + '</small></button>';
     });
     h += '<button class="bib-card anexar" data-act="bibAnexar:arquivo:' + cat + '" title="Anexar arquivo do SketchUp (.skp)"><span class="mais">+</span><b>anexar .skp</b><small>do fabricante ou seu</small></button>';
     h += '</div>';
@@ -1315,6 +1315,8 @@
             var o = st.spec && st.spec[pp[0]] && st.spec[pp[0]][pp[1]];
             if (o && o.id) { var it = bibItem(o.id); o.existe = !!(it && it.existe !== false); if (it) { o.nome = it.nome; o.marca = it.marca || ''; } }
           });
+          if (msg.fabrica === 'baixando') toast('Preparando as ferragens que vêm com a planê.mob (só na primeira vez)…');
+          if (msg.fabrica === 'pronta') toast(msg.novosFabrica ? msg.novosFabrica + ' ferragens da planê.mob prontas na biblioteca' + (msg.erros && msg.erros.length ? ' · ' + msg.erros.length + ' não baixaram (tenta de novo ao reabrir)' : '') : (msg.erros && msg.erros.length ? 'Sem internet para baixar as ferragens: tenta de novo ao reabrir' : 'Biblioteca pronta'));
           var an = msg.anexo;
           if (an && an.partes) bibEscolherPartes(an);
           else if (an && an.itens) toast(an.itens.length ? (an.itens.length === 1 ? '"' + an.itens[0].nome + '" anexado à biblioteca' : an.itens.length + ' ferragens anexadas à biblioteca') + (an.erros && an.erros.length ? ' · ' + an.erros.length + ' com erro' : '') : 'Nenhum arquivo .skp anexado');

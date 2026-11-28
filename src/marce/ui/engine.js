@@ -941,7 +941,7 @@
           // dobradiça da biblioteca, no tamanho real: o braço (medida maior) entra no móvel a partir do caneco
           var mdD = bibDob.medidas.map(Number), lD = bibDob.deitar ? mdD[1] : mdD[2], aD = bibDob.deitar ? mdD[2] : mdD[1];
           fab.objeto({ nome: 'Dobradiça ' + bibDob.nome, grupo: 'ferragem', mat: 'metal', x: xc + 17.5 - lD / 2, y: yBack, z: zz - aD / 2, dx: lD, dy: mdD[0], dz: aD, conj: conj, vao: refs.vao, col: refs.col, secao: refs.secao,
-            biblio: bibDe(bibDob, { longo: 'y', virar: lado === 'esq' ? !!bibDob.virar : !bibDob.virar }) });
+            biblio: bibDe(bibDob, { longo: 'y', virar: lado === 'esq' ? !!bibDob.virar : !bibDob.virar, mover: { tipo: 'dobradica', eixo: 'y', parede: 'max' } }) });
           continue;
         }
         var circ = [];
@@ -964,10 +964,14 @@
       var h = Math.max(27, Math.min(45, hMax || 45));
       var r = { vao: refs.vao, col: refs.col, secao: refs.secao };
       if (bibCorr && spec.gavetas.corredica !== 'oculta') {
-        // corrediça da biblioteca: ocupa os 12,5 mm de folga, no comprimento da corrediça (fixa no móvel)
+        // corrediça da biblioteca: ocupa os 12,5 mm de folga, no comprimento da corrediça. Funciona como a
+        // de verdade: o perfil junto da lateral fica no móvel, o do meio anda a metade e o de dentro sai com a gaveta.
+        var cjB = fab.conjuntos.filter(function (c) { return c.id === conj; })[0];
+        var meioB = cjB ? fab.conjunto({ nome: 'Corrediça (perfil intermediário)', tipo: 'corre', curso: -Math.round(cjB.curso / 2), pai: conj, segue: true, vao: refs.vao, col: refs.col, secao: refs.secao }) : null;
         [[xL, 1], [xR, -1]].forEach(function (ld) {
           fab.objeto(Object.assign({ nome: 'Corrediça ' + bibCorr.nome, grupo: 'ferragem', mat: 'metal', x: ld[1] > 0 ? ld[0] : ld[0] - 12.5, y: y0, z: zc, dx: 12.5, dy: len, dz: h,
-            biblio: bibDe(bibCorr, { encaixe: 'esticar', longo: 'y', virar: ld[1] > 0 ? !!bibCorr.virar : !bibCorr.virar }) }, r));
+            biblio: bibDe(bibCorr, { encaixe: 'esticar', longo: 'y', virar: ld[1] > 0 ? !!bibCorr.virar : !bibCorr.virar,
+              mover: { tipo: 'trilho', eixo: 'x', parede: ld[1] > 0 ? 'min' : 'max', movel: conj, meio: meioB } }) }, r));
         });
         return;
       }
@@ -1209,10 +1213,12 @@
             fab.chapa({ nome: 'Traseira gaveta', grupo: 'gaveta', mat: 'gaveta', eixoEsp: 'y', x: bx0 + Tg, y: yBox + lenC - Tg, z: zBox, dx: bW - 2 * Tg, dy: Tg, dz: hbG, veio: 'x', fitas: ['x'], vao: vi, col: colIdx0, secao: j, conj: cjG, obs: obsG });
             fab.chapa({ nome: 'Fundo gaveta', grupo: 'gaveta', mat: 'fundoGaveta', eixoEsp: 'z', x: bx0 + Tg - 8, y: yBox + Tg - 8, z: zBox + 10, dx: bW - 2 * Tg + 16, dy: lenC - 2 * Tg + 16, dz: Fg, fitas: [], vao: vi, col: colIdx0, secao: j, conj: cjG, obs: nomeG + ' · rasgo 8 mm' });
             if (oculta && bibCorr) {
+              var meioO = fab.conjunto({ nome: 'Corrediça (trilho intermediário)', tipo: 'corre', curso: -Math.round(lenC * 0.85 / 2), pai: cjG, segue: true, vao: vi, col: colIdx0, secao: j });
               [[vm.il, 1], [vm.ir, -1]].forEach(function (ld) {
                 var lwB = clear + Tg;
                 fab.objeto({ nome: 'Corrediça ' + bibCorr.nome, grupo: 'ferragem', mat: 'metal', x: ld[1] > 0 ? ld[0] : ld[0] - lwB, y: yBox, z: zBox - 12.5, dx: lwB, dy: lenC, dz: 12, vao: vi, col: colIdx0, secao: j,
-                  biblio: bibDe(bibCorr, { encaixe: 'esticar', longo: 'y', virar: ld[1] > 0 ? !!bibCorr.virar : !bibCorr.virar }) });
+                  biblio: bibDe(bibCorr, { encaixe: 'esticar', longo: 'y', virar: ld[1] > 0 ? !!bibCorr.virar : !bibCorr.virar,
+                    mover: { tipo: 'trilho', eixo: 'x', parede: ld[1] > 0 ? 'min' : 'max', movel: cjG, meio: meioO } }) });
               });
             } else if (oculta) {
               // corrediça oculta (tipo Tandem): trilho fixo em "L" na lateral do móvel e trilho móvel em "U"

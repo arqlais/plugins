@@ -131,7 +131,20 @@ module ArqLais
         end
 
         # ---------------- minha biblioteca de ferragens (.skp)
-        d.add_action_callback('bibListar') { |_c, _j| enviar('tipo' => 'biblioteca', 'itens' => Biblioteca.para_janela) }
+        d.add_action_callback('bibListar') do |_c, _j|
+          if Biblioteca.fabrica_pendente? && !@baixando_fabrica
+            # primeira vez: baixa e importa as ferragens que vêm com a planê.mob (uma vez só)
+            @baixando_fabrica = true
+            enviar('tipo' => 'biblioteca', 'itens' => Biblioteca.para_janela, 'fabrica' => 'baixando')
+            Biblioteca.baixar_fabrica do |_ok, erros|
+              novos = Biblioteca.importar_fabrica(Sketchup.active_model)
+              @baixando_fabrica = false
+              enviar('tipo' => 'biblioteca', 'itens' => Biblioteca.para_janela, 'fabrica' => 'pronta', 'novosFabrica' => novos.length, 'erros' => erros)
+            end
+          else
+            enviar('tipo' => 'biblioteca', 'itens' => Biblioteca.para_janela)
+          end
+        end
 
         d.add_action_callback('bibAnexar') do |_c, j|
           dados = Util.ler_json(j)

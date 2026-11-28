@@ -1,13 +1,10 @@
 {
-  "versao": "1.18.0",
+  "versao": "1.19.0",
   "rbz": "dist/marce.rbz",
-  "sha256": "98ea8c4782fd07bdd951898dbdb214b88f4166615e1582c9f0fe2cc14e531fd7",
+  "sha256": "8a30d287c558a3e58b2828cc179cbf2bb3c44e4871de8ee67354d04291ecef37",
   "notas": [
-    "Janela repaginada: menu flutuante à esquerda com cantos arredondados, prévia num palco central e painel flutuante à direita, tudo na identidade da planê",
-    "Mais simples: cada etapa mostra só o essencial; o resto fica em \"configurações avançadas\", que abre quando você precisar (e lembra a escolha)",
-    "Ações sempre à mão no pé do painel: conferência, relatório e gerar móvel",
-    "Vista interna: no lugar do desenho do sifão, a área livre reservada para sifão e registros (com o furo, quando houver)",
-    "Biblioteca mais enxuta: cartão \"+ anexar .skp\" junto dos modelos e ajustes de posição só quando a peça entra virada",
-    "Cores só da paleta planê (sem verde nem vermelho)"
+    "Ferragens que vêm com a planê.mob: corrediças telescópicas (com amortecedor 350 e 45 mm), corrediça invisível, dobradiça reta, dobradiça invisível, perfil puxador Leo M13, puxadores, porta-temperos, lixeiras (Masutti e cesto duplo), kit de porta de correr e a coleção de ferragens; baixadas uma vez na primeira vez que você abre a etapa Ferragens",
+    "As ferragens do fabricante funcionam: na corrediça, o perfil junto da lateral fica no móvel, o do meio anda a metade e o de dentro sai com a gaveta; na dobradiça, a base fica na lateral e o braço gira com a porta",
+    "Bonecos de escala e logotipos que vêm junto nos arquivos ficam de fora automaticamente"
   ]
 }

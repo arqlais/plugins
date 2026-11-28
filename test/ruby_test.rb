@@ -372,3 +372,44 @@ class TesteBiblioteca < Minitest::Test
     assert_in_delta 10, cx[0][0], 0.05
   end
 end
+
+# a corrediça do fabricante funciona: cada perfil vai para o seu lugar
+class TesteFerragemFunciona < Minitest::Test
+  include ArqLais::Marce
+  def trilho(nome, x0, x1)
+    d = Sketchup.active_model.definitions.add(nome)
+    d.entities.bb.add(Geom::Point3d.new(x0.mm, 0, 0), Geom::Point3d.new(x1.mm, 350.mm, 45.mm))
+    d
+  end
+  def montar
+    defi = Sketchup.active_model.definitions.add('corrediça do fabricante')
+    [['fixo', 0, 6.4], ['meio', 1.6, 9], ['interno', 3.6, 12.7]].shuffle.each do |n, a, b|
+      t = trilho(n, a, b)
+      defi.entities.add_instance(t, Geom::Transformation.new)
+      defi.entities.bb.add(t.bounds)
+    end
+    defi
+  end
+  def nomes(ents); ents.itens.select { |e| e.is_a?(Sketchup::ComponentInstance) }.map { |e| e.definition.name }; end
+
+  def test_lado_esquerdo_e_direito
+    [['min', %w[fixo meio interno]], ['max', %w[interno meio fixo]]].each do |parede, (raizN, meioN, movelN)|
+      raiz = Sketchup.active_model.entities.add_group.entities
+      g_movel = Sketchup.active_model.entities.add_group
+      g_meio = Sketchup.active_model.entities.add_group
+      mv = { 'tipo' => 'trilho', 'eixo' => 'x', 'parede' => parede, 'movel' => 'C1', 'meio' => 'C2', 'id' => 'b1' }
+      Biblioteca.colocar_partes(montar, Geom::Transformation.new, mv, raiz, { 'C1' => g_movel, 'C2' => g_meio }, raiz)
+      assert_equal [raizN], nomes(raiz), "#{parede}: perfil junto da lateral fica no móvel"
+      assert_equal [meioN], nomes(g_meio.entities), "#{parede}: intermediário anda a metade"
+      assert_equal [movelN], nomes(g_movel.entities), "#{parede}: perfil interno sai com a gaveta"
+    end
+  end
+
+  def test_boneco_de_escala_fica_de_fora
+    defi = montar
+    helen = Sketchup.active_model.definitions.add('Helen')
+    helen.entities.bb.add(Geom::Point3d.new(0, 0, 0), Geom::Point3d.new(400.mm, 300.mm, 1700.mm))
+    defi.entities.add_instance(helen, Geom::Transformation.new)
+    assert_equal 3, Biblioteca.partes_de(defi).count { |e| Biblioteca.parte_util?(e) }
+  end
+end

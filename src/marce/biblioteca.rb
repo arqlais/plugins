@@ -8,6 +8,8 @@
 # na caixa calculada pelo motor: o eixo mais comprido do componente vai no eixo mais comprido da caixa
 # (e assim por diante). "esticar" ajusta só o comprimento (perfil, corrediça); "real" mantém o tamanho
 # do fabricante e centraliza. Se o arquivo sumir, a peça volta a ser desenhada pelo motor.
+require 'digest'
+
 module ArqLais
   module Marce
     module Biblioteca
@@ -95,11 +97,34 @@ module ArqLais
         defi.entities.select { |e| e.is_a?(Sketchup::ComponentInstance) || e.is_a?(Sketchup::Group) }
       end
 
-      def nome_parte(e, k)
+      def nome_parte(e, k, base = nil)
         n = e.name.to_s
         n = e.definition.name.to_s if n.empty? && e.respond_to?(:definition)
-        n = "parte #{k + 1}" if n.empty? || n =~ /\AGrupo#|\AGroup#/
+        n = (base ? "#{base} · parte #{k + 1}" : "parte #{k + 1}") if n.empty? || n =~ /\A(Grupo|Group|Agrupar|Componente|Component)#?\d*\z/i
         n
+      end
+
+      # bonecos de escala que vêm nos modelos do 3D Warehouse, logotipos e marcas d'água não são ferragem
+      EXCLUIR = /helen|chris|susan|derrick|sang|lisa|steve|person|pessoa|figura|escala|logo|marca d.?água|watermark/i.freeze
+
+      def def_de(e)
+        e.respond_to?(:definition) ? e.definition : e.entities.parent
+      end
+
+      def parte_util?(e)
+        return false if "#{e.name} #{def_de(e).name}" =~ EXCLUIR
+        b = e.bounds
+        [b.width, b.height, b.depth].min.to_mm >= 0.5 # chapado (imagem/logotipo) fica de fora
+      end
+
+      # definição só com as partes úteis (se o arquivo tiver boneco de escala ou logotipo junto)
+      def definicao_limpa(model, defi, nome)
+        partes = partes_de(defi)
+        boas = partes.select { |e| parte_util?(e) }
+        return defi if boas.length == partes.length || boas.empty? || defi.entities.grep(Sketchup::Face).any?
+        nova = model.definitions.add(nome.to_s.empty? ? 'ferragem' : nome.to_s)
+        boas.each { |e| nova.entities.add_instance(def_de(e), e.transformation).material = e.material }
+        nova
       end
 
       # Anexa um arquivo .skp. Se ele tiver várias peças soltas (ex.: puxador + logotipo), devolve as
@@ -117,7 +142,10 @@ module ArqLais
           descartar(model, defi, existia)
           return { 'partes' => lista, 'arquivo' => arq, 'nome' => File.basename(arq, '.skp'), 'categoria' => categoria }
         end
-        it = registrar(defi, File.basename(arq, '.skp'), categoria, origem_arquivo: arq)
+        nome = File.basename(arq, '.skp')
+        limpa = definicao_limpa(model, defi, nome)
+        it = registrar(limpa, nome, categoria, origem_arquivo: limpa.equal?(defi) ? arq : nil)
+        descartar(model, limpa, false) unless limpa.equal?(defi)
         descartar(model, defi, existia)
         { 'itens' => [it] }
       end
@@ -163,7 +191,7 @@ module ArqLais
       end
 
       # grava o .skp da definição na biblioteca, com miniatura e ficha
-      def registrar(defi, nome, categoria, origem_arquivo: nil)
+      def registrar(defi, nome, categoria, origem_arquivo: nil, extra: nil)
         id = novo_id
         destino = File.join(pasta, id + '.skp')
         if origem_arquivo && File.exist?(origem_arquivo)
@@ -185,8 +213,106 @@ module ArqLais
           'encaixe' => cat == 'puxador' || cat == 'dobradica' ? 'real' : 'esticar', 'virar' => false,
           'criado' => Time.now.strftime('%d/%m/%Y')
         }
+        (extra || {}).each { |k, v| it[k] = v unless v.nil? }
         gravar(itens + [it])
         it
+      end
+
+      # ------------------------------------------------------------ biblioteca de fábrica
+      # Ferragens que vêm com a planê.mob (lista em ferragens_fabrica.json). Os arquivos ficam no
+      # repositório e são baixados uma vez só, na primeira vez que a pessoa abre as ferragens; depois
+      # entram na biblioteca como os anexados (o plugin continua leve).
+      def manifesto
+        Util.ler_json(File.read(File.join(PASTA, 'ferragens_fabrica.json'), encoding: 'UTF-8'))
+      rescue StandardError
+        { 'versao' => 0, 'itens' => [] }
+      end
+
+      def marca_fabrica
+        File.join(pasta, 'fabrica.ok')
+      end
+
+      def fabrica_pendente?
+        v = manifesto['versao'].to_i
+        v.positive? && (File.exist?(marca_fabrica) ? File.read(marca_fabrica).to_i : 0) < v
+      end
+
+      def pasta_downloads
+        dir = File.join(pasta, 'fabrica')
+        Dir.mkdir(dir) unless File.directory?(dir)
+        dir
+      end
+
+      # baixa os arquivos que faltam, um por vez. bloco: |ok, erros|
+      def baixar_fabrica(&fim)
+        fila = (manifesto['itens'] || []).reject do |m|
+          c = File.join(pasta_downloads, m['arquivo'])
+          File.exist?(c) && Digest::SHA256.file(c).hexdigest == m['sha256']
+        end
+        erros = []
+        proximo = lambda do
+          m = fila.shift
+          next fim.call(erros.empty?, erros) unless m
+          baixar_um(m) do |ok, erro|
+            erros << "#{m['nome']}: #{erro}" unless ok
+            proximo.call
+          end
+        end
+        proximo.call
+      end
+
+      def baixar_um(m, ramos = Atualizar::RAMOS.dup, &bloco)
+        ramo = ramos.shift
+        return bloco.call(false, 'não encontrado') unless ramo
+        Atualizar.baixar(Atualizar.url(ramo, "#{manifesto['pasta'] || 'ferragens'}/#{m['arquivo']}"), binario: true) do |corpo, _erro|
+          if corpo && Digest::SHA256.hexdigest(corpo) == m['sha256']
+            File.binwrite(File.join(pasta_downloads, m['arquivo']), corpo)
+            bloco.call(true, nil)
+          else
+            baixar_um(m, ramos, &bloco)
+          end
+        end
+      end
+
+      # importa os arquivos baixados para a biblioteca (uma vez por versão da lista)
+      def importar_fabrica(model)
+        novos = []
+        feitos = []
+        lista = itens
+        ja = lista.select { |i| i['origem'] == 'fabrica' }.map { |i| i['fabrica_arquivo'] }
+        model.start_operation('planê.mob: biblioteca de fábrica', true, false, true)
+        (manifesto['itens'] || []).each do |m|
+          arq = File.join(pasta_downloads, m['arquivo'])
+          next if ja.include?(m['arquivo']) || !File.exist?(arq)
+          begin
+            defi, existia = carregar(model, arq)
+            extra = { 'origem' => 'fabrica', 'fabrica_arquivo' => m['arquivo'], 'marca' => m['marca'], 'encaixe' => m['encaixe'], 'tipo' => m['tipo'] }
+            if m['dividir']
+              partes_de(defi).select { |e| parte_util?(e) }.each_with_index do |e, k|
+                nome = nome_parte(e, k, m['nome'])
+                cat = m['categoria'] || adivinhar_categoria(nome)
+                novos << registrar(def_de(e), nome, cat, extra: extra.merge('encaixe' => m['encaixe'] || (cat == 'corredica' ? 'esticar' : 'real')))
+              end
+            else
+              limpa = definicao_limpa(model, defi, m['nome'])
+              novos << registrar(limpa, m['nome'], m['categoria'], origem_arquivo: limpa.equal?(defi) ? arq : nil, extra: extra)
+              descartar(model, limpa, false) unless limpa.equal?(defi)
+            end
+            descartar(model, defi, existia)
+            feitos << m['arquivo']
+            File.delete(arq) rescue nil # já está copiado na biblioteca
+          rescue StandardError => e
+            puts "planê.mob: ferragem de fábrica #{m['arquivo']}: #{e.message}"
+          end
+        end
+        model.commit_operation
+        todos = (manifesto['itens'] || []).all? { |m| ja.include?(m['arquivo']) || feitos.include?(m['arquivo']) }
+        File.write(marca_fabrica, manifesto['versao'].to_s) if todos # se faltou algum, tenta de novo na próxima vez
+        novos
+      rescue StandardError => e
+        model.abort_operation
+        puts "planê.mob: biblioteca de fábrica: #{e.message}"
+        []
       end
 
       def editar(dados)
@@ -217,6 +343,8 @@ module ArqLais
         it = item(id)
         return nil unless it && File.exist?(caminho(it))
         d = model.definitions.load(caminho(it))
+        # grupos de primeiro nível viram componentes: assim cada parte pode ir para um lugar (corrediça que abre)
+        d.entities.grep(Sketchup::Group).each { |g| g.to_component if g.respond_to?(:to_component) } unless d.instances.length.positive?
         @cache[id] = d
         d
       rescue StandardError => e
@@ -274,19 +402,60 @@ module ArqLais
         n
       end
 
-      # coloca a ferragem da biblioteca no lugar da peça; nil se não der (a peça é desenhada pelo motor)
-      def colocar(model, destino, p)
+      # coloca a ferragem da biblioteca no lugar da peça; nil se não der (a peça é desenhada pelo motor).
+      # Com "mover", as partes do arquivo vão cada uma para o seu lugar e a ferragem FUNCIONA:
+      #  - corrediça: a parte junto da lateral fica no móvel, a do meio anda a metade e a de dentro sai com a gaveta;
+      #  - dobradiça: a base (a parte mais funda) fica na lateral e o braço com o caneco gira com a porta.
+      def colocar(model, destino, p, grupos = {}, raiz = nil)
         b = p['biblio'] || {}
         defi = definicao(model, b['id'].to_s)
         return nil unless defi
         caixa = [p['dx'].to_f, p['dy'].to_f, p['dz'].to_f]
         tr = Geom::Transformation.translation([Util.mm(p['x']), Util.mm(p['y']), Util.mm(p['z'])]) * encaixe(defi.bounds, caixa, b)
+        mv = b['mover']
+        if mv.is_a?(Hash) && raiz
+          inst = colocar_partes(defi, tr, mv.merge('id' => b['id']), destino, grupos || {}, raiz)
+          return inst if inst
+        end
         inst = destino.add_instance(defi, tr)
         inst.set_attribute(DICT, 'biblio', b['id'].to_s)
         inst
       rescue StandardError => e
         puts "planê.mob: ferragem da biblioteca não encaixou (#{p['nome']}): #{e.message}"
         nil
+      end
+
+      def colocar_partes(defi, tr, mv, destino, grupos, raiz)
+        partes = partes_de(defi).select { |e| parte_util?(e) }
+        return nil if partes.length < 2 || defi.entities.grep(Sketchup::Face).any?
+        eixo = %w[x y z].index(mv['eixo'].to_s) || 0
+        ordem = partes.map do |e|
+          c = e.bounds.center.transform(tr)
+          [e, [c.x, c.y, c.z][eixo]]
+        end.sort_by { |_e, v| v }
+        ordem.reverse! if mv['parede'] == 'max'
+        n = ordem.length
+        primeira = nil
+        ordem.each_with_index do |(e, _v), k|
+          alvo = if mv['tipo'] == 'dobradica'
+                   k.zero? ? raiz : destino
+                 elsif k.zero?
+                   raiz
+                 elsif k == n - 1
+                   ents_de(grupos[mv['movel'].to_s]) || destino
+                 else
+                   ents_de(grupos[mv['meio'].to_s]) || ents_de(grupos[mv['movel'].to_s]) || destino
+                 end
+          inst = alvo.add_instance(def_de(e), tr * e.transformation)
+          inst.material = e.material if e.material
+          inst.set_attribute(DICT, 'biblio', mv['id'].to_s)
+          primeira ||= inst
+        end
+        primeira
+      end
+
+      def ents_de(g)
+        g && g.valid? ? g.entities : nil
       end
     end
 

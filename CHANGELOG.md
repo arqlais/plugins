@@ -1,5 +1,10 @@
 # Novidades da planê.mob
 
+## 1.19.0
+- Ferragens que vêm com a planê.mob: corrediças telescópicas (com amortecedor 350 e 45 mm), corrediça invisível, dobradiça reta, dobradiça invisível, perfil puxador Leo M13, puxadores, porta-temperos, lixeiras (Masutti e cesto duplo), kit de porta de correr e a coleção de ferragens; baixadas uma vez na primeira vez que você abre a etapa Ferragens
+- As ferragens do fabricante funcionam: na corrediça, o perfil junto da lateral fica no móvel, o do meio anda a metade e o de dentro sai com a gaveta; na dobradiça, a base fica na lateral e o braço gira com a porta
+- Bonecos de escala e logotipos que vêm junto nos arquivos ficam de fora automaticamente
+
 ## 1.18.0
 - Janela repaginada: menu flutuante à esquerda com cantos arredondados, prévia num palco central e painel flutuante à direita, tudo na identidade da planê
 - Mais simples: cada etapa mostra só o essencial; o resto fica em "configurações avançadas", que abre quando você precisar (e lembra a escolha)

@@ -1,0 +1,120 @@
+{
+ "versao": 1,
+ "pasta": "ferragens",
+ "itens": [
+  {
+   "arquivo": "corredica-telescopica-amortecedor-350.skp",
+   "nome": "Telescópica com amortecedor 350",
+   "marca": "FGV",
+   "categoria": "corredica",
+   "encaixe": "esticar",
+   "tipo": "telescopica",
+   "sha256": "30eca04cb100e80fceed9a2bbca99a2abdfbff54331967a1eec5fb21e970e09d",
+   "bytes": 214235
+  },
+  {
+   "arquivo": "corredica-telescopica.skp",
+   "nome": "Telescópica 45 mm",
+   "marca": "",
+   "categoria": "corredica",
+   "encaixe": "esticar",
+   "tipo": "telescopica",
+   "sha256": "417734b9a8629d1040230bde0292fc85fa784cc4d68b150108005f7f27465913",
+   "bytes": 288482
+  },
+  {
+   "arquivo": "corredica-invisivel.skp",
+   "nome": "Invisível com amortecedor",
+   "marca": "",
+   "categoria": "corredica",
+   "encaixe": "esticar",
+   "tipo": "oculta",
+   "sha256": "75fd34d563b9a6028dbfe9d69e5f8f2fc83434181dcca366ebb20f9a3ce2586d",
+   "bytes": 773495
+  },
+  {
+   "arquivo": "dobradica-reta.skp",
+   "nome": "Dobradiça reta 35 mm",
+   "marca": "",
+   "categoria": "dobradica",
+   "encaixe": "real",
+   "sha256": "cf22132d67e39e0cfdd5aa70294a84e45e6b5f89cce66417b4dc6b356b748070",
+   "bytes": 640006
+  },
+  {
+   "arquivo": "dobradica-invisivel.skp",
+   "nome": "Dobradiça invisível 94 × 16 × 18",
+   "marca": "",
+   "categoria": "dobradica",
+   "encaixe": "real",
+   "sha256": "4741572bc4108d11a6cc8516af7397c0d97bfa586227e9411f52e0980deaad7b",
+   "bytes": 61317
+  },
+  {
+   "arquivo": "puxador-leo-m13.skp",
+   "nome": "Perfil Leo M13",
+   "marca": "Leo",
+   "categoria": "puxador",
+   "encaixe": "esticar",
+   "dividir": true,
+   "sha256": "7bba71278572f21d23f6b474b862b9e45439eacbe67b010e171b033e3a418d90",
+   "bytes": 141719
+  },
+  {
+   "arquivo": "puxador-componente.skp",
+   "nome": "Puxador",
+   "marca": "",
+   "categoria": "puxador",
+   "encaixe": "real",
+   "dividir": true,
+   "sha256": "9ebcb6ed6f9efdcb2b952e9013717c8417d7e8984e70eced1d21d5d18f39e588",
+   "bytes": 254705
+  },
+  {
+   "arquivo": "porta-temperos-corredica.skp",
+   "nome": "Porta-temperos com corrediça",
+   "marca": "",
+   "categoria": "aramado",
+   "encaixe": "real",
+   "sha256": "8d45fc41724c33cb78ec6ef337bc234c7434b3668dad72572f94113cba7e9baf",
+   "bytes": 10042012
+  },
+  {
+   "arquivo": "lixeira-masutti-telescopica.skp",
+   "nome": "Lixeira com corrediça telescópica",
+   "marca": "Masutti",
+   "categoria": "aramado",
+   "encaixe": "real",
+   "sha256": "80ca008173cea8e3f7957a0bcd825466efdca815da9088b0cb2f1089fd4d8fe5",
+   "bytes": 606223
+  },
+  {
+   "arquivo": "lixeira-cesto-duplo.skp",
+   "nome": "Lixeira de embutir cesto duplo",
+   "marca": "",
+   "categoria": "aramado",
+   "encaixe": "real",
+   "sha256": "445bbf6773f0543a3a38baad5672ef9173155b664a071cdcfbb69dd3deb5a2bb",
+   "bytes": 654053
+  },
+  {
+   "arquivo": "kit-porta-de-correr-ro21.skp",
+   "nome": "Kit porta de correr RO21",
+   "marca": "",
+   "categoria": "outro",
+   "encaixe": "real",
+   "sha256": "ccb363865fc338320eb570d281c497294f5daaf1da14c28d2f603edf5c7efbff",
+   "bytes": 181835
+  },
+  {
+   "arquivo": "colecao-ferragens.skp",
+   "nome": "Ferragens",
+   "marca": "",
+   "categoria": null,
+   "encaixe": "real",
+   "dividir": true,
+   "sha256": "9a167b0e5b59c378683e35516ac2cb66dc86bc04a1cf6e5663be15af5d251063",
+   "bytes": 1145796
+  }
+ ]
+}
