@@ -76,9 +76,7 @@ const path = require('path');
   if ((await q.$$('.folha')).length < 6) errs.push('relatório sem pranchas');
 
   await p.click('[data-act="aba:relatorio"]');
-  await p.fill('[data-proj="cliente"]', 'Laura e Pedro');
-  await p.fill('[data-escr="nome"]', 'Estúdio Exemplo');
-  await p.click('[data-path="prancha.folha"][data-val="A3"]');
+  if (!(await p.$('[data-act="relatorio"]'))) errs.push('sem botão do editor de pranchas');
   await p.waitForTimeout(200);
   await p.screenshot({ path: path.join(out, '09-aba-relatorio.png') });
 

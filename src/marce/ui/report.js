@@ -26,6 +26,11 @@
   var LACO = 'M17 79C18 62 18 46 21 38C25 27 37 27 41 38C44 47 44 62 43 71C42 80 35 82 34 75C33 66 43 40 52 32C60 25 71 28 73 40C75 52 74 65 75 74C76 83 83 85 89 77';
   function logoSvg(fundo, traco) { return '<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="' + fundo + '"/><path d="' + LACO + '" fill="none" stroke="' + traco + '" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>'; }
   function esc(s) { return String(s === null || s === undefined ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function clarear(hex, f) {
+    var h = String(hex || '#a88a80').replace('#', ''); if (h.length === 3) h = h.replace(/./g, '$&$&');
+    var n = parseInt(h, 16); if (isNaN(n)) return '#f4e8e5';
+    return '#' + [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(function (v) { return ('0' + Math.round(v + (255 - v) * f).toString(16)).slice(-2); }).join('');
+  }
   function cm(mm) { var v = Math.round(mm) / 10; return String(v).replace('.', ','); }
   function n1(v) { return Math.round(v * 10) / 10; }
   function dataHoje() { var a = new Date(); return ('0' + a.getDate()).slice(-2) + '/' + ('0' + (a.getMonth() + 1)).slice(-2) + '/' + a.getFullYear(); }
@@ -48,6 +53,19 @@
     '.barra input[type=color]{width:28px;height:24px;border:1px solid var(--b);border-radius:6px;padding:1px;background:#fff}',
     '.barra .dica{flex-basis:100%;color:var(--m);font-size:11px}',
     '#pranchas{padding:22px 0 60px;display:flex;flex-direction:column;align-items:center;gap:22px}',
+    '.ed{position:fixed;left:0;top:0;bottom:0;width:330px;background:#fff;border-right:1px solid var(--b);display:flex;flex-direction:column;z-index:6;font-size:12.5px}.ed+#area{margin-left:330px}',
+    '.ed-top{padding:16px 18px 12px;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:10px}.ed-top svg{width:30px;height:30px;flex:none}.ed-top b{display:block;font-size:15px;letter-spacing:-.02em}.ed-top b i{font-style:normal;color:#d6b3ab}.ed-top small{color:#8b939a}',
+    '.ed-sc{flex:1;overflow:auto;padding:4px 18px 18px}.ed-sec{padding:14px 0 6px;border-bottom:1px solid #f0e9e6}.ed-sec:last-child{border-bottom:0}',
+    '.ed-h{display:flex;align-items:center;gap:8px;font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:lowercase;color:#a88a80;margin:0 0 10px}.ed-h:before{content:"";width:18px;height:1.5px;background:#a88a80}',
+    '.ed-pills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}.ed-pills button{border:1px solid #e3d9d4;background:#fff;border-radius:99px;padding:5px 11px;font:600 11.5px Poppins,sans-serif;color:#3e4b57;cursor:pointer}.ed-pills button.ativo{background:#3e4b57;border-color:#3e4b57;color:#fff}',
+    '.ed-campo{display:flex;flex-direction:column;gap:3px;margin-bottom:9px}.ed-campo label{font-size:11px;color:#8b939a}.ed-campo input[type=text],.ed-campo textarea,.ed-campo select{border:1px solid #e3d9d4;border-radius:9px;padding:7px 10px;font:12.5px Poppins,sans-serif;color:#3e4b57;background:#fff;outline:none}.ed-campo input:focus,.ed-campo textarea:focus{border-color:#d6b3ab;box-shadow:0 0 0 3px #f4e8e5}.ed-campo textarea{min-height:58px;resize:vertical}',
+    '.ed-dois{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ed-dois .ed-campo{min-width:0}.ed-campo input[type=text]{width:100%}',
+    '.ed-cor{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.ed-cor span{color:#3e4b57}.ed-cor input{width:38px;height:26px;border:1px solid #e3d9d4;border-radius:8px;padding:1px;background:#fff;cursor:pointer}',
+    '.ed-logo{display:flex;align-items:center;gap:10px;margin-bottom:10px}.ed-logo .pv{width:86px;height:46px;border:1px dashed #e3d9d4;border-radius:10px;display:grid;place-items:center;overflow:hidden;background:#fbf7f5}.ed-logo .pv img,.ed-logo .pv svg{max-width:80px;max-height:40px}',
+    '.ed-bt{border:1px solid #e3d9d4;background:#fff;border-radius:99px;padding:6px 12px;font:600 11.5px Poppins,sans-serif;color:#3e4b57;cursor:pointer}.ed-bt:hover{border-color:#d6b3ab}.ed-bt.pri{background:#3e4b57;border-color:#3e4b57;color:#fff;width:100%;padding:10px;font-size:13px}',
+    '.ed-chk{display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer}.ed-chk input{accent-color:#3e4b57;width:15px;height:15px}',
+    '.ed-pe{padding:12px 18px 16px;border-top:1px solid var(--b);display:flex;flex-direction:column;gap:8px}.ed-pe .linha{display:flex;gap:6px;flex-wrap:wrap}.ed-pe small{color:#8b939a;font-size:10.5px;line-height:1.35}',
+    '.ed-ok{color:#6b8a72;font-size:11px;min-height:14px}',
     '.folha{position:relative;background:#fff;box-shadow:0 10px 40px -12px rgba(62,75,87,.35);overflow:hidden;font-size:calc(var(--k)*2.75mm);line-height:1.4}',
     '.moldura{position:absolute;border:calc(var(--k)*.35mm) solid var(--t);display:flex;flex-direction:column}',
     '.area{flex:1;min-height:0;position:relative;padding:calc(var(--k)*5mm) calc(var(--k)*6mm) calc(var(--k)*3mm);display:flex;flex-direction:column;gap:calc(var(--k)*3mm);overflow:hidden}',
@@ -98,7 +116,7 @@
     '.obs{margin-top:auto;font-size:calc(var(--k)*1.95mm);color:var(--m);line-height:1.35}.obs b{color:var(--t);font-weight:600}',
     '.desenho text{font-family:Poppins,sans-serif;fill:#66717b}.desenho .rotulo{fill:#3e4b57;font-weight:600}.desenho .piso{stroke:#b9b0a6;stroke-width:1.2;vector-effect:non-scaling-stroke}.desenho .cota line{stroke:#8f857d;stroke-width:.7;vector-effect:non-scaling-stroke}.desenho .abertura{fill:none;stroke-width:.8;stroke-dasharray:5 4;vector-effect:non-scaling-stroke;opacity:.8}.desenho .cuba-linha{stroke:#6f8fb6;stroke-width:1.4;stroke-dasharray:5 3;vector-effect:non-scaling-stroke}.desenho .cuba-txt{fill:#4d6f99}.desenho .tracejado{fill:none;stroke:#fff;stroke-width:1;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}.desenho .rotulo-frente{fill:#fff;font-weight:600}.desenho .rotulo-claro{fill:#ddd}.desenho .alvo{display:none}',
     '.det line,.det rect,.det path{vector-effect:non-scaling-stroke}.det text{font-family:Poppins,sans-serif;fill:#66717b}',
-    '@media print{body{background:#fff}.barra{display:none}#pranchas{padding:0;gap:0;zoom:1!important}.folha{box-shadow:none;break-after:page;page-break-after:always}.folha:last-child{break-after:auto}}'
+    '@media print{body{background:#fff}.barra,.ed{display:none}.ed+#area{margin-left:0}#pranchas{padding:0;gap:0;zoom:1!important}.folha{box-shadow:none;break-after:page;page-break-after:always}.folha:last-child{break-after:auto}}'
   ].join('\n');
 
   // ------------------------------------------------------------ desenhos de detalhe
@@ -228,25 +246,26 @@
     var areaW = Wf - mE - mO - 12 * k, areaH = Hf - 2 * mO - carH - 8 * k;
     var amb = E.AMBIENTES[spec.ambiente] || E.AMBIENTES.seco;
     var tipoLabel = E.TIPOS[spec.tipo].label;
-    var proj = dados.projeto || {}, escr = dados.escritorio || {};
+    var proj = est.projeto || dados.projeto || {}, escr = est.escritorio || dados.escritorio || {};
     var neutro = est.visual === 'neutro';
     var paginas = [];
-    var codigo = String(spec.codigo || 'M01');
+    var codigo = String(est.codigo || spec.codigo || 'M01');
+    var secao = 'detalhamento';
     function tv(titulo, escala, selo, sub) { return '<div class="tv">' + (selo ? '<span class="n">' + esc(selo) + '</span>' : '') + '<div><b>' + esc(titulo) + '</b><small>' + (escala ? 'escala 1:' + escala : 'sem escala') + (sub ? '<i>' + esc(sub) + '</i>' : '') + '</small></div></div>'; }
     function vfig(conteudo, titulo, escala, selo, sub, estilo) { return '<figure class="vista"' + (estilo ? ' style="' + estilo + '"' : '') + '><div class="vw">' + conteudo + tv(titulo, escala, selo, sub) + '</div></figure>'; }
     var oc = { unidade: est.unidade, corCota: est.corCota, corCotaTexto: est.corNumero || est.corCota };
 
     function carimbo(num, total, escala) {
-      var logo = escr.logo ? '<img src="' + esc(escr.logo) + '" alt="">' : logoSvg(neutro ? '#1f1f1f' : '#3e4b57', '#f5f1ee');
+      var logo = escr.logo ? '<img src="' + esc(escr.logo) + '" alt="">' : logoSvg(neutro ? '#1f1f1f' : (est.corPrincipal || '#3e4b57'), '#f5f1ee');
       return '<div class="carimbo">' +
         '<div class="tit"><div class="lg">' + logo + '</div><small>' + esc(proj.etapa || 'detalhamento de marcenaria') + '</small><div class="nome">' + esc(spec.nome) + '</div></div>' +
         '<div class="kv"><small>cliente</small><span>' + esc(proj.cliente || '—') + '</span><small>obra</small><span>' + esc(proj.obra || '—') + '</span><small>ambiente</small><span>' + esc(amb.label) + '</span><small>móvel</small><span>' + esc(tipoLabel) + '</span></div>' +
-        '<div class="kv"><small>data</small><span>' + dataHoje() + '</span><small>escala</small><span>' + (escala ? '1/' + escala : 'indicada') + '</span><small>folha</small><span>' + esc(est.folha) + '</span><small>revisão</small><span>' + esc(proj.revisao || 'R00') + '</span></div>' +
-        '<div class="notas"><small>notas</small>Conferir medidas no local antes da produção. Cotas em ' + ({ m: 'metros', cm: 'centímetros', mm: 'milímetros' }[est.unidade]) + '. Imprimir em 100% (escala real). Detalhamento a ser revisado com o marceneiro.</div>' +
+        '<div class="kv"><small>data</small><span>' + esc(proj.data || dataHoje()) + '</span><small>escala</small><span>' + (escala ? '1/' + escala : 'indicada') + '</span><small>folha</small><span>' + esc(est.folha) + '</span><small>revisão</small><span>' + esc(proj.revisao || 'R00') + '</span></div>' +
+        '<div class="notas"><small>notas</small>' + (est.notas ? esc(est.notas).replace(/\n/g, '<br>') : 'Conferir medidas no local antes da produção. Cotas em ' + ({ m: 'metros', cm: 'centímetros', mm: 'milímetros' }[est.unidade]) + '. Imprimir em 100% (escala real). Detalhamento a ser revisado com o marceneiro.') + '</div>' +
         '<div class="kv"><small>escritório</small><span><b>' + esc(escr.nome || '—') + '</b></span><small>resp.</small><span>' + esc(escr.responsavel || '—') + '</span><small>registro</small><span>' + esc(escr.registro || '—') + '</span><small>contato</small><span>' + esc([escr.email, escr.contato].filter(Boolean).join(' · ') || '—') + '</span></div>' +
         '<div class="num"><b>' + ('0' + num).slice(-2) + '</b><small>de ' + ('0' + total).slice(-2) + '</small></div></div>';
     }
-    function pagina(conteudo, escala) { paginas.push({ c: conteudo, e: escala }); }
+    function pagina(conteudo, escala) { paginas.push({ c: conteudo, e: escala, s: secao }); }
     function cabeca(ey, titulo) { return '<p class="ey">' + ey + '</p>' + (titulo ? '<h1>' + titulo + '</h1>' : ''); }
 
     // 01 · prancha de detalhamento (no formato dos detalhamentos de escritório):
@@ -292,6 +311,7 @@
       (spec.led && spec.led.ativo ? ' · LED ' + spec.led.temperatura + 'K' : '') + '<br>Conferir todas as medidas no local antes da execução. Cotas em ' + ({ m: 'metros', cm: 'centímetros', mm: 'milímetros' }[est.unidade]) + '.</div></div>';
     pagina('<p class="ey"><span style="text-transform:none">' + esc(codigo) + '</span> · detalhamento · ' + esc(tipoLabel.toLowerCase()) + '</p><div class="dt" style="grid-template-columns:1fr ' + n1(wDir) + 'mm"><div class="dt-esq">' + topo + baixo + '</div>' + dir + '</div>', fT1.escala);
 
+    secao = 'planta';
     // planta de marcenaria (todos os móveis do marcê no arquivo, com código)
     if (img.mapa && img.mapa.itens && img.mapa.itens.length) {
       var itensM = img.mapa.itens.slice().sort(function (a, b) { return String(a.codigo).localeCompare(String(b.codigo)); });
@@ -299,6 +319,7 @@
         '<div class="lado"><h2>quadro de marcenaria</h2><table>' + itensM.map(function (it) { return '<tr' + (it.atual ? ' class="atual"' : '') + '><td><span class="cod">' + esc(it.codigo || '—') + '</span></td><td>' + esc(it.nome) + '</td></tr>'; }).join('') + '</table><p class="nota">Destaque: o móvel desta prancha. Os outros móveis do marcê no arquivo aparecem com o código de cada um.</p></div></div>');
     }
 
+    secao = 'vistas';
     // vistas e cortes: o marcê monta na prancha o máximo de vistas na mesma escala (a maior que couber).
     // Planta com as linhas de corte A, B, C...; cortes de cada tipo de coluna; simbologia no fim.
     var letras = 'ABCDEFGH';
@@ -369,12 +390,14 @@
         '<div class="pk">' + fv.rows.map(function (r) { return '<div class="pk-l">' + r.itens.map(function (it) { return it.html; }).join('') + '</div>'; }).join('') + '</div>', fv.E);
     });
 
+    secao = 'detalhes';
     // detalhes construtivos (todos os que valem para o móvel), 6 por prancha
     for (var di = 0; di < dets.length; di += 6) {
       pagina(cabeca('<span style="text-transform:none">' + esc(codigo) + '</span> · detalhes construtivos' + (dets.length > 6 ? ' · ' + (di / 6 + 1) + '/' + Math.ceil(dets.length / 6) : '')) +
         '<div class="mds">' + dets.slice(di, di + 6).map(function (dt, i) { return cartaoMd(dt, di + i); }).join('') + '</div>');
     }
 
+    secao = 'elementos';
     // 03 · planta baixa + detalhes
     var els = (M.elementos || []).slice();
     (M.eletros || []).forEach(function (e) { els.push({ tipo: 'eletro', nome: 'Nicho ' + e.tipo.toLowerCase(), col: e.col, largura: e.largura, altura: e.altura, prof: e.prof, recomendado: e.recomendado, texto: e.obs }); });
@@ -395,6 +418,7 @@
     });
     for (var ci = 0; ci < cards.length; ci += 6) pagina(cabeca('detalhamento dos elementos' + (cards.length > 6 ? ' · ' + (ci / 6 + 1) + '/' + Math.ceil(cards.length / 6) : '')) + '<div class="dets">' + cards.slice(ci, ci + 6).join('') + '</div>');
 
+    secao = 'especificacao';
     // 04 · especificação + conferência
     var pux = E.PUXADORES[spec.puxador.tipo] + (spec.puxador.tipo === 'alca' ? ' ' + spec.puxador.comprimento + ' mm' : '');
     var base = { rodape: 'Rodapé recuado ' + spec.base.altura + ' mm (recuo ' + spec.base.recuo + ' mm)', pes: 'Pés reguláveis com saia (' + spec.base.altura + ' mm)', suspenso: 'Suspenso — fixação oculta na parede', nenhum: 'Sobre base existente na obra' }[spec.base.tipo];
@@ -410,6 +434,7 @@
       '</table><div><h2 style="margin-bottom:' + n1(2 * k) + 'mm">conferência técnica</h2><ul class="conf">' +
       M.avisos.map(function (a) { return '<li><span class="ic ' + a.nivel + '">' + (ICONE[a.nivel] || ICONE.info) + '</span><span>' + esc(a.msg) + '</span></li>'; }).join('') + '</ul></div></div>');
 
+    secao = 'lista';
     // 05 · lista de peças (paginada)
     var linhas = E.listaDePecas(M.pecas, spec.materiais);
     var linhaMm = 5.15 * k, cabMm = 18 * k;
@@ -428,6 +453,7 @@
       pagina(cabeca('lista de peças' + (blocos.length > 1 ? ' · ' + (i + 1) + '/' + blocos.length : '')) + cab + b.join('') + '</tbody></table>' + (i === blocos.length - 1 ? '<p class="nota">Medidas em mm, brutas (sem desconto de fita). Fita: lados no comprimento (C) e na largura (L).</p>' : ''));
     });
 
+    secao = 'corte';
     // 06 · estimativa e plano de corte
     var estC = E.estimativaChapas(M.pecas, spec.chapa);
     var plano = N.otimizar(N.pecasDoModelo(M.pecas, spec.materiais), spec.chapa);
@@ -441,21 +467,46 @@
       fi += nFig; primeira = false;
     } while (fi < figs.length);
 
+    secao = 'checklist';
     // 07 · verificações e checklist
     var ver = E.VERIFICACOES[spec.ambiente] || E.VERIFICACOES.seco;
     pagina(cabeca('verificações e checklist de entrega') + '<div class="col2" style="grid-template-columns:1fr 1fr"><div><h2>verificações · ' + esc(amb.label.toLowerCase()) + '</h2><p class="nota">' + esc(ver.titulo.toLowerCase()) + '</p><ul class="check">' + ver.itens.map(function (i) { return '<li><span>' + esc(i) + '</span></li>'; }).join('') + '</ul></div><div><h2>checklist de entrega</h2><ul class="check">' + E.CHECKLIST.map(function (c) { return '<li><span><b>' + esc(c[0]) + '</b> — ' + esc(c[1]) + '</span></li>'; }).join('') + '</ul></div></div>');
 
+    var sel = est.paginas || {};
+    paginas = paginas.filter(function (p) { return sel[p.s] !== false; });
     var total = paginas.length;
+    var cores = neutro ? '' : ';--t:' + (est.corPrincipal || '#3e4b57') + ';--ink:' + (est.corDestaque || '#a88a80') + ';--rose:' + (est.corDestaque2 || est.corDestaque || '#d6b3ab') + ';--tint:' + clarear(est.corDestaque || '#a88a80', 0.86);
     return paginas.map(function (p, i) {
-      return '<section class="folha" style="width:' + Wf + 'mm;height:' + Hf + 'mm;--k:' + k + '"><div class="moldura" style="left:' + n1(mE) + 'mm;top:' + n1(mO) + 'mm;right:' + n1(mO) + 'mm;bottom:' + n1(mO) + 'mm"><div class="area">' + p.c + '</div>' + carimbo(i + 1, total, p.e) + '</div></section>';
+      return '<section class="folha" style="width:' + Wf + 'mm;height:' + Hf + 'mm;--k:' + k + cores + '"><div class="moldura" style="left:' + n1(mE) + 'mm;top:' + n1(mO) + 'mm;right:' + n1(mO) + 'mm;bottom:' + n1(mO) + 'mm"><div class="area">' + p.c + '</div>' + carimbo(i + 1, total, p.e) + '</div></section>';
     }).join('');
   }
 
-  // Monta e liga a barra (roda dentro do relatório aberto no navegador)
+  // ------------------------------------------------------------ editor de pranchas (no navegador)
+  // Tudo o que é visual da prancha se ajusta aqui, fora do SketchUp: folha, cores, cota, logotipo,
+  // dados do escritório e do projeto, notas e quais pranchas entram. Fica salvo no navegador.
+  var PAGS = [['detalhamento', 'detalhamento (isométricas)'], ['planta', 'planta de marcenaria'], ['vistas', 'vistas e cortes'], ['detalhes', 'detalhes construtivos'],
+    ['elementos', 'detalhes dos elementos'], ['especificacao', 'especificação e conferência'], ['lista', 'lista de peças'], ['corte', 'plano de corte'], ['checklist', 'verificações e checklist']];
+  var CHAVE_ESC = 'marce-editor-escritorio';
+  function ler(ch) { try { var v = root.localStorage.getItem(ch); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
+  function gravar(ch, v) { try { root.localStorage.setItem(ch, JSON.stringify(v)); return true; } catch (e) { return false; } }
+
   function montar(dados) {
     var doc = root.document;
-    var est = Object.assign({ folha: 'A4', visual: 'marce', unidade: 'cm', corCota: '#c0392b', corNumero: '' }, dados.prancha || {});
+    var chaveProj = 'marce-editor-projeto:' + String(dados.arquivo || dados.spec.nome || 'projeto');
+    var base = Object.assign({ folha: 'A4', visual: 'marce', unidade: 'cm', corCota: '#c0392b', corNumero: '', corPrincipal: '#3e4b57', corDestaque: '#a88a80', notas: '', paginas: {} }, dados.prancha || {});
+    var salvoE = ler(CHAVE_ESC) || {}, salvoP = ler(chaveProj) || {};
+    var est = Object.assign(base, salvoE.prancha || {});
     if (!est.corNumero) est.corNumero = est.corCota;
+    est.escritorio = Object.assign({}, dados.escritorio || {}, salvoE.escritorio || {});
+    est.projeto = Object.assign({ data: dataHoje() }, dados.projeto || {}, salvoP.projeto || {});
+    est.codigo = salvoP.codigo || dados.spec.codigo || 'M01';
+    var timer = null;
+
+    function salvar() {
+      var pr = {}; ['folha', 'visual', 'unidade', 'corCota', 'corNumero', 'corPrincipal', 'corDestaque', 'notas', 'paginas'].forEach(function (k) { pr[k] = est[k]; });
+      var ok = gravar(CHAVE_ESC, { prancha: pr, escritorio: est.escritorio }) & gravar(chaveProj, { projeto: est.projeto, codigo: est.codigo });
+      var el = doc.getElementById('ed-ok'); if (el) el.textContent = ok ? 'salvo neste navegador' : 'não foi possível salvar neste navegador';
+    }
     function desenhar() {
       var dim = FOLHAS[est.folha];
       doc.body.className = est.visual === 'neutro' ? 'neutro' : '';
@@ -463,44 +514,108 @@
       doc.getElementById('pranchas').innerHTML = montarPranchas(dados, est);
       ajustarZoom();
       Array.prototype.forEach.call(doc.querySelectorAll('[data-f]'), function (b) { b.classList.toggle('ativo', b.getAttribute('data-v') === String(est[b.getAttribute('data-f')])); });
-      doc.getElementById('dica-papel').textContent = 'Na impressão: papel ' + est.folha + ' deitado, margens "nenhuma", escala 100% — assim os desenhos saem na escala indicada.';
+      var pv = doc.getElementById('ed-logo-pv'); if (pv) pv.innerHTML = est.escritorio.logo ? '<img src="' + esc(est.escritorio.logo) + '" alt="">' : logoSvg(est.corPrincipal, '#f5f1ee');
+      doc.getElementById('dica-papel').textContent = 'Na impressão: papel ' + est.folha + ' deitado, margens "nenhuma", escala 100%: os desenhos saem na escala indicada.';
     }
+    function depois() { clearTimeout(timer); timer = setTimeout(function () { desenhar(); salvar(); }, 250); }
     function ajustarZoom() {
       var dim = FOLHAS[est.folha];
       var px = dim[0] * 96 / 25.4;
-      var z = Math.min(1, (root.innerWidth - 40) / px);
-      doc.getElementById('pranchas').style.zoom = z;
+      var livre = root.innerWidth - (doc.querySelector('.ed') ? 330 : 0) - 40;
+      doc.getElementById('pranchas').style.zoom = Math.min(1, livre / px);
+    }
+    function preencher() {
+      Array.prototype.forEach.call(doc.querySelectorAll('[data-e]'), function (el) {
+        var c = el.getAttribute('data-e').split('.'), alvo = c[0] === 'est' ? est : est[c[0]];
+        var v = alvo ? alvo[c[1]] : '';
+        if (el.type === 'checkbox') el.checked = (est.paginas || {})[c[1]] !== false;
+        else el.value = v === undefined || v === null ? '' : v;
+      });
     }
     doc.addEventListener('click', function (ev) {
       var b = ev.target.closest('[data-f]');
-      if (!b) return;
-      est[b.getAttribute('data-f')] = b.getAttribute('data-v');
-      desenhar();
+      if (b) { est[b.getAttribute('data-f')] = b.getAttribute('data-v'); desenhar(); salvar(); return; }
+      var a = ev.target.closest('[data-acao]');
+      if (!a) return;
+      var acao = a.getAttribute('data-acao');
+      if (acao === 'imprimir') root.print();
+      if (acao === 'tirar-logo') { delete est.escritorio.logo; desenhar(); salvar(); }
+      if (acao === 'exportar') {
+        var blob = new Blob([JSON.stringify({ marce: 'configuracao', prancha: (ler(CHAVE_ESC) || {}).prancha, escritorio: est.escritorio }, null, 2)], { type: 'application/json' });
+        var l = doc.createElement('a'); l.href = URL.createObjectURL(blob); l.download = 'marce-configuracao.json'; doc.body.appendChild(l); l.click(); l.remove();
+      }
+      if (acao === 'importar') doc.getElementById('ed-imp').click();
+      if (acao === 'padrao') {
+        Object.assign(est, { folha: 'A4', visual: 'marce', unidade: 'cm', corCota: '#c0392b', corNumero: '#c0392b', corPrincipal: '#3e4b57', corDestaque: '#a88a80', notas: '', paginas: {} });
+        preencher(); desenhar(); salvar();
+      }
     });
-    doc.getElementById('cor-cota').addEventListener('change', function (ev) { est.corCota = ev.target.value; desenhar(); });
-    doc.getElementById('cor-cota').value = est.corCota;
-    doc.getElementById('cor-num').addEventListener('change', function (ev) { est.corNumero = ev.target.value; desenhar(); });
-    doc.getElementById('cor-num').value = est.corNumero;
+    doc.addEventListener('input', function (ev) {
+      var el = ev.target, ch = el.getAttribute && el.getAttribute('data-e');
+      if (!ch) return;
+      var c = ch.split('.');
+      if (el.type === 'checkbox') { est.paginas = est.paginas || {}; est.paginas[c[1]] = el.checked; }
+      else if (c[0] === 'est') est[c[1]] = el.value;
+      else { est[c[0]] = est[c[0]] || {}; est[c[0]][c[1]] = el.value; }
+      depois();
+    });
+    doc.addEventListener('change', function (ev) {
+      var el = ev.target;
+      if (el.id === 'ed-logo' && el.files && el.files[0]) {
+        var rd = new FileReader();
+        rd.onload = function () {
+          var im = new Image();
+          im.onload = function () {
+            var f = Math.min(1, 600 / Math.max(im.width, im.height));
+            var cv = doc.createElement('canvas'); cv.width = Math.round(im.width * f); cv.height = Math.round(im.height * f);
+            cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height);
+            est.escritorio.logo = cv.toDataURL('image/png'); desenhar(); salvar();
+          };
+          im.src = rd.result;
+        };
+        rd.readAsDataURL(el.files[0]); el.value = '';
+      }
+      if (el.id === 'ed-imp' && el.files && el.files[0]) {
+        var r2 = new FileReader();
+        r2.onload = function () {
+          try {
+            var cfg = JSON.parse(r2.result);
+            if (cfg.prancha) Object.assign(est, cfg.prancha);
+            if (cfg.escritorio) est.escritorio = Object.assign({}, cfg.escritorio);
+            preencher(); desenhar(); salvar();
+          } catch (e) { root.alert('Arquivo de configuração inválido.'); }
+        };
+        r2.readAsText(el.files[0]); el.value = '';
+      }
+    });
     root.addEventListener('resize', ajustarZoom);
+    preencher();
     desenhar();
   }
 
-  // HTML "vivo" do relatório
+  // HTML "vivo" do relatório: editor de pranchas à esquerda e pranchas à direita
   function gerar(M, opts) {
     opts = opts || {};
     var spec = M.spec;
-    var dados = { spec: spec, imagens: opts.imagens || null, versao: opts.versao || '', prancha: opts.prancha || spec.prancha || {}, projeto: opts.projeto || {}, escritorio: opts.escritorio || {} };
+    var dados = { spec: spec, imagens: opts.imagens || null, versao: opts.versao || '', prancha: opts.prancha || spec.prancha || {}, projeto: opts.projeto || {}, escritorio: opts.escritorio || {}, arquivo: opts.arquivo || '' };
     var json = JSON.stringify(dados).replace(/</g, '\\u003c');
-    function grupo(campo, rotulo, ops) { return '<div class="grp"><span>' + rotulo + '</span>' + ops.map(function (o) { return '<button data-f="' + campo + '" data-v="' + o[0] + '">' + o[1] + '</button>'; }).join('') + '</div>'; }
-    var barra = '<div class="barra"><span class="marca">' + logoSvg('#3e4b57', '#f5f1ee') + '<span>marc<i>ê</i></span></span>' +
-      grupo('folha', 'prancha', Object.keys(FOLHAS).map(function (f) { return [f, f]; })) +
-      grupo('visual', 'visual', [['marce', 'identidade marcê'], ['neutro', 'neutro']]) +
-      grupo('unidade', 'cotas', [['cm', 'cm'], ['m', 'metros'], ['mm', 'mm']]) +
-      '<div class="grp"><span>linha da cota</span><input type="color" id="cor-cota" value="#c0392b"></div>' +
-      '<div class="grp"><span>número</span><input type="color" id="cor-num" value="#c0392b"></div>' +
-      '<button class="pri" onclick="window.print()">imprimir / salvar pdf</button><span class="dica" id="dica-papel"></span></div>';
-    return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Relatório executivo · ' + esc(spec.nome) + '</title><style>' + CSS + '</style><style id="pagina"></style></head><body>' +
-      barra + '<div id="pranchas"></div>' +
+    function pills(campo, ops) { return '<div class="ed-pills">' + ops.map(function (o) { return '<button data-f="' + campo + '" data-v="' + o[0] + '">' + o[1] + '</button>'; }).join('') + '</div>'; }
+    function campo(rot, ch, ph) { return '<div class="ed-campo"><label>' + rot + '</label><input type="text" data-e="' + ch + '" placeholder="' + esc(ph || '') + '"></div>'; }
+    function cor(rot, ch) { return '<label class="ed-cor"><span>' + rot + '</span><input type="color" data-e="' + ch + '"></label>'; }
+    function sec(t, c) { return '<div class="ed-sec"><p class="ed-h">' + t + '</p>' + c + '</div>'; }
+    var ed = '<aside class="ed"><div class="ed-top">' + logoSvg('#3e4b57', '#f5f1ee') + '<div><b>marc<i>ê</i> · pranchas</b><small>' + esc(spec.nome) + '</small></div></div><div class="ed-sc">' +
+      sec('folha', pills('folha', Object.keys(FOLHAS).map(function (f) { return [f, f]; })) + pills('visual', [['marce', 'com cores'], ['neutro', 'neutro (preto e cinza)']])) +
+      sec('cores da prancha', cor('cor principal (textos e molduras)', 'est.corPrincipal') + cor('cor de destaque (títulos e selos)', 'est.corDestaque')) +
+      sec('cotas', pills('unidade', [['cm', 'cm (80,0)'], ['m', 'metros'], ['mm', 'mm']]) + cor('linha da cota', 'est.corCota') + cor('número da cota', 'est.corNumero')) +
+      sec('logotipo', '<div class="ed-logo"><div class="pv" id="ed-logo-pv"></div><div style="display:flex;flex-direction:column;gap:6px"><label class="ed-bt" style="text-align:center">escolher imagem<input type="file" id="ed-logo" accept="image/*" hidden></label><button class="ed-bt" data-acao="tirar-logo">usar o do marcê</button></div></div>') +
+      sec('escritório', campo('nome', 'escritorio.nome', 'Nome do escritório') + campo('responsável técnico', 'escritorio.responsavel', 'Arq. Nome Sobrenome') + '<div class="ed-dois">' + campo('CAU / CREA', 'escritorio.registro', 'A000000-0') + campo('telefone / instagram', 'escritorio.contato', '@escritorio') + '</div>' + campo('e-mail', 'escritorio.email', 'contato@...')) +
+      sec('projeto', campo('cliente', 'projeto.cliente') + campo('obra / endereço', 'projeto.obra') + campo('etapa', 'projeto.etapa', 'detalhamento de marcenaria') + '<div class="ed-dois">' + campo('revisão', 'projeto.revisao', 'R00') + campo('data', 'projeto.data') + '</div>' + campo('código do móvel', 'est.codigo', 'M01')) +
+      sec('notas do carimbo', '<div class="ed-campo"><textarea data-e="est.notas" placeholder="Conferir medidas no local antes da produção..."></textarea></div>') +
+      sec('pranchas que entram', PAGS.map(function (pg) { return '<label class="ed-chk"><input type="checkbox" data-e="paginas.' + pg[0] + '">' + pg[1] + '</label>'; }).join('')) +
+      '</div><div class="ed-pe"><button class="ed-bt pri" data-acao="imprimir">imprimir / salvar PDF</button><div class="linha"><button class="ed-bt" data-acao="exportar">exportar configuração</button><button class="ed-bt" data-acao="importar">importar</button><button class="ed-bt" data-acao="padrao">voltar ao padrão</button></div>' +
+      '<input type="file" id="ed-imp" accept="application/json,.json" hidden><span class="ed-ok" id="ed-ok"></span><small id="dica-papel"></small></div></aside>';
+    return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pranchas · ' + esc(spec.nome) + '</title><style>' + CSS + '</style><style id="pagina"></style></head><body>' +
+      ed + '<main id="area"><div id="pranchas"></div></main>' +
       '<script data-marce="engine.js" src="engine.js"></script><script data-marce="nesting.js" src="nesting.js"></script><script data-marce="render.js" src="render.js"></script><script data-marce="detalhes.js" src="detalhes.js"></script><script data-marce="report.js" src="report.js"></script>' +
       '<script>window.__MARCE__=' + json + ';MarceRelatorio.montar(window.__MARCE__);</script></body></html>';
   }

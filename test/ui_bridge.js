@@ -42,7 +42,7 @@ const assert = require('assert');
   await p.waitForTimeout(200);
   ch = await p.evaluate(() => window.__chamadas);
   const r = ch.find((c) => c[0] === 'salvarRelatorio');
-  assert.ok(r && r[1].html.includes('Relatório executivo') && r[1].html.includes('/*MARCE_FONTES*/') && r[1].html.includes('data:image/png'), 'relatório enviado ao Ruby com marcador de fontes e imagem');
+  assert.ok(r && r[1].html.includes('marc<i>ê</i> · pranchas') && r[1].html.includes('/*MARCE_FONTES*/') && r[1].html.includes('data:image/png'), 'relatório enviado ao Ruby com marcador de fontes e imagem');
   assert.ok((await p.isVisible('#badge-modo')), 'passa para modo edição');
 
   // edição de um móvel existente

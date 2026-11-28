@@ -1,5 +1,14 @@
 [
   {
+    "versao": "1.10.0",
+    "notas": [
+      "O relatório agora abre no navegador como um editor de pranchas: painel ao lado com folha, cores da prancha (principal e destaque), unidade e cores da cota (linha e número), logotipo, dados do escritório e do projeto, notas do carimbo e quais pranchas entram",
+      "A prévia atualiza na hora e tudo fica salvo no navegador: o escritório e o logotipo valem para os próximos relatórios; os dados do projeto ficam guardados por arquivo",
+      "Exportar e importar a configuração (arquivo .json) para levar a mesma identidade a outro computador",
+      "A aba Relatório do plugin ficou enxuta: só o botão do editor, o CSV e o código do móvel (o plugin fica mais leve)"
+    ]
+  },
+  {
     "versao": "1.9.0",
     "notas": [
       "Pranchas de \"vistas e cortes\" montadas sozinhas: vista frontal, corte frontal, planta baixa, vista lateral e cortes A, B, C na mesma escala, juntando o máximo de vistas por prancha (a maior escala que couber)",

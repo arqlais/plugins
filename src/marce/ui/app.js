@@ -15,7 +15,7 @@
     spec: null, modelo: null, modo: 'novo', volume: null,
     sel: { col: 0, secao: 0 }, aba: 'movel', vista: 'frontal', aberto3d: false,
     picker: null, marcaPicker: 'Todas', busca: '', confAberta: true, relatorioJunto: true,
-    padroes: null, projeto: {}, versao: '1.9.0', gerando: false, atualizacao: null, atualizando: false
+    padroes: null, projeto: {}, versao: '1.10.0', gerando: false, atualizacao: null, atualizando: false
   };
 
   // ---------------------------------------------------------------- utilidades
@@ -511,33 +511,10 @@
   }
 
   function abaRelatorio() {
-    var pr = st.spec.prancha || {};
-    var pj = st.projeto || {};
-    var es = (st.padroes && st.padroes.escritorio) || {};
-    var h = '<div class="grupo"><h4>Relatório executivo' + aj('relatorio') + '</h4><p class="ajuda amb">Sai em pranchas com carimbo: detalhamento com isométricas, vistas e cortes montados na mesma escala (o marcê junta o máximo de vistas por prancha), detalhes construtivos, especificação, conferência técnica, lista de peças, plano de corte e checklist de entrega.</p>';
-    h += '<label class="interruptor"><input type="checkbox" data-act-chk="relatorioJunto"' + (st.relatorioJunto ? ' checked' : '') + '><span class="trilho"></span><span class="txt">Salvar o relatório junto ao gerar o móvel</span></label>';
-    h += '<div class="linha-botoes"><button class="botao" data-act="relatorio">Abrir relatório agora</button><button class="botao" data-act="csv">Exportar lista de peças (CSV)</button></div></div>';
-    h += '<div class="grupo"><h4>Prancha' + aj('prancha') + '</h4><div class="campo"><label>Tamanho da folha (deitada)</label></div>' + pilulas('prancha.folha', [['A4', 'A4'], ['A3', 'A3'], ['A2', 'A2'], ['A1', 'A1'], ['A0', 'A0']], true);
-    h += '<div class="campo"><label>Visual</label></div>' + pilulas('prancha.visual', [['marce', 'Identidade marcê'], ['neutro', 'Neutro']], true);
-    h += '<div class="campo"><label>Código do móvel</label><input type="text" data-path="codigo" value="' + esc(st.spec.codigo || 'M01') + '" placeholder="M01" maxlength="8" style="max-width:90px"></div><p class="ajuda">O código aparece no selo da isométrica e no topo de cada prancha (M01, M02...), como na planta de marcenaria do projeto.</p>';
-    h += '<div class="campo"><label>Unidade das cotas</label></div>' + pilulas('prancha.unidade', [['cm', 'cm (80,0)'], ['m', 'Metros'], ['mm', 'mm']], true);
-    h += '<div class="campo"><label>Cor da linha da cota</label><input type="color" data-path="prancha.corCota" value="' + esc(pr.corCota || '#c0392b') + '" style="width:44px;height:28px;border:0;background:none"></div>';
-    h += '<div class="campo"><label>Cor do número da cota</label><input type="color" data-path="prancha.corNumero" value="' + esc(pr.corNumero || pr.corCota || '#c0392b') + '" style="width:44px;height:28px;border:0;background:none"></div>';
-    h += '<p class="ajuda">Dá para trocar tudo isso também na barra do relatório aberto.</p></div>';
-    h += '<div class="grupo"><h4>Dados do projeto' + aj('projeto') + '</h4>' +
-      campoTexto('Cliente', 'proj', 'cliente', pj.cliente, 'Ex.: Laura e Pedro') +
-      campoTexto('Obra / endereço', 'proj', 'obra', pj.obra, 'Ex.: Apto 1203') +
-      campoTexto('Etapa', 'proj', 'etapa', pj.etapa, 'Detalhamento de marcenaria') +
-      campoTexto('Revisão', 'proj', 'revisao', pj.revisao, 'R00') +
-      '<p class="ajuda">Valem para todos os móveis deste arquivo.</p></div>';
-    h += '<div class="grupo"><h4>Carimbo do escritório' + aj('carimbo') + '</h4>' +
-      '<div class="campo"><label>Logo</label>' + (es.logo ? '<img src="' + esc(es.logo) + '" alt="" style="height:28px;max-width:90px;object-fit:contain">' : '') + '<label class="botao pequeno" style="flex:none">' + (es.logo ? 'trocar' : 'escolher logo') + '<input type="file" id="logo-arquivo" accept="image/*" hidden></label>' + (es.logo ? '<button class="botao pequeno fantasma" data-act="tirarLogo">tirar</button>' : '') + '</div>' +
-      campoTexto('Escritório', 'escr', 'nome', es.nome, 'Nome do escritório') +
-      campoTexto('Responsável técnico', 'escr', 'responsavel', es.responsavel, 'Arq. Nome Sobrenome') +
-      campoTexto('CAU / CREA', 'escr', 'registro', es.registro, 'A000000-0') +
-      campoTexto('E-mail', 'escr', 'email', es.email, 'contato@…') +
-      campoTexto('Telefone / Instagram', 'escr', 'contato', es.contato, '@seuescritorio') +
-      '<p class="ajuda">Preencha uma vez: aparece no carimbo de todas as pranchas, em todos os projetos.</p></div>';
+    var h = '<div class="grupo"><h4>Relatório executivo' + aj('relatorio') + '</h4><p class="ajuda amb">O relatório abre no navegador como um <b>editor de pranchas</b>: lá você escolhe folha, cores, cota, logotipo, dados do escritório e do projeto e quais pranchas entram. Fica salvo no navegador e não pesa no SketchUp.</p>';
+    h += '<label class="interruptor"><input type="checkbox" data-act-chk="relatorioJunto"' + (st.relatorioJunto ? ' checked' : '') + '><span class="trilho"></span><span class="txt">Abrir o editor de pranchas junto ao gerar o móvel</span></label>';
+    h += '<div class="linha-botoes"><button class="botao" data-act="relatorio">Abrir editor de pranchas</button><button class="botao" data-act="csv">Exportar lista de peças (CSV)</button></div></div>';
+    h += '<div class="grupo"><h4>Código do móvel</h4><div class="campo"><label>Código na planta de marcenaria</label><input type="text" data-path="codigo" value="' + esc(st.spec.codigo || 'M01') + '" placeholder="M01" maxlength="8" style="max-width:90px"></div><p class="ajuda">Cada móvel novo recebe o próximo código livre (M01, M02...). Ele aparece no selo da isométrica, no topo das pranchas e na planta de marcenaria.</p></div>';
     h += '<div class="grupo"><h4>No modelo</h4><p class="ajuda">Depois de gerar: use <b>Extensões → marcê → Abrir/fechar portas e gavetas</b> e clique numa porta ou gaveta para ver o interior. Para editar, selecione o móvel e clique em <b>Editar móvel</b> (ou botão direito → marcê).</p></div>';
     return h;
   }
@@ -760,7 +737,7 @@
   }
 
   function abrirRelatorio(imagens) {
-    var html = REL.gerar(st.modelo, { imagens: imagens, versao: st.versao, prancha: st.spec.prancha, projeto: st.projeto || {}, escritorio: (st.padroes && st.padroes.escritorio) || {} });
+    var html = REL.gerar(st.modelo, { imagens: imagens, versao: st.versao, prancha: st.spec.prancha, projeto: st.projeto || {}, escritorio: (st.padroes && st.padroes.escritorio) || {}, arquivo: st.arquivo || '' });
     var nome = 'Relatorio - ' + nomeArquivo(st.spec.nome) + '.html';
     if (!enviar('salvarRelatorio', { html: html, nome: nome })) {
       var w = window.open('', '_blank');
@@ -863,6 +840,7 @@
           st.modo = msg.modo || 'novo';
           st.padroes = msg.padroes || null;
           st.projeto = msg.projeto || st.projeto || {};
+          st.arquivo = msg.arquivo || st.arquivo || '';
           st.versao = msg.versao || st.versao;
           var spec;
           if (msg.spec) spec = E.normalizar(msg.spec);

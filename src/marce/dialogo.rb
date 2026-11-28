@@ -35,7 +35,7 @@ module ArqLais
       end
 
       def mostrar(ctx, msg)
-        msg = msg.merge('projeto' => ler_projeto(Sketchup.active_model))
+        msg = msg.merge('projeto' => ler_projeto(Sketchup.active_model), 'arquivo' => File.basename(Sketchup.active_model.path.to_s))
         novidades = Aviso.nao_vistas
         unless novidades.empty?
           msg = msg.merge('novidades' => novidades)

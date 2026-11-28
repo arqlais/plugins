@@ -5,7 +5,7 @@
   "description": "marcê — marcenaria paramétrica para SketchUp",
   "scripts": {
     "test": "node --test test/engine.test.js && ruby test/ruby_test.rb && ruby test/atualizar_test.rb",
-    "test:ui": "node test/ui_smoke.js test/prints && node test/ui_bridge.js",
+    "test:ui": "node test/ui_smoke.js test/prints && node test/ui_bridge.js && node test/pranchas.js test/prints && node test/editor_pranchas.js",
     "icones": "node tools/gerar_icones.js",
     "empacotar": "bash tools/empacotar.sh"
   }

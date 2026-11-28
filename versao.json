@@ -1,12 +1,11 @@
 {
-  "versao": "1.9.0",
+  "versao": "1.10.0",
   "rbz": "dist/marce.rbz",
-  "sha256": "3a624b5a62a6f20e017c2c8cf26feceff8ddb313ebc99dc678160432b83434a1",
+  "sha256": "acc2e37a0cde5811c04fcab5d3a5f87ef55246e2ba51e8cfceac84115ae6c6c5",
   "notas": [
-    "Pranchas de \"vistas e cortes\" montadas sozinhas: vista frontal, corte frontal, planta baixa, vista lateral e cortes A, B, C na mesma escala, juntando o máximo de vistas por prancha (a maior escala que couber)",
-    "Planta baixa com as linhas de corte A-A, B-B, C-C (traço-ponto, letras e setas)",
-    "Legenda de todas as vistas sempre no mesmo lugar: desenho centralizado e título logo abaixo, alinhado à esquerda do desenho",
-    "Cota com duas cores: a da linha e a do número (na aba Relatório e na barra do relatório aberto); unidade em cm, metros ou mm",
-    "Textos dentro de nichos estreitos diminuem para caber"
+    "O relatório agora abre no navegador como um editor de pranchas: painel ao lado com folha, cores da prancha (principal e destaque), unidade e cores da cota (linha e número), logotipo, dados do escritório e do projeto, notas do carimbo e quais pranchas entram",
+    "A prévia atualiza na hora e tudo fica salvo no navegador: o escritório e o logotipo valem para os próximos relatórios; os dados do projeto ficam guardados por arquivo",
+    "Exportar e importar a configuração (arquivo .json) para levar a mesma identidade a outro computador",
+    "A aba Relatório do plugin ficou enxuta: só o botão do editor, o CSV e o código do móvel (o plugin fica mais leve)"
   ]
 }
